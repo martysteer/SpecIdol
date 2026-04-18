@@ -255,6 +255,40 @@ async def handle_message(websocket, message_data):
             "data": {}
         })
 
+    elif msg_type == "import_session":
+        stories = data.get("stories", [])
+        config = data.get("config", {})
+
+        # Validate stories format
+        if not isinstance(stories, list):
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Invalid stories format"}
+            }))
+            return
+
+        for story in stories:
+            if not isinstance(story, dict) or "title" not in story or "text" not in story:
+                await websocket.send(json.dumps({
+                    "type": "error",
+                    "data": {"message": "Invalid story format"}
+                }))
+                return
+
+        # Merge config (only allowed keys)
+        if "timer_duration" in config:
+            session["config"]["timer_duration"] = int(config["timer_duration"])
+        if "judge_count" in config:
+            session["config"]["judge_count"] = int(config["judge_count"])
+
+        # Replace stories
+        session["stories"] = stories
+
+        await broadcast({
+            "type": "session_imported",
+            "data": {"story_count": len(stories)}
+        })
+
 async def broadcast(message, exclude=None):
     """Send message to all connected clients except exclude"""
     websockets_to_send = [
