@@ -37,10 +37,23 @@ def generate_code():
     """Generate 4 uppercase letter code"""
     return ''.join(random.choices(string.ascii_uppercase, k=4))
 
+CONTROLLER_ONLY = {"add_story", "remove_story", "round_start", "speed_change",
+                    "pause", "resume", "reset_round", "import_session"}
+
 async def handle_message(websocket, message_data):
     """Process incoming message and broadcast responses"""
     msg_type = message_data.get("type")
     data = message_data.get("data", {})
+
+    # Auth check for controller-only actions
+    if msg_type in CONTROLLER_ONLY:
+        client_info = session["clients"].get(websocket, {})
+        if client_info.get("role") != "controller":
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Only controller can perform this action"}
+            }))
+            return
 
     if msg_type == "create_session":
         session["code"] = generate_code()
@@ -104,7 +117,7 @@ async def handle_message(websocket, message_data):
 
     elif msg_type == "remove_story":
         story_index = data.get("story_index")
-        if 0 <= story_index < len(session["stories"]):
+        if story_index is not None and 0 <= story_index < len(session["stories"]):
             session["stories"].pop(story_index)
             await broadcast({
                 "type": "story_removed",
@@ -181,6 +194,10 @@ async def handle_message(websocket, message_data):
             })
 
     elif msg_type == "buzz":
+        # Only accept buzzes during a running round
+        if session["current_round"]["status"] != "running":
+            return
+
         judge_id = data.get("judge_id")
         client_info = session["clients"].get(websocket, {})
 
