@@ -278,7 +278,8 @@
 
     <div class="section">
         <h2>Round Controls</h2>
-        <div id="currentStatus" style="margin-bottom: 1rem;">Status: Waiting</div>
+        <div id="currentStatus" style="margin-bottom: 0.5rem;">Status: Waiting</div>
+        <div id="selectedStory" style="margin-bottom: 1rem; opacity: 0.7; font-size: 0.9rem;">No story selected</div>
 
         <div class="controls">
             <button onclick="startRound()" id="startBtn">Start Round</button>
@@ -352,6 +353,7 @@
 
         client.on('round_started', (data) => {
             updateStatus('running');
+            updateSelectedStoryDisplay();
         });
 
         client.on('paused', (data) => {
@@ -392,6 +394,7 @@
             renderStoryQueue();
             renderHistory();
             updateStatus(sessionState.current_round.status);
+            updateSelectedStoryDisplay();
         }
 
         function renderStoryQueue() {
@@ -474,6 +477,23 @@
             if (!sessionState) return;
             sessionState.current_round.story_index = index;
             renderStoryQueue();
+            updateSelectedStoryDisplay();
+        }
+
+        function updateSelectedStoryDisplay() {
+            const display = document.getElementById('selectedStory');
+            if (!sessionState) return;
+
+            const index = sessionState.current_round.story_index;
+            if (index !== null && sessionState.stories[index]) {
+                display.textContent = `Selected: "${sessionState.stories[index].title}"`;
+                display.style.opacity = '1';
+                display.style.color = '#ff0';
+            } else {
+                display.textContent = 'No story selected';
+                display.style.opacity = '0.7';
+                display.style.color = '#0f0';
+            }
         }
 
         function removeStory(index) {
