@@ -2,6 +2,12 @@
 
 ## Status: COMPLETE ✓
 
+All changes implemented and committed.
+
+Additional features added:
+- Session list buttons (replace code input)
+- Multiple concurrent sessions support
+
 ## Changes
 
 ### 1. Auto-assign Judge IDs

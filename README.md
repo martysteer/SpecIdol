@@ -4,6 +4,9 @@ A live "Pop Idol for writers" web application for speculative fiction convention
 
 ## Features
 
+- **Multiple concurrent sessions** - run many games simultaneously
+- **Auto-assign judge IDs** - judges join, get sequential numbers (1, 2, 3...)
+- **Session list interface** - click to select session, no typing codes
 - **Real-time WebSocket coordination** between multiple clients
 - **Auto-scrolling story text** synchronized across all views
 - **Judge buzzer system** with big red buttons (mobile-optimized)
@@ -21,54 +24,51 @@ cd server
 pip3 install -r requirements.txt
 ```
 
-### 2. Start WebSocket Server
+### 2. Start Servers
 
 ```bash
-cd server
-python3 relay.py
+make servers
 ```
 
-Server runs on `ws://localhost:8765`
+This starts both:
+- WebSocket relay on `ws://localhost:8765`
+- HTTP server on `http://localhost:8000`
 
-### 3. Start Web Server
+To stop: `make stop`
 
-```bash
-cd www
-python3 -m http.server 8000
-```
+### 3. Create a Session
 
-Web UI available at `http://localhost:8000/index.html`
-
-### 4. Create a Session
-
-1. Open `http://localhost:8000/index.html` in a browser
+1. Open `http://localhost:8000` in a browser
 2. Click **"Create Session"** → redirects to controller
-3. Note the 4-letter session code
+3. Note the 4-letter session code displayed
 
-### 5. Join as Judge (x3)
+### 4. Join as Judge
 
-1. Open `http://localhost:8000/index.html` on 3 mobile devices (or browser tabs)
-2. Click **"Join Session"**, enter the session code
-3. Select **"Judge"**, pick judge number (1, 2, or 3)
-4. Each judge gets a big red BUZZ button
+1. Open `http://localhost:8000` on mobile devices (or browser tabs)
+2. Click **"Join Session"**
+3. Select the session from the list of active sessions
+4. Click **"Join as Judge"**
+5. Each judge auto-assigned sequential ID (1, 2, 3...)
+6. Each judge gets a big red BUZZ button
 
-### 6. Join as Audience
+### 5. Join as Audience
 
-1. Open `http://localhost:8000/index.html` on the projector laptop
-2. Click **"Join Session"**, enter the session code
-3. Select **"Audience"**
-4. This view shows on the projector for the audience to watch
+1. Open `http://localhost:8000` on the projector laptop
+2. Click **"Join Session"**
+3. Select the session from the list
+4. Click **"Join as Audience"**
+5. This view shows on the projector for the audience to watch
 
-### 7. Run the Event
+### 6. Run the Event
 
 In the **Controller** view:
 1. Add stories: enter title + text, click "Add Story"
-2. Select a story from the queue
+2. Click a story row to select it from the queue
 3. Click **"Start Round"** to begin
 4. Use speed controls (1x/2x/3x) and play/pause as needed
 5. Judges press their BUZZ buttons when they've heard enough
-6. When all 3 buzz → "BUZZED OUT" (defeat)
-7. If timer reaches 2:00 → "SURVIVOR!" (victory)
+6. When all connected judges buzz → "BUZZED OUT" (defeat)
+7. If timer reaches limit → "SURVIVOR!" (victory)
 
 ## Architecture
 
@@ -100,7 +100,8 @@ Example JSON:
 
 Edit `server/relay.py` to change defaults:
 - `timer_duration`: seconds (default 120 = 2:00)
-- `judge_count`: number of judges (default 3)
+
+Judge count is unlimited - as many judges as connect will participate.
 
 ## Deployment
 
