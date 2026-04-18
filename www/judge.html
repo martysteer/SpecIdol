@@ -167,6 +167,7 @@
         const client = new SpecIdolClient();
         let timer = null;
         let buzzed = false;
+        let timerDuration = 120;
 
         document.getElementById('code').textContent = `CODE: ${params.code || '----'}`;
         document.getElementById('judgeNum').textContent = `JUDGE ${params.judge || '-'}`;
@@ -179,6 +180,9 @@
 
         client.on('session_state', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
+            if (data.config && data.config.timer_duration) {
+                timerDuration = data.config.timer_duration;
+            }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
                 startRound(round);
@@ -253,7 +257,7 @@
 
             if (timer) timer.stop();
             timer = new Timer(
-                120,
+                timerDuration,
                 (elapsed) => {
                     document.getElementById('timer').textContent = formatTime(elapsed);
                 },
