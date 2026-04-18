@@ -263,12 +263,14 @@
         };
 
         client.on('session_state', (data) => {
+            if (data.server_time) updateClockOffset(data.server_time);
             if (data.current_round.status === 'running') {
                 startRound(data.current_round);
             }
         });
 
         client.on('round_started', (data) => {
+            if (data.server_time) updateClockOffset(data.server_time);
             startRound(data);
         });
 

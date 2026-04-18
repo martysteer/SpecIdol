@@ -1,5 +1,19 @@
 // Shared WebSocket client and state management
 
+// Clock offset: difference between server and client clocks.
+// serverTime = clientTime + clockOffset
+let clockOffset = 0;
+
+function updateClockOffset(serverTime) {
+    const clientNow = Date.now() / 1000;
+    clockOffset = serverTime - clientNow;
+}
+
+// Convert server timestamp to client-local timestamp
+function serverToLocal(serverTimestamp) {
+    return serverTimestamp - clockOffset;
+}
+
 class SpecIdolClient {
     constructor() {
         this.ws = null;
@@ -132,7 +146,7 @@ class Timer {
     }
 
     start(serverStartTime) {
-        this.startTime = serverStartTime;
+        this.startTime = serverToLocal(serverStartTime);
         this.pausedAt = null;
         this.elapsedAtPause = 0;
         this.tick();
@@ -148,8 +162,8 @@ class Timer {
         this.elapsedAtPause = this.getElapsed();
     }
 
-    resume(newStartTime) {
-        this.startTime = newStartTime;
+    resume(serverStartTime) {
+        this.startTime = serverToLocal(serverStartTime);
         this.pausedAt = null;
         this.tick();
         this.intervalId = setInterval(() => this.tick(), 100);

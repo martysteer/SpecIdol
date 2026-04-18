@@ -102,7 +102,8 @@ async def handle_message(websocket, message_data):
                 "stories": session["stories"],
                 "current_round": session["current_round"],
                 "history": session["history"],
-                "client_info": session["clients"][websocket]
+                "client_info": session["clients"][websocket],
+                "server_time": time.time()
             }
         }))
 
@@ -147,12 +148,14 @@ async def handle_message(websocket, message_data):
             "status": "running"
         }
 
+        now = session["current_round"]["start_time"]
         await broadcast({
             "type": "round_started",
             "data": {
                 "title": story["title"],
                 "text": story["text"],
-                "start_time": session["current_round"]["start_time"]
+                "start_time": now,
+                "server_time": now
             }
         })
 
