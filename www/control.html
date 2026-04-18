@@ -60,6 +60,57 @@
             border: 1px solid #0f0;
         }
 
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .left-column {
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .left-column.collapsed {
+            grid-column: span 1;
+            max-width: 50px;
+        }
+
+        .left-column.collapsed .column-content {
+            display: none;
+        }
+
+        .left-column.collapsed .title-text {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+        }
+
+        .right-column {
+            transition: all 0.3s ease;
+        }
+
+        .left-column.collapsed ~ .right-column {
+            grid-column: span 1;
+        }
+
+        .disclosure-header {
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .arrow {
+            transition: transform 0.3s;
+            display: inline-block;
+        }
+
+        .left-column.collapsed .arrow {
+            transform: rotate(-90deg);
+        }
+
         input, textarea, button, select {
             background: #000;
             color: #0f0;
@@ -105,6 +156,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .story-item:hover {
+            background: rgba(0, 255, 0, 0.1);
         }
 
         .story-item.current {
@@ -178,21 +235,43 @@
         <div style="margin-top: 0.5rem; font-size: 0.9rem;">Connected: <span id="clientCount">0</span></div>
     </div>
 
-    <div class="section">
-        <h2>Story Queue</h2>
-        <ul class="story-queue" id="storyQueue"></ul>
+    <div class="main-grid">
+        <!-- Left column: Add Story + Import/Export -->
+        <div class="left-column section" id="leftColumn">
+            <h2 class="disclosure-header" onclick="toggleLeftColumn()">
+                <span class="arrow" id="disclosureArrow">▼</span>
+                <span class="title-text" id="columnTitle">Add Story</span>
+            </h2>
 
-        <div class="form-group">
-            <label>Title:</label>
-            <input type="text" id="storyTitle" placeholder="Story title">
+            <div class="column-content" id="leftContent">
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="storyTitle" placeholder="Story title">
+                </div>
+
+                <div class="form-group">
+                    <label>Text:</label>
+                    <textarea id="storyText" placeholder="Story text..."></textarea>
+                </div>
+
+                <button onclick="addStory()">Add Story</button>
+
+                <h3 style="margin-top: 2rem;">Import / Export</h3>
+                <div class="import-export">
+                    <textarea id="importExportJson" placeholder="Session JSON..."></textarea>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button onclick="exportSession()">Export to JSON</button>
+                        <button onclick="importSession()">Import from JSON</button>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="form-group">
-            <label>Text:</label>
-            <textarea id="storyText" placeholder="Story text..."></textarea>
+        <!-- Right column: Story Queue -->
+        <div class="right-column section">
+            <h2>Story Queue</h2>
+            <ul class="story-queue" id="storyQueue"></ul>
         </div>
-
-        <button onclick="addStory()">Add Story</button>
     </div>
 
     <div class="section">
@@ -207,17 +286,6 @@
             <button onclick="changeSpeed(2)" id="speed2Btn">2x</button>
             <button onclick="changeSpeed(3)" id="speed3Btn">3x</button>
             <button onclick="resetRound()" id="resetBtn">Reset</button>
-        </div>
-    </div>
-
-    <div class="section">
-        <h2>Import / Export</h2>
-        <div class="import-export">
-            <textarea id="importExportJson" placeholder="Session JSON..."></textarea>
-            <div style="display: flex; gap: 0.5rem;">
-                <button onclick="exportSession()">Export to JSON</button>
-                <button onclick="importSession()">Import from JSON</button>
-            </div>
         </div>
     </div>
 
@@ -334,7 +402,7 @@
             queue.innerHTML = sessionState.stories.map((story, i) => {
                 const isCurrent = i === sessionState.current_round.story_index;
                 return `
-                    <li class="story-item ${isCurrent ? 'current' : ''}">
+                    <li class="story-item ${isCurrent ? 'current' : ''}" onclick="selectStory(${i})">
                         <div class="story-info">
                             <strong>${escapeHtml(story.title)}</strong><br>
                             <span style="opacity: 0.7; font-size: 0.9rem;">
@@ -342,8 +410,7 @@
                             </span>
                         </div>
                         <div class="story-actions">
-                            <button onclick="selectStory(${i})">Select</button>
-                            <button onclick="removeStory(${i})">Remove</button>
+                            <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
                         </div>
                     </li>
                 `;
@@ -472,6 +539,11 @@
             } catch (e) {
                 alert('Invalid JSON: ' + e.message);
             }
+        }
+
+        function toggleLeftColumn() {
+            const leftCol = document.getElementById('leftColumn');
+            leftCol.classList.toggle('collapsed');
         }
     </script>
 </body>

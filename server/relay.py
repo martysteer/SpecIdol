@@ -12,8 +12,7 @@ session = {
     "code": None,
     "config": {
         "timer_duration": 120,
-        "speed_options": [1, 2, 3],
-        "judge_count": 3
+        "speed_options": [1, 2, 3]
     },
     "clients": {},  # {websocket: {"role": "judge", "judge_id": 1}}
     "stories": [],
@@ -30,7 +29,8 @@ session = {
         "status": "waiting"
     },
     "history": [],
-    "judge_slots": {1: None, 2: None, 3: None}  # {judge_id: websocket}
+    "judge_slots": {},  # {judge_id: websocket} - dynamic
+    "next_judge_id": 1
 }
 
 def generate_code():
@@ -76,24 +76,16 @@ async def handle_message(websocket, message_data):
             return
 
         if role == "judge":
-            if judge_id not in session["judge_slots"]:
-                await websocket.send(json.dumps({
-                    "type": "error",
-                    "data": {"message": f"Invalid judge number: {judge_id}"}
-                }))
-                return
-            if session["judge_slots"][judge_id] is not None:
-                await websocket.send(json.dumps({
-                    "type": "error",
-                    "data": {"message": f"Judge {judge_id} slot already taken"}
-                }))
-                return
+            # Auto-assign next judge ID
+            judge_id = session["next_judge_id"]
+            session["next_judge_id"] += 1
             session["judge_slots"][judge_id] = websocket
             session["clients"][websocket] = {"role": "judge", "judge_id": judge_id}
         else:
             session["clients"][websocket] = {"role": role}
 
         # Send full session state to joining client
+        connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
         await websocket.send(json.dumps({
             "type": "session_state",
             "data": {
@@ -103,9 +95,17 @@ async def handle_message(websocket, message_data):
                 "current_round": session["current_round"],
                 "history": session["history"],
                 "client_info": session["clients"][websocket],
+                "connected_judges": connected_judges,
                 "server_time": time.time()
             }
         }))
+
+        # Broadcast judge join to other clients
+        if role == "judge":
+            await broadcast({
+                "type": "judge_joined",
+                "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+            }, exclude=websocket)
 
     elif msg_type == "add_story":
         title = data.get("title", "Untitled")
@@ -340,7 +340,13 @@ async def handler(websocket):
         if client_info and client_info.get("role") == "judge":
             judge_id = client_info.get("judge_id")
             if session["judge_slots"].get(judge_id) == websocket:
-                session["judge_slots"][judge_id] = None
+                del session["judge_slots"][judge_id]
+                # Broadcast judge left
+                connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
+                await broadcast({
+                    "type": "judge_left",
+                    "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+                })
 
 async def main():
     async with serve(handler, "localhost", 8765):

@@ -48,8 +48,10 @@
         }
 
         .timer {
+            font-family: 'Press Start 2P', cursive;
             font-size: 1.5rem;
-            margin-top: 0.5rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
         }
 
         .main {
@@ -136,6 +138,11 @@
             opacity: 0.7;
         }
 
+        .footer {
+            padding: 1rem;
+            border-top: 2px solid #0f0;
+        }
+
         @media (max-width: 600px) {
             .buzz-button {
                 font-size: 1.5rem;
@@ -151,14 +158,17 @@
 </head>
 <body>
     <div class="header">
-        <div class="code" id="code">CODE: ----</div>
-        <div class="judge-num" id="judgeNum">JUDGE -</div>
+        <div class="code" id="code">session code: ----</div>
+        <div class="judge-num" id="judgeNum">you are judge -</div>
         <div class="story-title" id="storyTitle"></div>
-        <div class="timer" id="timer">0:00.0</div>
     </div>
 
     <div class="main" id="main">
         <div class="waiting">Waiting for round to start...</div>
+    </div>
+
+    <div class="footer">
+        <div class="timer" id="timer">0:00.0</div>
     </div>
 
     <script src="app.js"></script>
@@ -168,20 +178,24 @@
         let timer = null;
         let buzzed = false;
         let timerDuration = 120;
-
-        document.getElementById('code').textContent = `CODE: ${params.code || '----'}`;
-        document.getElementById('judgeNum').textContent = `JUDGE ${params.judge || '-'}`;
+        let myJudgeId = null;
 
         client.connect();
 
         client.onConnect = () => {
-            client.joinSession(params.code, 'judge', params.judge);
+            client.joinSession(params.code, 'judge');
         };
 
         client.on('session_state', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
             if (data.config && data.config.timer_duration) {
                 timerDuration = data.config.timer_duration;
+            }
+            // Update judge info from server
+            if (data.client_info && data.client_info.judge_id) {
+                myJudgeId = data.client_info.judge_id;
+                document.getElementById('code').textContent = `session code: ${data.code || '----'}`;
+                document.getElementById('judgeNum').textContent = `you are judge ${myJudgeId}`;
             }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
@@ -190,7 +204,7 @@
                 if (round.buzzes) {
                     round.buzzes.forEach(b => {
                         updateJudgeStatus(b.judge_id);
-                        if (b.judge_id === params.judge) {
+                        if (b.judge_id === myJudgeId) {
                             buzzed = true;
                             const button = document.getElementById('buzzButton');
                             if (button) {
@@ -276,7 +290,7 @@
             button.disabled = true;
             button.innerHTML = '<div class="buzzed">✕</div>';
 
-            client.buzz(params.judge);
+            client.buzz(myJudgeId);
         }
 
         function renderJudgeStatus() {

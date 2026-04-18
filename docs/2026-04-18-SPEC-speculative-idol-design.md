@@ -7,7 +7,7 @@ A live "Pop Idol for writers" web app for a speculative fiction convention. Read
 ### Stack
 - **Frontend**: Static HTML5/CSS/JS, no build step, no framework. One external font (Google Fonts CDN). Retro/campy aesthetic.
 - **Backend**: Python WebSocket relay server (~100 lines). One pip dependency (`websockets`). Holds current round state in memory.
-- **Hosting**: Static files served from Mythaxis web server at a path outside the Hugo site. Python WebSocket server runs alongside.
+- **Hosting**: Static files served from a basic web server. Python WebSocket server runs alongside.
 
 ### File Structure
 

@@ -229,20 +229,7 @@
 
         <div class="footer">
             <div class="timer" id="timer">0:00.0</div>
-            <div class="judge-panels" id="judgePanels">
-                <div class="judge-panel" data-judge="1">
-                    <span class="label">JUDGE 1</span>
-                    <span class="x">✕</span>
-                </div>
-                <div class="judge-panel" data-judge="2">
-                    <span class="label">JUDGE 2</span>
-                    <span class="x">✕</span>
-                </div>
-                <div class="judge-panel" data-judge="3">
-                    <span class="label">JUDGE 3</span>
-                    <span class="x">✕</span>
-                </div>
-            </div>
+            <div class="judge-panels" id="judgePanels"></div>
         </div>
     </div>
 
@@ -274,6 +261,10 @@
             if (data.server_time) updateClockOffset(data.server_time);
             if (data.config && data.config.timer_duration) {
                 timerDuration = data.config.timer_duration;
+            }
+            // Render judge panels based on connected judges
+            if (data.connected_judges) {
+                renderJudgePanels(data.connected_judges);
             }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
@@ -330,6 +321,28 @@
         client.on('round_reset', () => {
             resetView();
         });
+
+        client.on('judge_joined', (data) => {
+            if (data.connected_judges) {
+                renderJudgePanels(data.connected_judges);
+            }
+        });
+
+        client.on('judge_left', (data) => {
+            if (data.connected_judges) {
+                renderJudgePanels(data.connected_judges);
+            }
+        });
+
+        function renderJudgePanels(connectedJudges) {
+            const container = document.getElementById('judgePanels');
+            container.innerHTML = connectedJudges.map(judgeId => `
+                <div class="judge-panel" data-judge="${judgeId}">
+                    <span class="label">JUDGE ${judgeId}</span>
+                    <span class="x">✕</span>
+                </div>
+            `).join('');
+        }
 
         function startRound(roundData) {
             resetView();
