@@ -222,8 +222,9 @@ async def handle_message(websocket, message_data):
             "data": buzz_entry
         })
 
-        # Check if all judges have buzzed
-        if len(session["current_round"]["buzzes"]) >= session["config"]["judge_count"]:
+        # Check if all connected judges have buzzed
+        connected_judges = sum(1 for slot in session["judge_slots"].values() if slot is not None)
+        if len(session["current_round"]["buzzes"]) >= connected_judges:
             session["current_round"]["status"] = "defeat"
             outcome_data = {
                 "outcome": "defeat",
