@@ -185,68 +185,67 @@ class Timer {
 }
 
 // Auto-scroll utilities
+// Tracks scroll position directly to avoid speed^2 bugs on pause/resume.
 class AutoScroller {
     constructor(element, baseSpeed = 30) {
         this.element = element;
         this.baseSpeed = baseSpeed; // pixels per second at 1x
         this.speed = 1;
-        this.startTime = null;
-        this.pausedAt = null;
-        this.elapsedAtPause = 0;
+        this.position = 0;         // accumulated scroll position in pixels
+        this.lastTickTime = null;   // last tick timestamp (seconds)
+        this.running = false;
         this.intervalId = null;
     }
 
     start(serverStartTime, speed = 1) {
-        this.startTime = serverStartTime;
         this.speed = speed;
-        this.pausedAt = null;
-        this.elapsedAtPause = 0;
-        this.scroll();
-        this.intervalId = setInterval(() => this.scroll(), 50); // 20 Hz for smooth scroll
+        this.position = 0;
+        this.lastTickTime = Date.now() / 1000;
+        this.running = true;
+        this.intervalId = setInterval(() => this.scroll(), 50); // 20 Hz
     }
 
     changeSpeed(speed, timestamp) {
-        // Recalculate start time to maintain current position
-        const currentElapsed = this.getElapsed();
+        // Flush position at old speed before switching
+        this._advance();
         this.speed = speed;
-        this.startTime = timestamp - (currentElapsed / speed);
     }
 
     pause() {
+        this._advance();
+        this.running = false;
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
-        this.pausedAt = Date.now() / 1000;
-        this.elapsedAtPause = this.getElapsed();
     }
 
     resume(newStartTime) {
-        this.startTime = newStartTime;
-        this.pausedAt = null;
-        this.scroll();
+        this.lastTickTime = Date.now() / 1000;
+        this.running = true;
         this.intervalId = setInterval(() => this.scroll(), 50);
     }
 
     stop() {
+        this.running = false;
         if (this.intervalId) {
             clearInterval(this.intervalId);
             this.intervalId = null;
         }
     }
 
-    getElapsed() {
-        if (this.pausedAt) {
-            return this.elapsedAtPause * this.speed;
+    _advance() {
+        const now = Date.now() / 1000;
+        if (this.lastTickTime && this.running) {
+            const dt = now - this.lastTickTime;
+            this.position += dt * this.speed * this.baseSpeed;
         }
-        if (!this.startTime) return 0;
-        return ((Date.now() / 1000) - this.startTime) * this.speed;
+        this.lastTickTime = now;
     }
 
     scroll() {
-        const elapsed = this.getElapsed();
-        const position = elapsed * this.baseSpeed;
-        this.element.scrollTop = position;
+        this._advance();
+        this.element.scrollTop = this.position;
     }
 }
 
