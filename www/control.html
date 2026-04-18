@@ -244,8 +244,20 @@
         client.onConnect = () => {
             if (params.code) {
                 client.joinSession(params.code, 'controller');
+            } else {
+                client.createSession();
             }
         };
+
+        client.on('session_created', (data) => {
+            document.getElementById('sessionCode').textContent = data.code;
+            // Update URL to include code
+            const newUrl = new URL(window.location);
+            newUrl.searchParams.set('code', data.code);
+            window.history.replaceState({}, '', newUrl);
+            // Join as controller
+            client.joinSession(data.code, 'controller');
+        });
 
         client.on('session_state', (data) => {
             sessionState = data;
