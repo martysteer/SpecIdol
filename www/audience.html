@@ -264,8 +264,25 @@
 
         client.on('session_state', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
-            if (data.current_round.status === 'running') {
-                startRound(data.current_round);
+            const round = data.current_round;
+            if (round.status === 'running' || round.status === 'paused') {
+                startRound(round);
+                // Replay existing buzzes
+                if (round.buzzes) {
+                    round.buzzes.forEach(b => markJudgeBuzzed(b.judge_id));
+                }
+                if (round.status === 'paused') {
+                    if (timer) timer.pause();
+                    if (scroller) scroller.pause();
+                }
+            } else if (round.status === 'defeat' || round.status === 'victory') {
+                startRound(round);
+                if (round.buzzes) {
+                    round.buzzes.forEach(b => markJudgeBuzzed(b.judge_id));
+                }
+                if (timer) timer.stop();
+                if (scroller) scroller.stop();
+                showOutcome(round.status);
             }
         });
 
