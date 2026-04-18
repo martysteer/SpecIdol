@@ -1,0 +1,61 @@
+/* Shared styles for SPECULATIVE IDOL */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --neon-green: #0f0;
+    --neon-yellow: #ff0;
+    --neon-magenta: #f0f;
+    --neon-red: #f00;
+    --black: #000;
+}
+
+body {
+    background: var(--black);
+    color: var(--neon-green);
+    font-family: 'Courier New', monospace;
+}
+
+h1, h2, h3 {
+    font-family: 'Press Start 2P', cursive;
+}
+
+button {
+    background: var(--neon-green);
+    color: var(--black);
+    border: 3px solid var(--neon-green);
+    padding: 0.75rem 1.5rem;
+    font-family: 'Press Start 2P', cursive;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-transform: uppercase;
+}
+
+button:hover:not(:disabled) {
+    background: var(--black);
+    color: var(--neon-green);
+    box-shadow: 0 0 20px var(--neon-green);
+}
+
+button:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+input, textarea, select {
+    background: var(--black);
+    color: var(--neon-green);
+    border: 2px solid var(--neon-green);
+    padding: 0.75rem;
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+}
+
+input:focus, textarea:focus, select:focus {
+    outline: none;
+    box-shadow: 0 0 10px var(--neon-green);
+}
