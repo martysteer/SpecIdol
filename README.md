@@ -130,7 +130,11 @@ Judge count is unlimited - as many judges as connect will participate.
 
 ## License
 
-MIT
+Anti-Capitalist Software License v1.4
+
+See [LICENSE](LICENSE) file for full text.
+
+https://anticapitalist.software/
 
 ## Credits
 
