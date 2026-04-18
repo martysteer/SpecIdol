@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Judge - SPECULATIVE IDOL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Press Start 2P', cursive;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 2px solid #0f0;
+        }
+
+        .code {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+
+        .judge-num {
+            font-size: 1.2rem;
+            margin: 0.5rem 0;
+        }
+
+        .story-title {
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            color: #ff0;
+        }
+
+        .timer {
+            font-size: 1.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .buzz-button {
+            width: 80vmin;
+            height: 80vmin;
+            max-width: 400px;
+            max-height: 400px;
+            background: linear-gradient(145deg, #ff0000, #cc0000);
+            border: 8px solid #800000;
+            border-radius: 50%;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            color: #fff;
+            cursor: pointer;
+            box-shadow: 0 15px 30px rgba(255, 0, 0, 0.5),
+                        inset 0 -8px 20px rgba(0, 0, 0, 0.3),
+                        inset 0 8px 20px rgba(255, 255, 255, 0.2);
+            transition: all 0.1s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .buzz-button:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(255, 0, 0, 0.5),
+                        inset 0 -4px 10px rgba(0, 0, 0, 0.3),
+                        inset 0 4px 10px rgba(255, 255, 255, 0.2);
+        }
+
+        .buzz-button:disabled {
+            background: #333;
+            border-color: #666;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .buzzed {
+            font-size: 8rem;
+            color: #f00;
+            animation: buzzAnim 0.5s ease-out;
+        }
+
+        @keyframes buzzAnim {
+            0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: scale(1.2) rotate(5deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .judge-status {
+            margin-top: 1rem;
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+        }
+
+        .judge-indicator {
+            padding: 0.5rem;
+            border: 2px solid #0f0;
+            font-size: 0.6rem;
+            opacity: 0.5;
+        }
+
+        .judge-indicator.buzzed {
+            color: #f00;
+            border-color: #f00;
+            opacity: 1;
+        }
+
+        .waiting {
+            font-size: 1rem;
+            text-align: center;
+            opacity: 0.7;
+        }
+
+        @media (max-width: 600px) {
+            .buzz-button {
+                font-size: 1.5rem;
+            }
+            .judge-num {
+                font-size: 1rem;
+            }
+            .timer {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="code" id="code">CODE: ----</div>
+        <div class="judge-num" id="judgeNum">JUDGE -</div>
+        <div class="story-title" id="storyTitle"></div>
+        <div class="timer" id="timer">0:00.0</div>
+    </div>
+
+    <div class="main" id="main">
+        <div class="waiting">Waiting for round to start...</div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const params = getUrlParams();
+        const client = new SpecIdolClient();
+        let timer = null;
+        let buzzed = false;
+
+        document.getElementById('code').textContent = `CODE: ${params.code || '----'}`;
+        document.getElementById('judgeNum').textContent = `JUDGE ${params.judge || '-'}`;
+
+        client.connect();
+
+        client.onConnect = () => {
+            client.joinSession(params.code, 'judge', params.judge);
+        };
+
+        client.on('session_state', (data) => {
+            if (data.current_round.status === 'running') {
+                startRound(data.current_round);
+            } else if (data.current_round.status === 'paused') {
+                // Show paused state
+                if (timer) timer.pause();
+            }
+        });
+
+        client.on('round_started', (data) => {
+            startRound(data);
+        });
+
+        client.on('paused', (data) => {
+            if (timer) timer.pause();
+        });
+
+        client.on('resumed', (data) => {
+            if (timer) timer.resume(data.timestamp - data.elapsed);
+        });
+
+        client.on('speed_changed', (data) => {
+            // Speed doesn't affect judge view, but we track it
+        });
+
+        client.on('buzzed', (data) => {
+            updateJudgeStatus(data.judge_id);
+        });
+
+        client.on('round_ended', (data) => {
+            if (timer) timer.stop();
+        });
+
+        client.on('round_reset', () => {
+            resetView();
+        });
+
+        function startRound(roundData) {
+            buzzed = false;
+            document.getElementById('storyTitle').textContent = roundData.title || '';
+
+            const main = document.getElementById('main');
+            main.innerHTML = `
+                <button class="buzz-button" id="buzzButton" onclick="buzz()">
+                    BUZZ
+                </button>
+                <div class="judge-status" id="judgeStatus"></div>
+            `;
+
+            renderJudgeStatus();
+
+            if (timer) timer.stop();
+            timer = new Timer(
+                120,
+                (elapsed) => {
+                    document.getElementById('timer').textContent = formatTime(elapsed);
+                },
+                () => {
+                    // Timer complete (victory)
+                }
+            );
+            timer.start(roundData.start_time);
+        }
+
+        function buzz() {
+            if (buzzed) return;
+            buzzed = true;
+
+            const button = document.getElementById('buzzButton');
+            button.disabled = true;
+            button.innerHTML = '<div class="buzzed">✕</div>';
+
+            client.buzz(params.judge);
+        }
+
+        function renderJudgeStatus() {
+            const container = document.getElementById('judgeStatus');
+            if (!container) return;
+
+            container.innerHTML = `
+                <div class="judge-indicator" data-judge="1">J1</div>
+                <div class="judge-indicator" data-judge="2">J2</div>
+                <div class="judge-indicator" data-judge="3">J3</div>
+            `;
+        }
+
+        function updateJudgeStatus(judgeId) {
+            const indicator = document.querySelector(`[data-judge="${judgeId}"]`);
+            if (indicator) {
+                indicator.classList.add('buzzed');
+            }
+        }
+
+        function resetView() {
+            if (timer) timer.stop();
+            buzzed = false;
+            document.getElementById('storyTitle').textContent = '';
+            document.getElementById('timer').textContent = '0:00.0';
+            document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
+        }
+    </script>
+</body>
+</html>
