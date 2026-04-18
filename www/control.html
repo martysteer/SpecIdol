@@ -61,19 +61,19 @@
         }
 
         .main-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
+            display: flex;
             gap: 1rem;
             margin-bottom: 2rem;
         }
 
         .left-column {
+            flex: 1;
             transition: all 0.3s ease;
             overflow: hidden;
         }
 
         .left-column.collapsed {
-            grid-column: span 1;
+            flex: 0 0 50px;
             max-width: 50px;
         }
 
@@ -87,11 +87,12 @@
         }
 
         .right-column {
+            flex: 1;
             transition: all 0.3s ease;
         }
 
         .left-column.collapsed ~ .right-column {
-            grid-column: span 1;
+            flex: 9;
         }
 
         .disclosure-header {
