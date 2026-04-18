@@ -318,7 +318,7 @@
                     if (elapsed >= 110 && !tensionMode) {
                         tensionMode = true;
                         document.getElementById('timer').classList.add('tension');
-                        // TODO: play tick sound
+                        startTensionTicks();
                     }
                 },
                 () => {
@@ -340,6 +340,7 @@
         }
 
         function showOutcome(outcome) {
+            stopTensionTicks();
             const outcomeEl = document.getElementById('outcome');
             outcomeEl.textContent = outcome === 'victory' ? 'SURVIVOR!' : 'BUZZED OUT';
             outcomeEl.className = `outcome ${outcome}`;
@@ -356,6 +357,7 @@
         }
 
         function resetView() {
+            stopTensionTicks();
             tensionMode = false;
             document.getElementById('timer').classList.remove('tension');
             document.getElementById('outcome').style.display = 'none';
@@ -368,9 +370,113 @@
             });
         }
 
+        // Simple tone generator for sound effects
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playBuzzSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 200; // Low buzzer tone
+            oscillator.type = 'sawtooth';
+
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.5);
+        }
+
+        function playVictorySound() {
+            const times = [0, 0.15, 0.3, 0.5];
+            const freqs = [523, 659, 784, 1047]; // C, E, G, C (major chord)
+
+            times.forEach((time, i) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = freqs[i];
+                oscillator.type = 'square';
+
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime + time);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.3);
+
+                oscillator.start(audioContext.currentTime + time);
+                oscillator.stop(audioContext.currentTime + time + 0.3);
+            });
+        }
+
+        function playDefeatSound() {
+            const times = [0, 0.2, 0.4];
+            const freqs = [440, 349, 262]; // Descending sad trombone
+
+            times.forEach((time, i) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.frequency.value = freqs[i];
+                oscillator.type = 'sawtooth';
+
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + time);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.4);
+
+                oscillator.start(audioContext.currentTime + time);
+                oscillator.stop(audioContext.currentTime + time + 0.4);
+            });
+        }
+
+        function playTickSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+
+            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.05);
+        }
+
         function playSound(type) {
-            // Placeholder for audio playback
-            console.log(`Playing sound: ${type}`);
+            if (type === 'buzz') playBuzzSound();
+            else if (type === 'victory') playVictorySound();
+            else if (type === 'defeat') playDefeatSound();
+            else if (type === 'tick') playTickSound();
+        }
+
+        // Add tick sound in tension mode
+        let tickInterval = null;
+        function startTensionTicks() {
+            if (tickInterval) clearInterval(tickInterval);
+            let tickRate = 1000; // Start at 1 second
+
+            const tick = () => {
+                playTickSound();
+                tickRate = Math.max(100, tickRate * 0.9); // Accelerate
+                tickInterval = setTimeout(tick, tickRate);
+            };
+            tick();
+        }
+
+        function stopTensionTicks() {
+            if (tickInterval) {
+                clearTimeout(tickInterval);
+                tickInterval = null;
+            }
         }
     </script>
 </body>
