@@ -68,12 +68,29 @@
 
         .join-form {
             display: none;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .join-form.active {
+            display: grid;
+        }
+
+        .sessions-column, .actions-column {
+            display: flex;
             flex-direction: column;
             gap: 1rem;
         }
 
-        .join-form.active {
-            display: flex;
+        .column-header {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            text-align: center;
+            margin-bottom: 1rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
         }
 
         input, select {
@@ -109,7 +126,11 @@
             display: block;
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 768px) {
+            .join-form {
+                grid-template-columns: 1fr;
+            }
+
             h1 {
                 font-size: 1.2rem;
             }
@@ -129,11 +150,16 @@
         </div>
 
         <div class="join-form" id="joinForm">
-            <div id="sessionButtons"></div>
+            <div class="sessions-column">
+                <div class="column-header">Select Session</div>
+                <div id="sessionButtons"></div>
+            </div>
 
-            <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
-            <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
-            <button onclick="showModeSelect()">Back</button>
+            <div class="actions-column">
+                <div class="column-header">Join As</div>
+                <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
+                <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
+            </div>
         </div>
 
         <div class="error" id="error"></div>
@@ -162,13 +188,6 @@
             document.getElementById('modeSelect').style.display = 'none';
             document.getElementById('joinForm').classList.add('active');
             client.listSessions();
-        }
-
-        function showModeSelect() {
-            document.getElementById('joinForm').classList.remove('active');
-            document.getElementById('modeSelect').style.display = 'flex';
-            selectedCode = null;
-            clearError();
         }
 
         function renderSessions(sessions) {
