@@ -1,0 +1,268 @@
+// Shared WebSocket client and state management
+
+class SpecIdolClient {
+    constructor() {
+        this.ws = null;
+        this.sessionCode = null;
+        this.role = null;
+        this.judgeId = null;
+        this.sessionState = null;
+        this.reconnectAttempts = 0;
+        this.maxReconnectAttempts = 5;
+        this.messageHandlers = {};
+    }
+
+    connect(wsUrl = 'ws://localhost:8765') {
+        this.ws = new WebSocket(wsUrl);
+
+        this.ws.onopen = () => {
+            console.log('WebSocket connected');
+            this.reconnectAttempts = 0;
+            if (this.onConnect) this.onConnect();
+        };
+
+        this.ws.onmessage = (event) => {
+            try {
+                const message = JSON.parse(event.data);
+                this.handleMessage(message);
+            } catch (e) {
+                console.error('Failed to parse message:', e);
+            }
+        };
+
+        this.ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            if (this.onError) this.onError(error);
+        };
+
+        this.ws.onclose = () => {
+            console.log('WebSocket closed');
+            if (this.reconnectAttempts < this.maxReconnectAttempts) {
+                setTimeout(() => {
+                    this.reconnectAttempts++;
+                    this.connect(wsUrl);
+                }, 2000);
+            }
+        };
+    }
+
+    send(type, data = {}) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify({ type, data }));
+        } else {
+            console.error('WebSocket not ready');
+        }
+    }
+
+    on(messageType, handler) {
+        this.messageHandlers[messageType] = handler;
+    }
+
+    handleMessage(message) {
+        const handler = this.messageHandlers[message.type];
+        if (handler) {
+            handler(message.data);
+        } else {
+            console.log('Unhandled message type:', message.type, message.data);
+        }
+    }
+
+    createSession() {
+        this.send('create_session');
+    }
+
+    joinSession(code, role, judgeId = null) {
+        this.sessionCode = code;
+        this.role = role;
+        this.judgeId = judgeId;
+        this.send('join', { code, role, judge_id: judgeId });
+    }
+
+    addStory(title, text) {
+        this.send('add_story', { title, text });
+    }
+
+    removeStory(storyIndex) {
+        this.send('remove_story', { story_index: storyIndex });
+    }
+
+    startRound(storyIndex) {
+        this.send('round_start', { story_index: storyIndex });
+    }
+
+    changeSpeed(speed) {
+        this.send('speed_change', { speed });
+    }
+
+    pause() {
+        this.send('pause');
+    }
+
+    resume() {
+        this.send('resume');
+    }
+
+    buzz(judgeId) {
+        this.send('buzz', { judge_id: judgeId });
+    }
+
+    victory() {
+        this.send('victory');
+    }
+
+    resetRound() {
+        this.send('reset_round');
+    }
+
+    importSession(stories, config) {
+        this.send('import_session', { stories, config });
+    }
+}
+
+// Timer utilities
+class Timer {
+    constructor(duration, onTick, onComplete) {
+        this.duration = duration; // seconds
+        this.onTick = onTick;
+        this.onComplete = onComplete;
+        this.startTime = null;
+        this.pausedAt = null;
+        this.elapsedAtPause = 0;
+        this.intervalId = null;
+    }
+
+    start(serverStartTime) {
+        this.startTime = serverStartTime;
+        this.pausedAt = null;
+        this.elapsedAtPause = 0;
+        this.tick();
+        this.intervalId = setInterval(() => this.tick(), 100); // 10 Hz for tenths precision
+    }
+
+    pause() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.pausedAt = Date.now() / 1000;
+        this.elapsedAtPause = this.getElapsed();
+    }
+
+    resume(newStartTime) {
+        this.startTime = newStartTime;
+        this.pausedAt = null;
+        this.tick();
+        this.intervalId = setInterval(() => this.tick(), 100);
+    }
+
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+
+    getElapsed() {
+        if (this.pausedAt) {
+            return this.elapsedAtPause;
+        }
+        if (!this.startTime) return 0;
+        return (Date.now() / 1000) - this.startTime;
+    }
+
+    tick() {
+        const elapsed = this.getElapsed();
+        if (this.onTick) {
+            this.onTick(elapsed);
+        }
+        if (elapsed >= this.duration) {
+            this.stop();
+            if (this.onComplete) {
+                this.onComplete();
+            }
+        }
+    }
+}
+
+// Auto-scroll utilities
+class AutoScroller {
+    constructor(element, baseSpeed = 30) {
+        this.element = element;
+        this.baseSpeed = baseSpeed; // pixels per second at 1x
+        this.speed = 1;
+        this.startTime = null;
+        this.pausedAt = null;
+        this.elapsedAtPause = 0;
+        this.intervalId = null;
+    }
+
+    start(serverStartTime, speed = 1) {
+        this.startTime = serverStartTime;
+        this.speed = speed;
+        this.pausedAt = null;
+        this.elapsedAtPause = 0;
+        this.scroll();
+        this.intervalId = setInterval(() => this.scroll(), 50); // 20 Hz for smooth scroll
+    }
+
+    changeSpeed(speed, timestamp) {
+        // Recalculate start time to maintain current position
+        const currentElapsed = this.getElapsed();
+        this.speed = speed;
+        this.startTime = timestamp - (currentElapsed / speed);
+    }
+
+    pause() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+        this.pausedAt = Date.now() / 1000;
+        this.elapsedAtPause = this.getElapsed();
+    }
+
+    resume(newStartTime) {
+        this.startTime = newStartTime;
+        this.pausedAt = null;
+        this.scroll();
+        this.intervalId = setInterval(() => this.scroll(), 50);
+    }
+
+    stop() {
+        if (this.intervalId) {
+            clearInterval(this.intervalId);
+            this.intervalId = null;
+        }
+    }
+
+    getElapsed() {
+        if (this.pausedAt) {
+            return this.elapsedAtPause * this.speed;
+        }
+        if (!this.startTime) return 0;
+        return ((Date.now() / 1000) - this.startTime) * this.speed;
+    }
+
+    scroll() {
+        const elapsed = this.getElapsed();
+        const position = elapsed * this.baseSpeed;
+        this.element.scrollTop = position;
+    }
+}
+
+// Utility: format time as M:SS.T
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    const tenths = Math.floor((seconds % 1) * 10);
+    return `${minutes}:${secs.toString().padStart(2, '0')}.${tenths}`;
+}
+
+// Utility: parse URL params
+function getUrlParams() {
+    const params = new URLSearchParams(window.location.search);
+    return {
+        code: params.get('code'),
+        judge: params.get('judge') ? parseInt(params.get('judge')) : null
+    };
+}
