@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPECULATIVE IDOL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            text-align: center;
+            margin-bottom: 3rem;
+            text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .mode-select {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        button {
+            background: #0f0;
+            color: #000;
+            border: 3px solid #0f0;
+            padding: 1rem 2rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        button:hover {
+            background: #000;
+            color: #0f0;
+            box-shadow: 0 0 20px #0f0;
+        }
+
+        .join-form {
+            display: none;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .join-form.active {
+            display: flex;
+        }
+
+        input, select {
+            background: #000;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        input[type="text"] {
+            text-transform: uppercase;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.2rem;
+            text-align: center;
+            letter-spacing: 0.5rem;
+        }
+
+        .error {
+            color: #f00;
+            text-align: center;
+            padding: 0.5rem;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 1.2rem;
+            }
+            button {
+                font-size: 0.7rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>SPECULATIVE<br>IDOL</h1>
+
+    <div class="container">
+        <div class="mode-select" id="modeSelect">
+            <button onclick="createSession()">Create Session</button>
+            <button onclick="showJoinForm()">Join Session</button>
+        </div>
+
+        <div class="join-form" id="joinForm">
+            <input type="text" id="codeInput" placeholder="CODE" maxlength="4" pattern="[A-Z]{4}">
+
+            <select id="roleSelect" onchange="toggleJudgeNumber()">
+                <option value="">Select Role...</option>
+                <option value="judge">Judge</option>
+                <option value="audience">Audience</option>
+            </select>
+
+            <select id="judgeNumber" style="display: none;">
+                <option value="">Select Judge Number...</option>
+                <option value="1">Judge 1</option>
+                <option value="2">Judge 2</option>
+                <option value="3">Judge 3</option>
+            </select>
+
+            <button onclick="joinSession()">Join</button>
+            <button onclick="showModeSelect()">Back</button>
+        </div>
+
+        <div class="error" id="error"></div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const client = new SpecIdolClient();
+        client.connect();
+
+        client.on('session_created', (data) => {
+            window.location.href = `control.html?code=${data.code}`;
+        });
+
+        client.on('session_state', (data) => {
+            const params = getUrlParams();
+            // Redirect based on role
+            if (data.client_info.role === 'judge') {
+                window.location.href = `judge.html?code=${params.code}&judge=${data.client_info.judge_id}`;
+            } else if (data.client_info.role === 'audience') {
+                window.location.href = `audience.html?code=${params.code}`;
+            }
+        });
+
+        client.on('error', (data) => {
+            showError(data.message);
+        });
+
+        function createSession() {
+            client.createSession();
+        }
+
+        function showJoinForm() {
+            document.getElementById('modeSelect').style.display = 'none';
+            document.getElementById('joinForm').classList.add('active');
+        }
+
+        function showModeSelect() {
+            document.getElementById('joinForm').classList.remove('active');
+            document.getElementById('modeSelect').style.display = 'flex';
+            clearError();
+        }
+
+        function toggleJudgeNumber() {
+            const role = document.getElementById('roleSelect').value;
+            const judgeNumber = document.getElementById('judgeNumber');
+            judgeNumber.style.display = role === 'judge' ? 'block' : 'none';
+        }
+
+        function joinSession() {
+            const code = document.getElementById('codeInput').value.toUpperCase();
+            const role = document.getElementById('roleSelect').value;
+            const judgeId = role === 'judge' ? parseInt(document.getElementById('judgeNumber').value) : null;
+
+            if (!code || code.length !== 4) {
+                showError('Enter a 4-letter code');
+                return;
+            }
+            if (!role) {
+                showError('Select a role');
+                return;
+            }
+            if (role === 'judge' && !judgeId) {
+                showError('Select a judge number');
+                return;
+            }
+
+            clearError();
+            client.joinSession(code, role, judgeId);
+        }
+
+        function showError(message) {
+            const error = document.getElementById('error');
+            error.textContent = message;
+            error.classList.add('active');
+        }
+
+        function clearError() {
+            document.getElementById('error').classList.remove('active');
+        }
+
+        // Auto-uppercase code input
+        document.getElementById('codeInput').addEventListener('input', (e) => {
+            e.target.value = e.target.value.toUpperCase();
+        });
+    </script>
+</body>
+</html>
