@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audience - SPECULATIVE IDOL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* CRT scanline effect */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1),
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .story-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.5rem;
+            color: #ff0;
+            text-shadow: 0 0 10px #ff0;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .story-text-container {
+            flex: 1;
+            overflow: hidden;
+            border: 2px solid #0f0;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            position: relative;
+        }
+
+        .story-text {
+            font-size: 1.2rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+        }
+
+        .timer {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            color: #0f0;
+            text-shadow: 0 0 10px #0f0;
+        }
+
+        .timer.tension {
+            color: #f00;
+            animation: pulse 0.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.05); }
+        }
+
+        .judge-panels {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .judge-panel {
+            border: 3px solid #0f0;
+            padding: 1rem 2rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1rem;
+            box-shadow: 0 0 15px #0f0;
+            transition: all 0.3s;
+        }
+
+        .judge-panel.buzzed {
+            border-color: #f00;
+            color: #f00;
+            box-shadow: 0 0 15px #f00;
+            position: relative;
+        }
+
+        .judge-panel .x {
+            display: none;
+            font-size: 3rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .judge-panel.buzzed .x {
+            display: block;
+            animation: xSlam 0.5s ease-out;
+        }
+
+        @keyframes xSlam {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-45deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        .judge-panel.buzzed .label {
+            opacity: 0.3;
+        }
+
+        .outcome {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 4rem;
+            z-index: 100;
+            text-align: center;
+        }
+
+        .outcome.victory {
+            color: #0f0;
+            text-shadow: 0 0 20px #0f0;
+            animation: victoryAnim 1s ease-out;
+        }
+
+        .outcome.defeat {
+            color: #f00;
+            text-shadow: 0 0 20px #f00;
+            animation: defeatAnim 0.8s ease-out;
+        }
+
+        @keyframes victoryAnim {
+            0% { transform: translate(-50%, -50%) scale(0) rotate(-10deg); opacity: 0; }
+            50% { transform: translate(-50%, -50%) scale(1.2) rotate(5deg); }
+            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        @keyframes defeatAnim {
+            0% { transform: translate(-50%, -100vh); opacity: 0; }
+            60% { transform: translate(-50%, -40%); opacity: 1; }
+            100% { transform: translate(-50%, -50%); }
+        }
+
+        body.defeat-flash {
+            animation: flashRed 0.5s;
+        }
+
+        @keyframes flashRed {
+            0%, 100% { background: #000; }
+            50% { background: #300; }
+        }
+
+        @media (max-width: 900px) {
+            .story-title {
+                font-size: 1rem;
+            }
+            .timer {
+                font-size: 1.5rem;
+            }
+            .judge-panel {
+                font-size: 0.8rem;
+                padding: 0.5rem 1rem;
+            }
+            .outcome {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="story-title" id="storyTitle">Waiting for story...</div>
+        </div>
+
+        <div class="content">
+            <div class="story-text-container">
+                <div class="story-text" id="storyText"></div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="timer" id="timer">0:00.0</div>
+            <div class="judge-panels" id="judgePanels">
+                <div class="judge-panel" data-judge="1">
+                    <span class="label">JUDGE 1</span>
+                    <span class="x">✕</span>
+                </div>
+                <div class="judge-panel" data-judge="2">
+                    <span class="label">JUDGE 2</span>
+                    <span class="x">✕</span>
+                </div>
+                <div class="judge-panel" data-judge="3">
+                    <span class="label">JUDGE 3</span>
+                    <span class="x">✕</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="outcome" id="outcome"></div>
+
+    <script src="app.js"></script>
+    <script>
+        const params = getUrlParams();
+        const client = new SpecIdolClient();
+        let timer = null;
+        let scroller = null;
+        let tensionMode = false;
+
+        client.connect();
+
+        client.onConnect = () => {
+            client.joinSession(params.code, 'audience');
+        };
+
+        client.on('session_state', (data) => {
+            if (data.current_round.status === 'running') {
+                startRound(data.current_round);
+            }
+        });
+
+        client.on('round_started', (data) => {
+            startRound(data);
+        });
+
+        client.on('paused', (data) => {
+            if (timer) timer.pause();
+            if (scroller) scroller.pause();
+        });
+
+        client.on('resumed', (data) => {
+            if (timer) timer.resume(data.timestamp - data.elapsed);
+            if (scroller) scroller.resume(data.timestamp - data.elapsed);
+        });
+
+        client.on('speed_changed', (data) => {
+            if (scroller) scroller.changeSpeed(data.speed, data.timestamp);
+        });
+
+        client.on('buzzed', (data) => {
+            markJudgeBuzzed(data.judge_id);
+            playSound('buzz');
+        });
+
+        client.on('round_ended', (data) => {
+            if (timer) timer.stop();
+            if (scroller) scroller.stop();
+            showOutcome(data.outcome);
+        });
+
+        client.on('round_reset', () => {
+            resetView();
+        });
+
+        function startRound(roundData) {
+            resetView();
+
+            document.getElementById('storyTitle').textContent = roundData.title || 'Untitled';
+            document.getElementById('storyText').textContent = roundData.text || '';
+
+            const textContainer = document.getElementById('storyText');
+
+            if (timer) timer.stop();
+            timer = new Timer(
+                120,
+                (elapsed) => {
+                    document.getElementById('timer').textContent = formatTime(elapsed);
+
+                    // Enter tension mode in last 10 seconds
+                    if (elapsed >= 110 && !tensionMode) {
+                        tensionMode = true;
+                        document.getElementById('timer').classList.add('tension');
+                        // TODO: play tick sound
+                    }
+                },
+                () => {
+                    client.victory();
+                }
+            );
+            timer.start(roundData.start_time);
+
+            if (scroller) scroller.stop();
+            scroller = new AutoScroller(document.querySelector('.story-text-container'), 30);
+            scroller.start(roundData.start_time, roundData.speed || 1);
+        }
+
+        function markJudgeBuzzed(judgeId) {
+            const panel = document.querySelector(`[data-judge="${judgeId}"]`);
+            if (panel) {
+                panel.classList.add('buzzed');
+            }
+        }
+
+        function showOutcome(outcome) {
+            const outcomeEl = document.getElementById('outcome');
+            outcomeEl.textContent = outcome === 'victory' ? 'SURVIVOR!' : 'BUZZED OUT';
+            outcomeEl.className = `outcome ${outcome}`;
+            outcomeEl.style.display = 'block';
+
+            if (outcome === 'victory') {
+                playSound('victory');
+                // TODO: confetti/fireworks
+            } else {
+                playSound('defeat');
+                document.body.classList.add('defeat-flash');
+                setTimeout(() => document.body.classList.remove('defeat-flash'), 500);
+            }
+        }
+
+        function resetView() {
+            tensionMode = false;
+            document.getElementById('timer').classList.remove('tension');
+            document.getElementById('outcome').style.display = 'none';
+            document.getElementById('storyTitle').textContent = 'Waiting for story...';
+            document.getElementById('storyText').textContent = '';
+            document.getElementById('timer').textContent = '0:00.0';
+
+            document.querySelectorAll('.judge-panel').forEach(panel => {
+                panel.classList.remove('buzzed');
+            });
+        }
+
+        function playSound(type) {
+            // Placeholder for audio playback
+            console.log(`Playing sound: ${type}`);
+        }
+    </script>
+</body>
+</html>
