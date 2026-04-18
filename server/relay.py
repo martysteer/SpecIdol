@@ -93,6 +93,93 @@ async def handle_message(websocket, message_data):
             }
         }))
 
+    elif msg_type == "add_story":
+        title = data.get("title", "Untitled")
+        text = data.get("text", "")
+        session["stories"].append({"title": title, "text": text})
+        await broadcast({
+            "type": "story_added",
+            "data": {"index": len(session["stories"]) - 1, "title": title}
+        })
+
+    elif msg_type == "remove_story":
+        story_index = data.get("story_index")
+        if 0 <= story_index < len(session["stories"]):
+            session["stories"].pop(story_index)
+            await broadcast({
+                "type": "story_removed",
+                "data": {"index": story_index}
+            })
+
+    elif msg_type == "round_start":
+        story_index = data.get("story_index", 0)
+        if story_index >= len(session["stories"]):
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Invalid story index"}
+            }))
+            return
+
+        story = session["stories"][story_index]
+        session["current_round"] = {
+            "story_index": story_index,
+            "title": story["title"],
+            "text": story["text"],
+            "start_time": time.time(),
+            "speed": 1,
+            "paused": False,
+            "pause_time": None,
+            "elapsed_at_pause": 0,
+            "buzzes": [],
+            "status": "running"
+        }
+
+        await broadcast({
+            "type": "round_started",
+            "data": {
+                "title": story["title"],
+                "text": story["text"],
+                "start_time": session["current_round"]["start_time"]
+            }
+        })
+
+    elif msg_type == "speed_change":
+        speed = data.get("speed", 1)
+        if speed not in session["config"]["speed_options"]:
+            return
+        session["current_round"]["speed"] = speed
+        await broadcast({
+            "type": "speed_changed",
+            "data": {"speed": speed, "timestamp": time.time()}
+        })
+
+    elif msg_type == "pause":
+        if session["current_round"]["status"] == "running":
+            now = time.time()
+            elapsed = now - session["current_round"]["start_time"]
+            session["current_round"]["paused"] = True
+            session["current_round"]["pause_time"] = now
+            session["current_round"]["elapsed_at_pause"] = elapsed
+            session["current_round"]["status"] = "paused"
+            await broadcast({
+                "type": "paused",
+                "data": {"timestamp": now, "elapsed": elapsed}
+            })
+
+    elif msg_type == "resume":
+        if session["current_round"]["status"] == "paused":
+            now = time.time()
+            session["current_round"]["start_time"] = now - session["current_round"]["elapsed_at_pause"]
+            session["current_round"]["paused"] = False
+            session["current_round"]["status"] = "running"
+            await broadcast({
+                "type": "resumed",
+                "data": {
+                    "timestamp": now,
+                    "elapsed": session["current_round"]["elapsed_at_pause"]
+                }
+            })
+
 async def broadcast(message, exclude=None):
     """Send message to all connected clients except exclude"""
     websockets_to_send = [
