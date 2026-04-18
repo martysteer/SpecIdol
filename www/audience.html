@@ -403,6 +403,11 @@
         function resetView() {
             stopTensionTicks();
             tensionMode = false;
+
+            // Stop timer and scroller
+            if (timer) timer.stop();
+            if (scroller) scroller.stop();
+
             document.getElementById('timer').classList.remove('tension');
             document.getElementById('outcome').style.display = 'none';
             document.getElementById('storyTitle').textContent = 'Waiting for story...';
