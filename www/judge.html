@@ -179,6 +179,7 @@
         let buzzed = false;
         let timerDuration = 120;
         let myJudgeId = null;
+        let connectedJudges = [];
 
         client.connect();
 
@@ -196,6 +197,10 @@
                 myJudgeId = data.client_info.judge_id;
                 document.getElementById('code').textContent = `session code: ${data.code || '----'}`;
                 document.getElementById('judgeNum').textContent = `you are judge ${myJudgeId}`;
+            }
+            // Update connected judges
+            if (data.connected_judges) {
+                connectedJudges = data.connected_judges;
             }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
@@ -255,6 +260,20 @@
             resetView();
         });
 
+        client.on('judge_joined', (data) => {
+            if (data.connected_judges) {
+                connectedJudges = data.connected_judges;
+                renderJudgeStatus();
+            }
+        });
+
+        client.on('judge_left', (data) => {
+            if (data.connected_judges) {
+                connectedJudges = data.connected_judges;
+                renderJudgeStatus();
+            }
+        });
+
         function startRound(roundData) {
             buzzed = false;
             document.getElementById('storyTitle').textContent = roundData.title || '';
@@ -297,11 +316,9 @@
             const container = document.getElementById('judgeStatus');
             if (!container) return;
 
-            container.innerHTML = `
-                <div class="judge-indicator" data-judge="1">J1</div>
-                <div class="judge-indicator" data-judge="2">J2</div>
-                <div class="judge-indicator" data-judge="3">J3</div>
-            `;
+            container.innerHTML = connectedJudges.map(judgeId => `
+                <div class="judge-indicator" data-judge="${judgeId}">J${judgeId}</div>
+            `).join('');
         }
 
         function updateJudgeStatus(judgeId) {

@@ -55,7 +55,21 @@ async def handle_message(websocket, message_data):
             }))
             return
 
-    if msg_type == "create_session":
+    if msg_type == "list_sessions":
+        # Return available sessions (currently just one global session)
+        sessions = []
+        if session["code"]:
+            sessions.append({
+                "code": session["code"],
+                "story_count": len(session["stories"]),
+                "judge_count": len([j for j in session["judge_slots"].values() if j is not None])
+            })
+        await websocket.send(json.dumps({
+            "type": "sessions_list",
+            "data": {"sessions": sessions}
+        }))
+
+    elif msg_type == "create_session":
         session["code"] = generate_code()
         session["clients"][websocket] = {"role": "controller"}
         await websocket.send(json.dumps({

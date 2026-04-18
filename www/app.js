@@ -81,6 +81,10 @@ class SpecIdolClient {
         }
     }
 
+    listSessions() {
+        this.send('list_sessions');
+    }
+
     createSession() {
         this.send('create_session');
     }

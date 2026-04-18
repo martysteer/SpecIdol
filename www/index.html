@@ -129,10 +129,10 @@
         </div>
 
         <div class="join-form" id="joinForm">
-            <input type="text" id="codeInput" placeholder="CODE" maxlength="4" pattern="[A-Z]{4}">
+            <div id="sessionButtons"></div>
 
-            <button onclick="joinAsAudience()">Join as Audience</button>
-            <button onclick="joinAsJudge()">Join as Judge</button>
+            <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
+            <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
             <button onclick="showModeSelect()">Back</button>
         </div>
 
@@ -142,53 +142,75 @@
     <script src="app.js"></script>
     <script>
         const client = new SpecIdolClient();
+        let selectedCode = null;
+
         client.connect();
 
         client.on('session_created', (data) => {
             window.location.href = `control.html?code=${data.code}`;
         });
 
+        client.on('sessions_list', (data) => {
+            renderSessions(data.sessions);
+        });
+
         function createSession() {
             client.createSession();
         }
 
-        client.on('session_created', (data) => {
-            window.location.href = `control.html?code=${data.code}`;
-        });
-
         function showJoinForm() {
             document.getElementById('modeSelect').style.display = 'none';
             document.getElementById('joinForm').classList.add('active');
+            client.listSessions();
         }
 
         function showModeSelect() {
             document.getElementById('joinForm').classList.remove('active');
             document.getElementById('modeSelect').style.display = 'flex';
+            selectedCode = null;
             clearError();
+        }
+
+        function renderSessions(sessions) {
+            const container = document.getElementById('sessionButtons');
+            if (sessions.length === 0) {
+                container.innerHTML = '<div style="text-align: center; opacity: 0.7; padding: 2rem;">No active sessions</div>';
+                return;
+            }
+
+            container.innerHTML = sessions.map(session => `
+                <button onclick="selectSession('${session.code}')">
+                    ${session.code}
+                    <div style="font-size: 0.6rem; margin-top: 0.5rem; opacity: 0.7;">
+                        ${session.story_count} stories | ${session.judge_count} judges
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        function selectSession(code) {
+            selectedCode = code;
+            document.getElementById('joinAudienceBtn').disabled = false;
+            document.getElementById('joinJudgeBtn').disabled = false;
+            document.querySelectorAll('#sessionButtons button').forEach(btn => {
+                if (btn.textContent.includes(code)) {
+                    btn.style.background = '#0f0';
+                    btn.style.color = '#000';
+                } else {
+                    btn.style.background = '#000';
+                    btn.style.color = '#0f0';
+                }
+            });
         }
 
         function joinAsAudience() {
-            const code = document.getElementById('codeInput').value.toUpperCase();
-
-            if (!code || code.length !== 4) {
-                showError('Enter a 4-letter code');
-                return;
-            }
-
-            clearError();
-            window.location.href = `audience.html?code=${code}`;
+            if (!selectedCode) return;
+            window.location.href = `audience.html?code=${selectedCode}`;
         }
 
         function joinAsJudge() {
-            const code = document.getElementById('codeInput').value.toUpperCase();
-
-            if (!code || code.length !== 4) {
-                showError('Enter a 4-letter code');
-                return;
-            }
-
-            clearError();
-            window.location.href = `judge.html?code=${code}`;
+            if (!selectedCode) return;
+            window.location.href = `judge.html?code=${selectedCode}`;
         }
 
         function showError(message) {
@@ -200,11 +222,6 @@
         function clearError() {
             document.getElementById('error').classList.remove('active');
         }
-
-        // Auto-uppercase code input
-        document.getElementById('codeInput').addEventListener('input', (e) => {
-            e.target.value = e.target.value.toUpperCase();
-        });
     </script>
 </body>
 </html>
