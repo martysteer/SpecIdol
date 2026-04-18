@@ -233,6 +233,12 @@
         let sessionState = null;
         let currentSpeed = 1;
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         client.connect();
 
         client.onConnect = () => {
@@ -247,12 +253,19 @@
         });
 
         client.on('story_added', (data) => {
-            // Refresh would happen via state update
-            console.log('Story added:', data);
+            // Controller already updates local state in addStory().
+            // This handler covers stories added by import or future multi-controller.
+            if (sessionState && data.index >= sessionState.stories.length) {
+                sessionState.stories.push({title: data.title, text: ''});
+                renderStoryQueue();
+            }
         });
 
         client.on('story_removed', (data) => {
-            console.log('Story removed:', data);
+            if (sessionState && data.index < sessionState.stories.length) {
+                sessionState.stories.splice(data.index, 1);
+                renderStoryQueue();
+            }
         });
 
         client.on('round_started', (data) => {
@@ -311,9 +324,9 @@
                 return `
                     <li class="story-item ${isCurrent ? 'current' : ''}">
                         <div class="story-info">
-                            <strong>${story.title}</strong><br>
+                            <strong>${escapeHtml(story.title)}</strong><br>
                             <span style="opacity: 0.7; font-size: 0.9rem;">
-                                ${story.text.substring(0, 80)}...
+                                ${escapeHtml(story.text.substring(0, 80))}...
                             </span>
                         </div>
                         <div class="story-actions">
@@ -336,7 +349,7 @@
                 const buzzInfo = entry.buzzes.map(b => `J${b.judge_id}:${b.time}s`).join(', ');
                 return `
                     <li class="history-item ${entry.outcome}">
-                        <strong>${entry.title}</strong> - ${entry.outcome.toUpperCase()}<br>
+                        <strong>${escapeHtml(entry.title)}</strong> - ${entry.outcome.toUpperCase()}<br>
                         <span style="font-size: 0.85rem;">
                             Duration: ${entry.duration}s | Buzzes: ${buzzInfo || 'none'}
                         </span>
@@ -368,6 +381,10 @@
             }
 
             client.addStory(title, text);
+            if (sessionState) {
+                sessionState.stories.push({title, text});
+                renderStoryQueue();
+            }
             document.getElementById('storyTitle').value = '';
             document.getElementById('storyText').value = '';
         }
