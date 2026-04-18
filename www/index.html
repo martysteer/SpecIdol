@@ -131,20 +131,8 @@
         <div class="join-form" id="joinForm">
             <input type="text" id="codeInput" placeholder="CODE" maxlength="4" pattern="[A-Z]{4}">
 
-            <select id="roleSelect" onchange="toggleJudgeNumber()">
-                <option value="">Select Role...</option>
-                <option value="judge">Judge</option>
-                <option value="audience">Audience</option>
-            </select>
-
-            <select id="judgeNumber" style="display: none;">
-                <option value="">Select Judge Number...</option>
-                <option value="1">Judge 1</option>
-                <option value="2">Judge 2</option>
-                <option value="3">Judge 3</option>
-            </select>
-
-            <button onclick="joinSession()">Join</button>
+            <button onclick="joinAsAudience()">Join as Audience</button>
+            <button onclick="joinAsJudge()">Join as Judge</button>
             <button onclick="showModeSelect()">Back</button>
         </div>
 
@@ -161,12 +149,11 @@
         });
 
         client.on('session_state', (data) => {
-            const params = getUrlParams();
             // Redirect based on role
             if (data.client_info.role === 'judge') {
-                window.location.href = `judge.html?code=${params.code}&judge=${data.client_info.judge_id}`;
+                window.location.href = `judge.html?code=${data.code}`;
             } else if (data.client_info.role === 'audience') {
-                window.location.href = `audience.html?code=${params.code}`;
+                window.location.href = `audience.html?code=${data.code}`;
             }
         });
 
@@ -189,32 +176,28 @@
             clearError();
         }
 
-        function toggleJudgeNumber() {
-            const role = document.getElementById('roleSelect').value;
-            const judgeNumber = document.getElementById('judgeNumber');
-            judgeNumber.style.display = role === 'judge' ? 'block' : 'none';
-        }
-
-        function joinSession() {
+        function joinAsAudience() {
             const code = document.getElementById('codeInput').value.toUpperCase();
-            const role = document.getElementById('roleSelect').value;
-            const judgeId = role === 'judge' ? parseInt(document.getElementById('judgeNumber').value) : null;
 
             if (!code || code.length !== 4) {
                 showError('Enter a 4-letter code');
                 return;
             }
-            if (!role) {
-                showError('Select a role');
-                return;
-            }
-            if (role === 'judge' && !judgeId) {
-                showError('Select a judge number');
+
+            clearError();
+            client.joinSession(code, 'audience');
+        }
+
+        function joinAsJudge() {
+            const code = document.getElementById('codeInput').value.toUpperCase();
+
+            if (!code || code.length !== 4) {
+                showError('Enter a 4-letter code');
                 return;
             }
 
             clearError();
-            client.joinSession(code, role, judgeId);
+            client.joinSession(code, 'judge');
         }
 
         function showError(message) {
