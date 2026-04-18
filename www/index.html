@@ -148,22 +148,13 @@
             window.location.href = `control.html?code=${data.code}`;
         });
 
-        client.on('session_state', (data) => {
-            // Redirect based on role
-            if (data.client_info.role === 'judge') {
-                window.location.href = `judge.html?code=${data.code}`;
-            } else if (data.client_info.role === 'audience') {
-                window.location.href = `audience.html?code=${data.code}`;
-            }
-        });
-
-        client.on('error', (data) => {
-            showError(data.message);
-        });
-
         function createSession() {
             client.createSession();
         }
+
+        client.on('session_created', (data) => {
+            window.location.href = `control.html?code=${data.code}`;
+        });
 
         function showJoinForm() {
             document.getElementById('modeSelect').style.display = 'none';
@@ -185,7 +176,7 @@
             }
 
             clearError();
-            client.joinSession(code, 'audience');
+            window.location.href = `audience.html?code=${code}`;
         }
 
         function joinAsJudge() {
@@ -197,7 +188,7 @@
             }
 
             clearError();
-            client.joinSession(code, 'judge');
+            window.location.href = `judge.html?code=${code}`;
         }
 
         function showError(message) {
