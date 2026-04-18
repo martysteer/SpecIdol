@@ -7,35 +7,43 @@ from datetime import datetime
 import websockets
 from websockets.server import serve
 
-# Single session state (in memory)
-session = {
-    "code": None,
-    "config": {
-        "timer_duration": 120,
-        "speed_options": [1, 2, 3]
-    },
-    "clients": {},  # {websocket: {"role": "judge", "judge_id": 1}}
-    "stories": [],
-    "current_round": {
-        "story_index": None,
-        "title": None,
-        "text": None,
-        "start_time": None,
-        "speed": 1,
-        "paused": False,
-        "pause_time": None,
-        "elapsed_at_pause": 0,
-        "buzzes": [],
-        "status": "waiting"
-    },
-    "history": [],
-    "judge_slots": {},  # {judge_id: websocket} - dynamic
-    "next_judge_id": 1
-}
+# Multiple sessions (in memory)
+sessions = {}  # {code: session_data}
+websocket_sessions = {}  # {websocket: code} - track which session each client is in
 
 def generate_code():
     """Generate 4 uppercase letter code"""
-    return ''.join(random.choices(string.ascii_uppercase, k=4))
+    while True:
+        code = ''.join(random.choices(string.ascii_uppercase, k=4))
+        if code not in sessions:
+            return code
+
+def create_new_session(code):
+    """Create a new session with the given code"""
+    return {
+        "code": code,
+        "config": {
+            "timer_duration": 120,
+            "speed_options": [1, 2, 3]
+        },
+        "clients": {},  # {websocket: {"role": "judge", "judge_id": 1}}
+        "stories": [],
+        "current_round": {
+            "story_index": None,
+            "title": None,
+            "text": None,
+            "start_time": None,
+            "speed": 1,
+            "paused": False,
+            "pause_time": None,
+            "elapsed_at_pause": 0,
+            "buzzes": [],
+            "status": "waiting"
+        },
+        "history": [],
+        "judge_slots": {},  # {judge_id: websocket} - dynamic
+        "next_judge_id": 1
+    }
 
 CONTROLLER_ONLY = {"add_story", "remove_story", "round_start", "speed_change",
                     "pause", "resume", "reset_round", "import_session"}
@@ -45,8 +53,18 @@ async def handle_message(websocket, message_data):
     msg_type = message_data.get("type")
     data = message_data.get("data", {})
 
+    # Get current session for this websocket (if any)
+    session_code = websocket_sessions.get(websocket)
+    session = sessions.get(session_code) if session_code else None
+
     # Auth check for controller-only actions
     if msg_type in CONTROLLER_ONLY:
+        if not session:
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Not in a session"}
+            }))
+            return
         client_info = session["clients"].get(websocket, {})
         if client_info.get("role") != "controller":
             await websocket.send(json.dumps({
@@ -56,25 +74,28 @@ async def handle_message(websocket, message_data):
             return
 
     if msg_type == "list_sessions":
-        # Return available sessions (currently just one global session)
-        sessions = []
-        if session["code"]:
-            sessions.append({
-                "code": session["code"],
-                "story_count": len(session["stories"]),
-                "judge_count": len([j for j in session["judge_slots"].values() if j is not None])
+        # Return all active sessions
+        session_list = []
+        for code, sess in sessions.items():
+            session_list.append({
+                "code": code,
+                "story_count": len(sess["stories"]),
+                "judge_count": len([j for j in sess["judge_slots"].values() if j is not None])
             })
         await websocket.send(json.dumps({
             "type": "sessions_list",
-            "data": {"sessions": sessions}
+            "data": {"sessions": session_list}
         }))
 
     elif msg_type == "create_session":
-        session["code"] = generate_code()
+        code = generate_code()
+        session = create_new_session(code)
+        sessions[code] = session
         session["clients"][websocket] = {"role": "controller"}
+        websocket_sessions[websocket] = code
         await websocket.send(json.dumps({
             "type": "session_created",
-            "data": {"code": session["code"]}
+            "data": {"code": code}
         }))
 
     elif msg_type == "join":
@@ -82,12 +103,16 @@ async def handle_message(websocket, message_data):
         role = data.get("role")
         judge_id = data.get("judge_id")
 
-        if session["code"] and code != session["code"]:
+        # Look up session by code
+        if code not in sessions:
             await websocket.send(json.dumps({
                 "type": "error",
                 "data": {"message": "Invalid session code"}
             }))
             return
+
+        session = sessions[code]
+        websocket_sessions[websocket] = code
 
         if role == "judge":
             # Auto-assign next judge ID
@@ -114,9 +139,9 @@ async def handle_message(websocket, message_data):
             }
         }))
 
-        # Broadcast judge join to other clients
+        # Broadcast judge join to other clients in this session
         if role == "judge":
-            await broadcast({
+            await broadcast_to_session(code, {
                 "type": "judge_joined",
                 "data": {"judge_id": judge_id, "connected_judges": connected_judges}
             }, exclude=websocket)
@@ -125,7 +150,7 @@ async def handle_message(websocket, message_data):
         title = data.get("title", "Untitled")
         text = data.get("text", "")
         session["stories"].append({"title": title, "text": text})
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "story_added",
             "data": {"index": len(session["stories"]) - 1, "title": title}
         })
@@ -134,7 +159,7 @@ async def handle_message(websocket, message_data):
         story_index = data.get("story_index")
         if story_index is not None and 0 <= story_index < len(session["stories"]):
             session["stories"].pop(story_index)
-            await broadcast({
+            await broadcast_to_session(session_code, {
                 "type": "story_removed",
                 "data": {"index": story_index}
             })
@@ -163,7 +188,7 @@ async def handle_message(websocket, message_data):
         }
 
         now = session["current_round"]["start_time"]
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "round_started",
             "data": {
                 "title": story["title"],
@@ -178,7 +203,7 @@ async def handle_message(websocket, message_data):
         if speed not in session["config"]["speed_options"]:
             return
         session["current_round"]["speed"] = speed
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "speed_changed",
             "data": {"speed": speed, "timestamp": time.time()}
         })
@@ -191,7 +216,7 @@ async def handle_message(websocket, message_data):
             session["current_round"]["pause_time"] = now
             session["current_round"]["elapsed_at_pause"] = elapsed
             session["current_round"]["status"] = "paused"
-            await broadcast({
+            await broadcast_to_session(session_code, {
                 "type": "paused",
                 "data": {"timestamp": now, "elapsed": elapsed}
             })
@@ -202,7 +227,7 @@ async def handle_message(websocket, message_data):
             session["current_round"]["start_time"] = now - session["current_round"]["elapsed_at_pause"]
             session["current_round"]["paused"] = False
             session["current_round"]["status"] = "running"
-            await broadcast({
+            await broadcast_to_session(session_code, {
                 "type": "resumed",
                 "data": {
                     "timestamp": now,
@@ -231,7 +256,7 @@ async def handle_message(websocket, message_data):
         buzz_entry = {"judge_id": judge_id, "time": round(elapsed, 1)}
         session["current_round"]["buzzes"].append(buzz_entry)
 
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "buzzed",
             "data": buzz_entry
         })
@@ -249,7 +274,7 @@ async def handle_message(websocket, message_data):
                 "title": session["current_round"]["title"],
                 **outcome_data
             })
-            await broadcast({
+            await broadcast_to_session(session_code, {
                 "type": "round_ended",
                 "data": outcome_data
             })
@@ -267,7 +292,7 @@ async def handle_message(websocket, message_data):
                 "title": session["current_round"]["title"],
                 **outcome_data
             })
-            await broadcast({
+            await broadcast_to_session(session_code, {
                 "type": "round_ended",
                 "data": outcome_data
             })
@@ -285,7 +310,7 @@ async def handle_message(websocket, message_data):
             "buzzes": [],
             "status": "waiting"
         }
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "round_reset",
             "data": {}
         })
@@ -319,13 +344,16 @@ async def handle_message(websocket, message_data):
         # Replace stories
         session["stories"] = stories
 
-        await broadcast({
+        await broadcast_to_session(session_code, {
             "type": "session_imported",
             "data": {"story_count": len(stories)}
         })
 
-async def broadcast(message, exclude=None):
-    """Send message to all connected clients except exclude"""
+async def broadcast_to_session(session_code, message, exclude=None):
+    """Send message to all clients in a specific session except exclude"""
+    if session_code not in sessions:
+        return
+    session = sessions[session_code]
     websockets_to_send = [
         ws for ws in session["clients"].keys()
         if ws != exclude and ws.open
@@ -350,17 +378,20 @@ async def handler(websocket):
                 }))
     finally:
         # Clean up on disconnect
-        client_info = session["clients"].pop(websocket, None)
-        if client_info and client_info.get("role") == "judge":
-            judge_id = client_info.get("judge_id")
-            if session["judge_slots"].get(judge_id) == websocket:
-                del session["judge_slots"][judge_id]
-                # Broadcast judge left
-                connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
-                await broadcast({
-                    "type": "judge_left",
-                    "data": {"judge_id": judge_id, "connected_judges": connected_judges}
-                })
+        session_code = websocket_sessions.pop(websocket, None)
+        if session_code and session_code in sessions:
+            session = sessions[session_code]
+            client_info = session["clients"].pop(websocket, None)
+            if client_info and client_info.get("role") == "judge":
+                judge_id = client_info.get("judge_id")
+                if session["judge_slots"].get(judge_id) == websocket:
+                    del session["judge_slots"][judge_id]
+                    # Broadcast judge left
+                    connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
+                    await broadcast_to_session(session_code, {
+                        "type": "judge_left",
+                        "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+                    })
 
 async def main():
     async with serve(handler, "localhost", 8765):
