@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controller - SPECULATIVE IDOL</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            padding: 2rem;
+        }
+
+        h1, h2 {
+            font-family: 'Press Start 2P', cursive;
+            margin-bottom: 1rem;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            color: #ff0;
+        }
+
+        h2 {
+            font-size: 1rem;
+            margin-top: 2rem;
+            border-bottom: 2px solid #0f0;
+            padding-bottom: 0.5rem;
+        }
+
+        .session-info {
+            text-align: center;
+            padding: 1rem;
+            border: 2px solid #0f0;
+            margin-bottom: 2rem;
+        }
+
+        .code {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 2rem;
+            color: #0f0;
+            letter-spacing: 0.5rem;
+        }
+
+        .section {
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border: 1px solid #0f0;
+        }
+
+        input, textarea, button, select {
+            background: #000;
+            color: #0f0;
+            border: 2px solid #0f0;
+            padding: 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            margin: 0.25rem;
+        }
+
+        button {
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            padding: 0.75rem 1.5rem;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #0f0;
+            color: #000;
+        }
+
+        button:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .story-queue {
+            list-style: none;
+        }
+
+        .story-item {
+            border: 1px solid #0f0;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .story-item.current {
+            border-color: #ff0;
+            color: #ff0;
+        }
+
+        .story-info {
+            flex: 1;
+        }
+
+        .story-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .history-list {
+            list-style: none;
+        }
+
+        .history-item {
+            border: 1px solid #0f0;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .history-item.victory {
+            border-color: #0f0;
+        }
+
+        .history-item.defeat {
+            border-color: #f00;
+            color: #f00;
+        }
+
+        .form-group {
+            margin-bottom: 0.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.25rem;
+            font-size: 0.9rem;
+        }
+
+        .import-export {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .import-export textarea {
+            min-height: 200px;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <h1>CONTROLLER</h1>
+
+    <div class="session-info">
+        <div>SESSION CODE</div>
+        <div class="code" id="sessionCode">----</div>
+        <div style="margin-top: 0.5rem; font-size: 0.9rem;">Connected: <span id="clientCount">0</span></div>
+    </div>
+
+    <div class="section">
+        <h2>Story Queue</h2>
+        <ul class="story-queue" id="storyQueue"></ul>
+
+        <div class="form-group">
+            <label>Title:</label>
+            <input type="text" id="storyTitle" placeholder="Story title">
+        </div>
+
+        <div class="form-group">
+            <label>Text:</label>
+            <textarea id="storyText" placeholder="Story text..."></textarea>
+        </div>
+
+        <button onclick="addStory()">Add Story</button>
+    </div>
+
+    <div class="section">
+        <h2>Round Controls</h2>
+        <div id="currentStatus" style="margin-bottom: 1rem;">Status: Waiting</div>
+
+        <div class="controls">
+            <button onclick="startRound()" id="startBtn">Start Round</button>
+            <button onclick="pauseRound()" id="pauseBtn" disabled>Pause</button>
+            <button onclick="resumeRound()" id="resumeBtn" disabled>Resume</button>
+            <button onclick="changeSpeed(1)" id="speed1Btn">1x</button>
+            <button onclick="changeSpeed(2)" id="speed2Btn">2x</button>
+            <button onclick="changeSpeed(3)" id="speed3Btn">3x</button>
+            <button onclick="resetRound()" id="resetBtn">Reset</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Import / Export</h2>
+        <div class="import-export">
+            <textarea id="importExportJson" placeholder="Session JSON..."></textarea>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="exportSession()">Export to JSON</button>
+                <button onclick="importSession()">Import from JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>History</h2>
+        <ul class="history-list" id="historyList"></ul>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        const params = getUrlParams();
+        const client = new SpecIdolClient();
+        let sessionState = null;
+        let currentSpeed = 1;
+
+        client.connect();
+
+        client.onConnect = () => {
+            if (params.code) {
+                client.joinSession(params.code, 'controller');
+            }
+        };
+
+        client.on('session_state', (data) => {
+            sessionState = data;
+            updateUI();
+        });
+
+        client.on('story_added', (data) => {
+            // Refresh would happen via state update
+            console.log('Story added:', data);
+        });
+
+        client.on('story_removed', (data) => {
+            console.log('Story removed:', data);
+        });
+
+        client.on('round_started', (data) => {
+            updateStatus('running');
+        });
+
+        client.on('paused', (data) => {
+            updateStatus('paused');
+        });
+
+        client.on('resumed', (data) => {
+            updateStatus('running');
+        });
+
+        client.on('round_ended', (data) => {
+            updateStatus('ended');
+            if (sessionState) {
+                sessionState.history.push({
+                    title: sessionState.current_round.title,
+                    ...data
+                });
+                renderHistory();
+            }
+        });
+
+        client.on('round_reset', () => {
+            updateStatus('waiting');
+        });
+
+        client.on('session_imported', (data) => {
+            alert(`Imported ${data.story_count} stories`);
+            // Trigger refresh by requesting session state
+            if (params.code) {
+                client.joinSession(params.code, 'controller');
+            }
+        });
+
+        function updateUI() {
+            if (!sessionState) return;
+
+            document.getElementById('sessionCode').textContent = sessionState.code || '----';
+            renderStoryQueue();
+            renderHistory();
+            updateStatus(sessionState.current_round.status);
+        }
+
+        function renderStoryQueue() {
+            const queue = document.getElementById('storyQueue');
+            if (!sessionState || !sessionState.stories) {
+                queue.innerHTML = '<li>No stories added yet</li>';
+                return;
+            }
+
+            queue.innerHTML = sessionState.stories.map((story, i) => {
+                const isCurrent = i === sessionState.current_round.story_index;
+                return `
+                    <li class="story-item ${isCurrent ? 'current' : ''}">
+                        <div class="story-info">
+                            <strong>${story.title}</strong><br>
+                            <span style="opacity: 0.7; font-size: 0.9rem;">
+                                ${story.text.substring(0, 80)}...
+                            </span>
+                        </div>
+                        <div class="story-actions">
+                            <button onclick="selectStory(${i})">Select</button>
+                            <button onclick="removeStory(${i})">Remove</button>
+                        </div>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            if (!sessionState || sessionState.history.length === 0) {
+                list.innerHTML = '<li>No rounds completed yet</li>';
+                return;
+            }
+
+            list.innerHTML = sessionState.history.map(entry => {
+                const buzzInfo = entry.buzzes.map(b => `J${b.judge_id}:${b.time}s`).join(', ');
+                return `
+                    <li class="history-item ${entry.outcome}">
+                        <strong>${entry.title}</strong> - ${entry.outcome.toUpperCase()}<br>
+                        <span style="font-size: 0.85rem;">
+                            Duration: ${entry.duration}s | Buzzes: ${buzzInfo || 'none'}
+                        </span>
+                    </li>
+                `;
+            }).join('');
+        }
+
+        function updateStatus(status) {
+            document.getElementById('currentStatus').textContent = `Status: ${status}`;
+
+            // Enable/disable buttons based on status
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const resumeBtn = document.getElementById('resumeBtn');
+
+            startBtn.disabled = (status === 'running' || status === 'paused');
+            pauseBtn.disabled = (status !== 'running');
+            resumeBtn.disabled = (status !== 'paused');
+        }
+
+        function addStory() {
+            const title = document.getElementById('storyTitle').value.trim();
+            const text = document.getElementById('storyText').value.trim();
+
+            if (!title || !text) {
+                alert('Enter both title and text');
+                return;
+            }
+
+            client.addStory(title, text);
+            document.getElementById('storyTitle').value = '';
+            document.getElementById('storyText').value = '';
+        }
+
+        function selectStory(index) {
+            if (!sessionState) return;
+            sessionState.current_round.story_index = index;
+            renderStoryQueue();
+        }
+
+        function removeStory(index) {
+            if (confirm('Remove this story?')) {
+                client.removeStory(index);
+            }
+        }
+
+        function startRound() {
+            if (!sessionState || sessionState.current_round.story_index === null) {
+                alert('Select a story first');
+                return;
+            }
+            client.startRound(sessionState.current_round.story_index);
+        }
+
+        function pauseRound() {
+            client.pause();
+        }
+
+        function resumeRound() {
+            client.resume();
+        }
+
+        function changeSpeed(speed) {
+            currentSpeed = speed;
+            client.changeSpeed(speed);
+
+            // Update button states
+            document.getElementById('speed1Btn').style.background = speed === 1 ? '#0f0' : '#000';
+            document.getElementById('speed2Btn').style.background = speed === 2 ? '#0f0' : '#000';
+            document.getElementById('speed3Btn').style.background = speed === 3 ? '#0f0' : '#000';
+            document.getElementById('speed1Btn').style.color = speed === 1 ? '#000' : '#0f0';
+            document.getElementById('speed2Btn').style.color = speed === 2 ? '#000' : '#0f0';
+            document.getElementById('speed3Btn').style.color = speed === 3 ? '#000' : '#0f0';
+        }
+
+        function resetRound() {
+            if (confirm('Reset the current round?')) {
+                client.resetRound();
+            }
+        }
+
+        function exportSession() {
+            if (!sessionState) return;
+
+            const exportData = {
+                stories: sessionState.stories,
+                config: sessionState.config
+            };
+
+            document.getElementById('importExportJson').value = JSON.stringify(exportData, null, 2);
+        }
+
+        function importSession() {
+            const json = document.getElementById('importExportJson').value.trim();
+            if (!json) {
+                alert('Paste JSON first');
+                return;
+            }
+
+            try {
+                const data = JSON.parse(json);
+                client.importSession(data.stories || [], data.config || {});
+            } catch (e) {
+                alert('Invalid JSON: ' + e.message);
+            }
+        }
+    </script>
+</body>
+</html>
