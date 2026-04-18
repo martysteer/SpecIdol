@@ -180,6 +180,81 @@ async def handle_message(websocket, message_data):
                 }
             })
 
+    elif msg_type == "buzz":
+        judge_id = data.get("judge_id")
+        client_info = session["clients"].get(websocket, {})
+
+        # Verify this is actually a judge
+        if client_info.get("role") != "judge" or client_info.get("judge_id") != judge_id:
+            return
+
+        # Check if already buzzed
+        if any(b["judge_id"] == judge_id for b in session["current_round"]["buzzes"]):
+            return
+
+        now = time.time()
+        elapsed = now - session["current_round"]["start_time"]
+        buzz_entry = {"judge_id": judge_id, "time": round(elapsed, 1)}
+        session["current_round"]["buzzes"].append(buzz_entry)
+
+        await broadcast({
+            "type": "buzzed",
+            "data": buzz_entry
+        })
+
+        # Check if all judges have buzzed
+        if len(session["current_round"]["buzzes"]) >= session["config"]["judge_count"]:
+            session["current_round"]["status"] = "defeat"
+            outcome_data = {
+                "outcome": "defeat",
+                "buzzes": session["current_round"]["buzzes"],
+                "duration": session["current_round"]["buzzes"][-1]["time"]
+            }
+            session["history"].append({
+                "title": session["current_round"]["title"],
+                **outcome_data
+            })
+            await broadcast({
+                "type": "round_ended",
+                "data": outcome_data
+            })
+
+    elif msg_type == "victory":
+        # Client detected timer reached limit
+        if session["current_round"]["status"] == "running":
+            session["current_round"]["status"] = "victory"
+            outcome_data = {
+                "outcome": "victory",
+                "buzzes": session["current_round"]["buzzes"],
+                "duration": session["config"]["timer_duration"]
+            }
+            session["history"].append({
+                "title": session["current_round"]["title"],
+                **outcome_data
+            })
+            await broadcast({
+                "type": "round_ended",
+                "data": outcome_data
+            })
+
+    elif msg_type == "reset_round":
+        session["current_round"] = {
+            "story_index": None,
+            "title": None,
+            "text": None,
+            "start_time": None,
+            "speed": 1,
+            "paused": False,
+            "pause_time": None,
+            "elapsed_at_pause": 0,
+            "buzzes": [],
+            "status": "waiting"
+        }
+        await broadcast({
+            "type": "round_reset",
+            "data": {}
+        })
+
 async def broadcast(message, exclude=None):
     """Send message to all connected clients except exclude"""
     websockets_to_send = [
