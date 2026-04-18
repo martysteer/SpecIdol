@@ -221,6 +221,10 @@
                 }
                 if (round.status === 'paused') {
                     if (timer) timer.pause();
+                    const button = document.getElementById('buzzButton');
+                    if (button && !buzzed) {
+                        button.disabled = true;
+                    }
                 }
             } else if (round.status === 'defeat' || round.status === 'victory') {
                 startRound(round);
@@ -238,10 +242,18 @@
 
         client.on('paused', (data) => {
             if (timer) timer.pause();
+            const button = document.getElementById('buzzButton');
+            if (button && !buzzed) {
+                button.disabled = true;
+            }
         });
 
         client.on('resumed', (data) => {
             if (timer) timer.resume(data.timestamp - data.elapsed);
+            const button = document.getElementById('buzzButton');
+            if (button && !buzzed) {
+                button.disabled = false;
+            }
         });
 
         client.on('speed_changed', (data) => {
