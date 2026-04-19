@@ -20,7 +20,7 @@ COPY www/ /usr/share/nginx/html/
 
 # Create nginx config
 RUN echo 'server {\n\
-    listen 8080;\n\
+    listen 8000;\n\
     root /usr/share/nginx/html;\n\
     index index.html;\n\
     location / {\n\
@@ -51,8 +51,8 @@ stdout_logfile_maxbytes=0\n\
 stderr_logfile=/dev/stderr\n\
 stderr_logfile_maxbytes=0\n' > /etc/supervisor/conf.d/app.conf
 
-# Expose ports (web on 8080, websocket on 8765)
-EXPOSE 8080 8765
+# Expose ports (web on 8000, websocket on 8765)
+EXPOSE 8000 8765
 
 # Run supervisor
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]

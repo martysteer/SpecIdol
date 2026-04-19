@@ -2,20 +2,21 @@
 
 # Docker commands (default)
 build:
-	docker compose build
+	docker build -t specidol .
 
 servers:
-	docker compose up -d
+	docker run -d --name specidol -p 8000:8000 -p 8765:8765 specidol
 	@echo ""
 	@echo "Servers running:"
+	@echo "  - Web interface: http://localhost:8000"
 	@echo "  - WebSocket relay: ws://localhost:8765"
-	@echo "  - HTTP server: http://localhost:8000"
 	@echo ""
 	@echo "Run 'make stop' to stop servers"
-	@echo "Run 'docker compose logs -f' to view logs"
+	@echo "Run 'docker logs -f specidol' to view logs"
 
 stop:
-	docker compose down
+	docker stop specidol 2>/dev/null || true
+	docker rm specidol 2>/dev/null || true
 
 # Local development (without Docker)
 dev:
