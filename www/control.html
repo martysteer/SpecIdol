@@ -243,6 +243,7 @@
 
         .story-queue {
             list-style: none;
+            min-height: 100px;
         }
 
         .story-item {
@@ -272,6 +273,21 @@
         .story-actions {
             display: flex;
             gap: 0.5rem;
+        }
+
+        /* Empty state styling */
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+            line-height: 1.8;
+        }
+
+        .empty-state .cta {
+            color: #ff0;
+            font-weight: bold;
+            margin-top: 0.5rem;
+            display: block;
         }
 
         .controls {
@@ -547,8 +563,19 @@
 
         function renderStoryQueue() {
             const queue = document.getElementById('storyQueue');
-            if (!sessionState || !sessionState.stories) {
-                queue.innerHTML = '<li>No stories added yet</li>';
+            if (!sessionState || !sessionState.stories || sessionState.stories.length === 0) {
+                queue.innerHTML = `
+                    <li class="empty-state">
+                        No stories yet.
+                        <span class="cta">Add your first story to get started ↓</span>
+                    </li>
+                `;
+
+                // Auto-expand Story Management if queue empty (onboarding)
+                const storyMgmt = document.getElementById('storyManagement');
+                if (storyMgmt && storyMgmt.classList.contains('collapsed')) {
+                    storyMgmt.classList.remove('collapsed');
+                }
                 return;
             }
 
@@ -573,7 +600,7 @@
         function renderHistory() {
             const list = document.getElementById('historyList');
             if (!sessionState || sessionState.history.length === 0) {
-                list.innerHTML = '<li>No rounds completed yet</li>';
+                list.innerHTML = '<li style="opacity: 0.7; text-align: center; padding: 1rem;">No rounds completed yet. Start a round to build history.</li>';
                 return;
             }
 
@@ -612,10 +639,18 @@
                 return;
             }
 
+            const wasEmpty = !sessionState || sessionState.stories.length === 0;
+
             client.addStory(title, text);
             if (sessionState) {
                 sessionState.stories.push({title, text});
                 renderStoryQueue();
+
+                // Success: first story added - collapse Story Management to shift to "live mode"
+                if (wasEmpty) {
+                    const storyMgmt = document.getElementById('storyManagement');
+                    storyMgmt.classList.add('collapsed');
+                }
             }
             document.getElementById('storyTitle').value = '';
             document.getElementById('storyText').value = '';
