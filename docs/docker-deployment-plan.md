@@ -11,6 +11,23 @@ Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Act
 - **Clean separation**: Infrastructure doesn't force app changes
 - **Manual deployment**: GitHub Actions workflow triggered on-demand
 
+## SSH Keys Explained
+
+You need **two different SSH key pairs**:
+
+1. **Your personal SSH key** (for manual Droplet access):
+   - Used when you SSH into the Droplet yourself
+   - Added when creating the Droplet in DigitalOcean UI
+   - Lets you run commands like `ssh root@YOUR_DROPLET_IP`
+
+2. **GitHub Actions SSH key** (for automated deployments):
+   - Used by GitHub Actions to SSH into Droplet and deploy
+   - Generated separately (see setup steps below)
+   - Private key stored in GitHub Secrets
+   - Public key added to Droplet's `authorized_keys`
+
+Both keys give SSH access to the same Droplet. One for you, one for GitHub.
+
 ## Setup
 
 ### 1. Create DigitalOcean Droplet
@@ -18,9 +35,9 @@ Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Act
 1. **Create Droplet:**
    - Go to DigitalOcean → Create → Droplets
    - Choose: Ubuntu 22.04 LTS
-   - Plan: Basic ($4/mo minimum - supports Docker)
+   - Plan: Basic ($4/mo minimum)
    - Choose datacenter region
-   - Add SSH key (or create one)
+   - **Authentication:** Add your personal SSH key (or create one if you don't have it)
    - Create Droplet
 
 2. **Install Docker on Droplet:**
@@ -55,27 +72,46 @@ Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Act
    - Visit: `http://YOUR_DROPLET_IP:8080`
    - Should see SpecIdol join screen
 
-### 2. Configure GitHub Secrets
+### 2. Configure GitHub Actions
 
 1. **Generate SSH key for GitHub Actions (on your local machine):**
    ```bash
-   ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/specidol-deploy
+   ssh-keygen -t ed25519 -C "github-actions-deploy" -f ~/.ssh/specidol-github-actions
+   # Press Enter twice (no passphrase)
    ```
+
+   This creates two files:
+   - `~/.ssh/specidol-github-actions` (private key - goes to GitHub)
+   - `~/.ssh/specidol-github-actions.pub` (public key - goes to Droplet)
 
 2. **Add public key to Droplet:**
    ```bash
+   # Copy the public key
+   cat ~/.ssh/specidol-github-actions.pub
+
+   # SSH into Droplet with YOUR key
    ssh root@YOUR_DROPLET_IP
-   echo "YOUR_PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
+
+   # Add GitHub Actions public key
+   echo "PASTE_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
    ```
 
 3. **Add secrets to GitHub:**
    - Go to: GitHub repo → Settings → Secrets and variables → Actions
    - Click "New repository secret"
    - Add two secrets:
+
+     **Secret 1:**
      - **Name:** `DROPLET_HOST`
-       **Value:** Your Droplet IP address (e.g., `123.45.67.89`)
+     - **Value:** Your Droplet IP address (e.g., `123.45.67.89`)
+
+     **Secret 2:**
      - **Name:** `DROPLET_SSH_KEY`
-       **Value:** Contents of `~/.ssh/specidol-deploy` (private key)
+     - **Value:** Contents of the **private** key file
+       ```bash
+       cat ~/.ssh/specidol-github-actions
+       # Copy entire output including -----BEGIN and -----END lines
+       ```
 
 ### 3. Deploy via GitHub Actions
 
@@ -96,7 +132,7 @@ Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Act
 ## Workflow Details
 
 The GitHub Actions workflow (`.github/workflows/deploy.yml`):
-1. SSHs into Droplet
+1. SSHs into Droplet using GitHub Actions key
 2. Pulls latest code from GitHub
 3. Stops running container
 4. Rebuilds Docker image
@@ -120,43 +156,11 @@ make servers    # Run container
 make stop       # Stop container
 ```
 
-## Production Considerations
-
-### Custom Domain
-
-1. **Add A record:** Point domain to Droplet IP
-2. **Update ports:** Use 80 (HTTP) or 443 (HTTPS)
-3. **Add TLS:** Use Caddy or Certbot for HTTPS/WSS
-
-### SSL/TLS (Recommended)
-
-For production, add reverse proxy with automatic HTTPS:
-
-```bash
-# Install Caddy on Droplet
-apt install -y debian-keyring debian-archive-keyring apt-transport-https
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
-curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
-apt update
-apt install caddy
-
-# Configure Caddyfile
-cat > /etc/caddy/Caddyfile <<EOF
-yourdomain.com {
-    reverse_proxy localhost:8080
-    reverse_proxy /ws localhost:8765
-}
-EOF
-
-systemctl restart caddy
-```
-
-Then update Docker ports to only expose locally: `-p 127.0.0.1:8080:8080 -p 127.0.0.1:8765:8765`
-
-### Monitoring
+## Monitoring
 
 **View logs:**
 ```bash
+ssh root@YOUR_DROPLET_IP
 docker logs -f specidol
 ```
 
@@ -170,25 +174,13 @@ docker ps
 docker restart specidol
 ```
 
-### Backup
+## Backup
 
 **Current limitation:** Sessions stored in-memory (lost on restart).
 
 **Export/Import:**
 - Controller has Import/Export buttons
-- Manual backup before updates
-- Future: Add database persistence
-
-### Scaling
-
-**Single instance sufficient for:**
-- <100 concurrent users
-- Small events/classes
-
-**For scaling:**
-- Add Redis for shared session state
-- Deploy multiple instances
-- Load balancer in front
+- Manual backup before updates if needed
 
 ## Troubleshooting
 
@@ -201,12 +193,11 @@ docker logs specidol
 ```bash
 lsof -i :8080
 lsof -i :8765
-# Kill process if needed
 ```
 
 **GitHub Actions fails:**
-- Check Droplet SSH access: `ssh -i ~/.ssh/specidol-deploy root@YOUR_DROPLET_IP`
-- Verify secrets are set correctly
+- Check secrets are set correctly in GitHub
+- Test SSH access: `ssh -i ~/.ssh/specidol-github-actions root@YOUR_DROPLET_IP`
 - Check workflow logs in Actions tab
 
 **WebSocket won't connect:**
@@ -214,21 +205,26 @@ lsof -i :8765
 - Check browser console for errors
 - Confirm relay running: `docker exec specidol ps aux | grep relay`
 
-## Cost Estimate
+## Cost
 
 **DigitalOcean Droplet:**
 - Basic plan: $4/mo (512MB RAM, 10GB disk)
 - Recommended: $6/mo (1GB RAM, 25GB disk)
 - Bandwidth: 500GB-1TB included
 
-**DNS (optional):**
-- DigitalOcean: Free with Droplet
-- Namecheap/Cloudflare: ~$10-15/year
+## Starting Fresh
 
-## Next Steps
+If something breaks, just destroy and rebuild:
 
-1. Create Droplet and install Docker
-2. Add GitHub secrets
-3. Run initial deployment via Actions
-4. Test at `http://YOUR_DROPLET_IP:8080`
-5. (Optional) Add custom domain + HTTPS
+```bash
+# On Droplet
+docker stop specidol
+docker rm specidol
+docker rmi specidol
+cd /opt/specidol
+git pull origin main
+docker build -t specidol .
+docker run -d --name specidol --restart unless-stopped -p 8080:8080 -p 8765:8765 specidol
+```
+
+Or destroy the entire Droplet and start from Step 1.
