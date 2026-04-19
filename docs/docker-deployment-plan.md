@@ -40,13 +40,28 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
    - **Authentication:** Add your personal SSH key (or create one if you don't have it)
    - Create Droplet
 
-2. **Install Docker on Droplet:**
+2. **SSH into Droplet:**
    ```bash
    ssh root@YOUR_DROPLET_IP
+   ```
+
+3. **Install Docker:**
+   ```bash
    curl -fsSL https://get.docker.com | sh
    ```
 
-3. **Clone repository:**
+   If you get "Could not get lock" error, wait 1-2 minutes (Ubuntu runs automatic updates on first boot), then try again.
+
+4. **Configure firewall:**
+   ```bash
+   ufw allow 22/tcp    # SSH (required or you'll lock yourself out)
+   ufw allow 8080/tcp  # Web interface (nginx serves static files)
+   ufw allow 8765/tcp  # WebSocket relay
+   ufw enable
+   # Type 'y' when prompted
+   ```
+
+5. **Clone repository:**
    ```bash
    mkdir -p /opt
    cd /opt
@@ -54,21 +69,26 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
    cd specidol
    ```
 
-4. **Initial build and run:**
+6. **Build and run Docker container:**
    ```bash
    docker build -t specidol .
    docker run -d --name specidol --restart unless-stopped -p 8080:8080 -p 8765:8765 specidol
    ```
 
-5. **Configure firewall:**
+   This single container runs:
+   - nginx on port 8080 (serves HTML/CSS/JS)
+   - Python relay on port 8765 (WebSocket server)
+
+7. **Verify it's running:**
    ```bash
-   ufw allow 22/tcp    # SSH
-   ufw allow 8080/tcp  # Web interface
-   ufw allow 8765/tcp  # WebSocket
-   ufw enable
+   docker ps
+   # Should see specidol container with both ports listed
+
+   docker logs specidol
+   # Should see nginx and relay startup messages
    ```
 
-6. **Test deployment:**
+8. **Test deployment:**
    - Visit: `http://YOUR_DROPLET_IP:8080`
    - Should see SpecIdol join screen
 
