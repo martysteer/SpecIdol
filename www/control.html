@@ -298,6 +298,20 @@
             gap: 0.5rem;
         }
 
+        .story-actions button {
+            background: #000;
+            color: #f00;
+            border-color: #f00;
+            font-size: var(--text-caption);
+            padding: 0.5rem 1rem;
+        }
+
+        .story-actions button:hover {
+            background: #f00;
+            color: #000;
+            box-shadow: 0 0 20px #f00;
+        }
+
         /* Empty state styling */
         .empty-state {
             text-align: center;
@@ -352,6 +366,18 @@
             font-size: var(--text-subheading);
             margin-bottom: 1rem;
             color: #0f0;
+        }
+
+        #cancelEditBtn {
+            background: #000;
+            color: #f00;
+            border-color: #f00;
+        }
+
+        #cancelEditBtn:hover {
+            background: #f00;
+            color: #000;
+            box-shadow: 0 0 20px #f00;
         }
 
         label {
@@ -415,7 +441,7 @@
         </h2>
         <div class="management-content">
             <div class="management-section">
-                <h3>Add Story</h3>
+                <h3 id="storyFormTitle">Add Story</h3>
                 <div class="form-group">
                     <label>Title:</label>
                     <input type="text" id="storyTitle" placeholder="Story title">
@@ -424,7 +450,8 @@
                     <label>Text:</label>
                     <textarea id="storyText" placeholder="Story text..."></textarea>
                 </div>
-                <button onclick="addStory()">Add Story</button>
+                <button onclick="saveStory()" id="saveStoryBtn">Add Story</button>
+                <button onclick="cancelEdit()" id="cancelEditBtn" style="display: none; margin-left: 0.5rem; background: #800; color: #f00; border-color: #f00;">Cancel</button>
             </div>
 
             <div class="management-section">
@@ -463,6 +490,7 @@
         const client = new SpecIdolClient();
         let sessionState = null;
         let currentSpeed = 1;
+        let editingStoryIndex = null;
 
         function escapeHtml(str) {
             const div = document.createElement('div');
@@ -699,6 +727,79 @@
             }
             document.getElementById('storyTitle').value = '';
             document.getElementById('storyText').value = '';
+            editingStoryIndex = null;
+            updateFormUI();
+        }
+
+        function loadStoryForEditing(index) {
+            if (!sessionState || !sessionState.stories[index]) return;
+
+            const story = sessionState.stories[index];
+            document.getElementById('storyTitle').value = story.title;
+            document.getElementById('storyText').value = story.text;
+            editingStoryIndex = index;
+            updateFormUI();
+
+            // Auto-expand Story Management for editing
+            const storyMgmt = document.getElementById('storyManagement');
+            storyMgmt.classList.remove('collapsed');
+        }
+
+        function updateFormUI() {
+            const formTitle = document.getElementById('storyFormTitle');
+            const saveBtn = document.getElementById('saveStoryBtn');
+            const cancelBtn = document.getElementById('cancelEditBtn');
+
+            if (editingStoryIndex !== null) {
+                formTitle.textContent = 'Edit Story';
+                saveBtn.textContent = 'Update Story';
+                cancelBtn.style.display = 'inline-block';
+            } else {
+                formTitle.textContent = 'Add Story';
+                saveBtn.textContent = 'Add Story';
+                cancelBtn.style.display = 'none';
+            }
+        }
+
+        async function saveStory() {
+            if (editingStoryIndex !== null) {
+                await updateStory();
+            } else {
+                await addStory();
+            }
+        }
+
+        async function updateStory() {
+            const title = document.getElementById('storyTitle').value.trim();
+            const text = document.getElementById('storyText').value.trim();
+
+            if (!title || !text) {
+                await customAlert('Enter both title and text');
+                return;
+            }
+
+            if (!sessionState || editingStoryIndex === null) return;
+
+            // Remove old story and add updated one
+            client.removeStory(editingStoryIndex);
+            client.addStory(title, text);
+
+            if (sessionState) {
+                sessionState.stories[editingStoryIndex] = {title, text};
+                renderStoryQueue();
+            }
+
+            document.getElementById('storyTitle').value = '';
+            document.getElementById('storyText').value = '';
+            editingStoryIndex = null;
+            updateFormUI();
+        }
+
+        function cancelEdit() {
+            document.getElementById('storyTitle').value = '';
+            document.getElementById('storyText').value = '';
+            editingStoryIndex = null;
+            updateFormUI();
         }
 
         async function selectStory(index) {
@@ -714,6 +815,9 @@
             sessionState.current_round.story_index = index;
             renderStoryQueue();
             updateSelectedStoryDisplay();
+
+            // Load story into form for editing (when round not active)
+            loadStoryForEditing(index);
         }
 
         function updateSelectedStoryDisplay() {
