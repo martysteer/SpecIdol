@@ -780,18 +780,9 @@
 
             if (!sessionState || editingStoryIndex === null) return;
 
-            // Remove old story and add updated one (will move to end of queue)
-            client.removeStory(editingStoryIndex);
-
-            // Wait briefly for remove to process, then add
-            setTimeout(() => {
-                client.addStory(title, text);
-                // addStory function handles sessionState update
-                if (sessionState) {
-                    sessionState.stories.push({title, text});
-                    renderStoryQueue();
-                }
-            }, 50);
+            // Update story in place - no need to remove/re-add
+            sessionState.stories[editingStoryIndex] = {title, text};
+            renderStoryQueue();
 
             document.getElementById('storyTitle').value = '';
             document.getElementById('storyText').value = '';
