@@ -234,11 +234,17 @@
 
         function joinAsAudience() {
             if (!selectedCode) return;
+            if (!confirm("Do you like to watch?")) {
+                return;
+            }
             window.location.href = `audience.html?code=${selectedCode}`;
         }
 
         function joinAsJudge() {
             if (!selectedCode) return;
+            if (!confirm("Is your opinion the truth?")) {
+                return;
+            }
             window.location.href = `judge.html?code=${selectedCode}`;
         }
 
