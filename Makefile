@@ -1,4 +1,23 @@
-.PHONY: docker servers stop clean dev dev-stop
+.PHONY: help docker servers stop clean dev dev-stop
+
+.DEFAULT_GOAL := help
+
+help:
+	@echo "SpecIdol Makefile commands:"
+	@echo ""
+	@echo "Docker commands:"
+	@echo "  make docker      Build Docker image"
+	@echo "  make servers     Run Docker container (port 80 + 8765)"
+	@echo "  make stop        Stop and remove Docker container"
+	@echo "  make clean       Stop container, remove container and image"
+	@echo ""
+	@echo "Local development commands:"
+	@echo "  make dev         Run without Docker (port 8000 + 8765)"
+	@echo "  make dev-stop    Stop local dev servers"
+	@echo ""
+	@echo "Quick start:"
+	@echo "  make docker && make servers"
+	@echo "  Then visit http://localhost"
 
 # Docker commands (default)
 docker:
