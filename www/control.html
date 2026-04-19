@@ -564,10 +564,11 @@
 
         client.on('round_reset', () => {
             updateStatus('waiting');
+            renderStoryQueue(); // Re-render to remove disabled state
         });
 
-        client.on('session_imported', (data) => {
-            alert(`Imported ${data.story_count} stories`);
+        client.on('session_imported', async (data) => {
+            await customAlert(`Imported ${data.story_count} stories`);
             // Trigger refresh by requesting session state
             if (params.code) {
                 client.joinSession(params.code, 'controller');
@@ -657,12 +658,12 @@
             resumeBtn.disabled = (status !== 'paused');
         }
 
-        function addStory() {
+        async function addStory() {
             const title = document.getElementById('storyTitle').value.trim();
             const text = document.getElementById('storyText').value.trim();
 
             if (!title || !text) {
-                alert('Enter both title and text');
+                await customAlert('Enter both title and text');
                 return;
             }
 
@@ -683,13 +684,13 @@
             document.getElementById('storyText').value = '';
         }
 
-        function selectStory(index) {
+        async function selectStory(index) {
             if (!sessionState) return;
 
             // Block story selection during active round
             const status = sessionState.current_round.status;
             if (status === 'running' || status === 'paused') {
-                alert('Cannot change story during active round. Reset or wait for round to end.');
+                await customAlert('Cannot change story during active round. Reset or wait for round to end.');
                 return;
             }
 
@@ -724,15 +725,15 @@
             section.classList.toggle('collapsed');
         }
 
-        function removeStory(index) {
-            if (confirm('Remove this story?')) {
+        async function removeStory(index) {
+            if (await customConfirm('Remove this story?')) {
                 client.removeStory(index);
             }
         }
 
-        function startRound() {
+        async function startRound() {
             if (!sessionState || sessionState.current_round.story_index === null) {
-                alert('Select a story first');
+                await customAlert('Select a story first');
                 return;
             }
             client.startRound(sessionState.current_round.story_index);
@@ -759,8 +760,8 @@
             document.getElementById('speed3Btn').style.color = speed === 3 ? '#000' : '#0f0';
         }
 
-        function resetRound() {
-            if (confirm('Reset the current round?')) {
+        async function resetRound() {
+            if (await customConfirm('Reset the current round?')) {
                 client.resetRound();
             }
         }
@@ -776,25 +777,25 @@
             document.getElementById('importExportJson').value = JSON.stringify(exportData, null, 2);
         }
 
-        function copyHistory() {
+        async function copyHistory() {
             if (!sessionState || sessionState.history.length === 0) {
-                alert('No history to copy yet');
+                await customAlert('No history to copy yet');
                 return;
             }
 
             const historyJson = JSON.stringify(sessionState.history, null, 2);
-            navigator.clipboard.writeText(historyJson).then(() => {
-                alert('History copied to clipboard!');
-            }).catch(err => {
+            navigator.clipboard.writeText(historyJson).then(async () => {
+                await customAlert('History copied to clipboard!');
+            }).catch(async err => {
                 console.error('Failed to copy:', err);
-                alert('Failed to copy history');
+                await customAlert('Failed to copy history');
             });
         }
 
-        function importSession() {
+        async function importSession() {
             const json = document.getElementById('importExportJson').value.trim();
             if (!json) {
-                alert('Paste JSON first');
+                await customAlert('Paste JSON first');
                 return;
             }
 
@@ -802,7 +803,7 @@
                 const data = JSON.parse(json);
                 client.importSession(data.stories || [], data.config || {});
             } catch (e) {
-                alert('Invalid JSON: ' + e.message);
+                await customAlert('Invalid JSON: ' + e.message);
             }
         }
 
