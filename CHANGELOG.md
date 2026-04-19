@@ -5,6 +5,19 @@ All notable changes to SpecIdol will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Design improvements** from comprehensive design critique:
+  - Systematic typography scale (5 levels: 3rem → 0.75rem)
+  - Controller layout restructured with clear primary/secondary/tertiary hierarchy
+  - Empty states with progressive onboarding (story management auto-expands when queue empty)
+  - Judge social awareness (connected count, buzz status indicators with animations)
+  - Session list 2-column responsive grid layout for better scalability
+- **History enhancements**:
+  - Copy JSON button to export round history to clipboard
+  - Story titles now included in history entries
+- **Round controls improvements**:
+  - Story selection blocked during active rounds (running/paused)
+  - Round controls merged into selected-story-display box (unified yellow container)
+  - Visual feedback when story selection disabled
 - **Join as Controller button** on session join page - rejoin existing sessions as controller
 - **Session control panel** in controller interface:
   - Eject Judges button - disconnects all judges with confirmation

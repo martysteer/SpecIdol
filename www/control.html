@@ -152,11 +152,25 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            margin-bottom: 2rem;
         }
 
         .selected-story-display .title.empty {
             opacity: 0.4;
             font-size: var(--text-heading);
+        }
+
+        .round-controls-section {
+            border-top: 2px solid #ff0;
+            padding-top: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .status-text {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-body);
+            color: #0f0;
+            margin-bottom: 1rem;
         }
 
         .story-management {
@@ -266,6 +280,15 @@
             color: #ff0;
         }
 
+        .story-item.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .story-item.disabled:hover {
+            background: transparent;
+        }
+
         .story-info {
             flex: 1;
         }
@@ -358,25 +381,23 @@
         <span class="stats">| <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience</span>
     </div>
 
-    <!-- PROMINENT: Currently selected story -->
+    <!-- PRIMARY: Selected story + Round controls (unified) -->
     <div class="selected-story-display">
         <div class="label">NOW PERFORMING</div>
         <div class="title empty" id="selectedStoryTitle">No story selected - choose from queue below</div>
-    </div>
 
-    <!-- PRIMARY: Round controls -->
-    <div class="section">
-        <h2>Round Controls</h2>
-        <div id="currentStatus" style="margin-bottom: 1rem;">Status: Waiting</div>
+        <div class="round-controls-section">
+            <div id="currentStatus" class="status-text">Status: Waiting</div>
 
-        <div class="controls">
-            <button onclick="startRound()" id="startBtn">Start Round</button>
-            <button onclick="pauseRound()" id="pauseBtn" disabled>Pause</button>
-            <button onclick="resumeRound()" id="resumeBtn" disabled>Resume</button>
-            <button onclick="changeSpeed(1)" id="speed1Btn">1x</button>
-            <button onclick="changeSpeed(2)" id="speed2Btn">2x</button>
-            <button onclick="changeSpeed(3)" id="speed3Btn">3x</button>
-            <button onclick="resetRound()" id="resetBtn">Reset</button>
+            <div class="controls">
+                <button onclick="startRound()" id="startBtn">Start Round</button>
+                <button onclick="pauseRound()" id="pauseBtn" disabled>Pause</button>
+                <button onclick="resumeRound()" id="resumeBtn" disabled>Resume</button>
+                <button onclick="changeSpeed(1)" id="speed1Btn">1x</button>
+                <button onclick="changeSpeed(2)" id="speed2Btn">2x</button>
+                <button onclick="changeSpeed(3)" id="speed3Btn">3x</button>
+                <button onclick="resetRound()" id="resetBtn">Reset</button>
+            </div>
         </div>
     </div>
 
@@ -417,7 +438,9 @@
 
     <!-- TERTIARY: History -->
     <div class="section">
-        <h2>History</h2>
+        <h2>History
+            <button onclick="copyHistory()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Copy JSON</button>
+        </h2>
         <ul class="history-list" id="historyList"></ul>
     </div>
 
@@ -579,10 +602,14 @@
                 return;
             }
 
+            const status = sessionState.current_round.status;
+            const roundActive = status === 'running' || status === 'paused';
+
             queue.innerHTML = sessionState.stories.map((story, i) => {
                 const isCurrent = i === sessionState.current_round.story_index;
+                const disabledClass = roundActive ? 'disabled' : '';
                 return `
-                    <li class="story-item ${isCurrent ? 'current' : ''}" onclick="selectStory(${i})">
+                    <li class="story-item ${isCurrent ? 'current' : ''} ${disabledClass}" onclick="selectStory(${i})">
                         <div class="story-info">
                             <strong>${escapeHtml(story.title)}</strong><br>
                             <span style="opacity: 0.7; font-size: var(--text-caption);">
@@ -658,6 +685,14 @@
 
         function selectStory(index) {
             if (!sessionState) return;
+
+            // Block story selection during active round
+            const status = sessionState.current_round.status;
+            if (status === 'running' || status === 'paused') {
+                alert('Cannot change story during active round. Reset or wait for round to end.');
+                return;
+            }
+
             sessionState.current_round.story_index = index;
             renderStoryQueue();
             updateSelectedStoryDisplay();
@@ -739,6 +774,21 @@
             };
 
             document.getElementById('importExportJson').value = JSON.stringify(exportData, null, 2);
+        }
+
+        function copyHistory() {
+            if (!sessionState || sessionState.history.length === 0) {
+                alert('No history to copy yet');
+                return;
+            }
+
+            const historyJson = JSON.stringify(sessionState.history, null, 2);
+            navigator.clipboard.writeText(historyJson).then(() => {
+                alert('History copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy:', err);
+                alert('Failed to copy history');
+            });
         }
 
         function importSession() {
