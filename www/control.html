@@ -540,31 +540,48 @@
 
         client.on('round_started', (data) => {
             updateStatus('running');
+            if (sessionState) {
+                sessionState.current_round.status = 'running';
+                renderStoryQueue(); // Re-render to show disabled state
+            }
             updateSelectedStoryDisplay();
         });
 
         client.on('paused', (data) => {
             updateStatus('paused');
+            if (sessionState) {
+                sessionState.current_round.status = 'paused';
+                renderStoryQueue(); // Re-render to show disabled state
+            }
         });
 
         client.on('resumed', (data) => {
             updateStatus('running');
+            if (sessionState) {
+                sessionState.current_round.status = 'running';
+                renderStoryQueue(); // Re-render to show disabled state
+            }
         });
 
         client.on('round_ended', (data) => {
             updateStatus('ended');
             if (sessionState) {
+                sessionState.current_round.status = 'ended';
                 sessionState.history.push({
                     title: sessionState.current_round.title,
                     ...data
                 });
                 renderHistory();
+                renderStoryQueue(); // Re-render to remove disabled state
             }
         });
 
         client.on('round_reset', () => {
             updateStatus('waiting');
-            renderStoryQueue(); // Re-render to remove disabled state
+            if (sessionState) {
+                sessionState.current_round.status = 'waiting';
+                renderStoryQueue(); // Re-render to remove disabled state
+            }
         });
 
         client.on('session_imported', async (data) => {
