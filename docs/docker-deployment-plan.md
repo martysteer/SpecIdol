@@ -7,7 +7,7 @@ Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Act
 ## Architecture
 
 - **Single Docker container** with nginx + Python relay using supervisord
-- **Two ports exposed**: 8000 (web), 8765 (WebSocket)
+- **Two ports exposed**: 80 (web), 8765 (WebSocket)
 - **Clean separation**: Infrastructure doesn't force app changes
 - **Manual deployment**: GitHub Actions workflow triggered on-demand
 
@@ -54,9 +54,9 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
 
 4. **Configure firewall:**
    ```bash
-   ufw allow 22/tcp    # SSH (required or you'll lock yourself out)
-   ufw allow 8000/tcp  # Web interface (nginx serves static files)
-   ufw allow 8765/tcp  # WebSocket relay
+   ufw allow 22/tcp   # SSH (required or you'll lock yourself out)
+   ufw allow 80/tcp   # Web interface (nginx serves static files)
+   ufw allow 8765/tcp # WebSocket relay
    ufw enable
    # Type 'y' when prompted
    ```
@@ -72,11 +72,11 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
 6. **Build and run Docker container:**
    ```bash
    docker build -t specidol .
-   docker run -d --name specidol --restart unless-stopped -p 8000:8000 -p 8765:8765 specidol
+   docker run -d --name specidol --restart unless-stopped -p 80:80 -p 8765:8765 specidol
    ```
 
    This single container runs:
-   - nginx on port 8000 (serves HTML/CSS/JS)
+   - nginx on port 80 (serves HTML/CSS/JS)
    - Python relay on port 8765 (WebSocket server)
 
 7. **Verify it's running:**
@@ -89,7 +89,7 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
    ```
 
 8. **Test deployment:**
-   - Visit: `http://YOUR_DROPLET_IP:8000`
+   - Visit: `http://YOUR_DROPLET_IP`
    - Should see SpecIdol join screen
 
 ### 2. Configure GitHub Actions
@@ -212,7 +212,7 @@ docker logs specidol
 
 **Ports in use:**
 ```bash
-lsof -i :8000
+lsof -i :80
 lsof -i :8765
 ```
 
@@ -245,7 +245,7 @@ docker rmi specidol
 cd /opt/specidol
 git pull origin main
 docker build -t specidol .
-docker run -d --name specidol --restart unless-stopped -p 8000:8000 -p 8765:8765 specidol
+docker run -d --name specidol --restart unless-stopped -p 80:80 -p 8765:8765 specidol
 ```
 
 Or destroy the entire Droplet and start from Step 1.

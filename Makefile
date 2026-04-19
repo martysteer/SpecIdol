@@ -5,10 +5,10 @@ build:
 	docker build -t specidol .
 
 servers:
-	docker run -d --name specidol -p 8000:8000 -p 8765:8765 specidol
+	docker run -d --name specidol -p 80:80 -p 8765:8765 specidol
 	@echo ""
 	@echo "Servers running:"
-	@echo "  - Web interface: http://localhost:8000"
+	@echo "  - Web interface: http://localhost"
 	@echo "  - WebSocket relay: ws://localhost:8765"
 	@echo ""
 	@echo "Run 'make stop' to stop servers"

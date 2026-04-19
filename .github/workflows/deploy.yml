@@ -23,5 +23,5 @@ jobs:
             docker stop specidol || true
             docker rm specidol || true
             docker build -t specidol .
-            docker run -d --name specidol --restart unless-stopped -p 8000:8000 -p 8765:8765 specidol
+            docker run -d --name specidol --restart unless-stopped -p 80:80 -p 8765:8765 specidol
             docker system prune -f
