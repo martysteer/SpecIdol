@@ -405,6 +405,7 @@
     <div class="session-info">
         CODE: <span class="code" id="sessionCode">----</span>
         <span class="stats">| <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience</span>
+        <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
     </div>
 
     <!-- PRIMARY: Selected story + Round controls (unified) -->
@@ -417,13 +418,10 @@
 
             <div class="controls">
                 <button onclick="startRound()" id="startBtn">Start Round</button>
-                <button onclick="pauseRound()" id="pauseBtn" disabled>Pause</button>
-                <button onclick="resumeRound()" id="resumeBtn" disabled>Resume</button>
-                <button onclick="changeSpeed(1)" id="speed1Btn">1x</button>
-                <button onclick="changeSpeed(2)" id="speed2Btn">2x</button>
-                <button onclick="changeSpeed(3)" id="speed3Btn">3x</button>
+                <button onclick="advanceText()" id="advanceBtn" disabled style="background: #ff0; color: #000; border-color: #ff0;">Advance Text</button>
                 <button onclick="resetRound()" id="resetBtn">Reset</button>
             </div>
+            <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); margin-top: 1rem; opacity: 0.7; text-align: center;"></div>
         </div>
     </div>
 
@@ -570,9 +568,15 @@
             updateStatus('running');
             if (sessionState) {
                 sessionState.current_round.status = 'running';
+                sessionState.current_round.text_line_count = data.text_line_count || 0;
                 renderStoryQueue(); // Re-render to show disabled state
             }
             updateSelectedStoryDisplay();
+            updateTextProgress(0, data.text_line_count || 0); // Reset progress
+        });
+
+        client.on('text_advanced', (data) => {
+            updateTextProgress(data.position + 1, data.total);
         });
 
         client.on('paused', (data) => {
@@ -695,12 +699,21 @@
 
             // Enable/disable buttons based on status
             const startBtn = document.getElementById('startBtn');
-            const pauseBtn = document.getElementById('pauseBtn');
-            const resumeBtn = document.getElementById('resumeBtn');
+            const advanceBtn = document.getElementById('advanceBtn');
 
-            startBtn.disabled = (status === 'running' || status === 'paused');
-            pauseBtn.disabled = (status !== 'running');
-            resumeBtn.disabled = (status !== 'paused');
+            startBtn.disabled = (status === 'running');
+            advanceBtn.disabled = (status !== 'running');
+        }
+
+        function updateTextProgress(position, total) {
+            const progressEl = document.getElementById('textProgress');
+            if (!progressEl) return;
+
+            if (total === null) {
+                progressEl.textContent = 'Ready to advance text';
+            } else {
+                progressEl.textContent = `Line ${position}/${total}`;
+            }
         }
 
         async function addStory() {
@@ -880,6 +893,25 @@
             if (await customConfirm('Reset the current round?')) {
                 client.resetRound();
             }
+        }
+
+        function advanceText() {
+            if (!sessionState || sessionState.current_round.status !== 'running') {
+                console.log('Cannot advance: round not running');
+                return;
+            }
+            console.log('Advancing text...');
+            client.advanceText();
+        }
+
+        function openAudienceView() {
+            if (!sessionState) {
+                alert('No session active');
+                return;
+            }
+            const code = sessionState.code || params.code;
+            const audienceUrl = `audience.html?code=${code}`;
+            window.open(audienceUrl, 'audience', 'width=1200,height=800');
         }
 
         function exportSession() {

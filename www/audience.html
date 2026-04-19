@@ -73,7 +73,8 @@
 
         .story-text-container {
             flex: 1;
-            overflow: hidden;
+            overflow-y: auto;
+            scroll-behavior: smooth;
             border: 2px solid #0f0;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -81,9 +82,23 @@
         }
 
         .story-text {
-            font-size: var(--text-subheading);
+            font-size: 2rem;
             line-height: 1.7;
             white-space: pre-wrap;
+        }
+
+        .text-line {
+            display: block;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: lineAppear 0.5s ease-out forwards;
+        }
+
+        @keyframes lineAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .footer {
@@ -230,7 +245,7 @@
         </div>
 
         <div class="footer">
-            <div class="timer" id="timer">0:00.0</div>
+            <div class="timer" id="timer" style="display: none;">0:00.0</div>
             <div class="judge-panels" id="judgePanels"></div>
         </div>
     </div>
@@ -295,18 +310,9 @@
             startRound(data);
         });
 
-        client.on('paused', (data) => {
-            if (timer) timer.pause();
-            if (scroller) scroller.pause();
-        });
-
-        client.on('resumed', (data) => {
-            if (timer) timer.resume(data.timestamp - data.elapsed);
-            if (scroller) scroller.resume(data.timestamp - data.elapsed);
-        });
-
-        client.on('speed_changed', (data) => {
-            if (scroller) scroller.changeSpeed(data.speed, data.timestamp);
+        client.on('text_advanced', (data) => {
+            console.log('text_advanced event:', data);
+            appendTextLine(data.line);
         });
 
         client.on('buzzed', (data) => {
@@ -360,32 +366,32 @@
             resetView();
 
             document.getElementById('storyTitle').textContent = roundData.title || 'Untitled';
-            document.getElementById('storyText').textContent = roundData.text || '';
+            document.getElementById('storyText').textContent = ''; // Clear - will be populated line by line
+        }
 
-            const textContainer = document.getElementById('storyText');
+        function appendTextLine(line) {
+            const textEl = document.getElementById('storyText');
 
-            if (timer) timer.stop();
-            timer = new Timer(
-                timerDuration,
-                (elapsed) => {
-                    document.getElementById('timer').textContent = formatTime(elapsed);
+            // Create span for new line with animation class
+            const lineSpan = document.createElement('span');
+            lineSpan.className = 'text-line';
+            lineSpan.textContent = line;
 
-                    // Enter tension mode in last 10 seconds
-                    if (elapsed >= (timerDuration - 10) && !tensionMode) {
-                        tensionMode = true;
-                        document.getElementById('timer').classList.add('tension');
-                        startTensionTicks();
-                    }
-                },
-                () => {
-                    client.victory();
+            textEl.appendChild(lineSpan);
+
+            // Add line break after (except for first line)
+            if (textEl.children.length > 1) {
+                const br = document.createElement('br');
+                textEl.insertBefore(br, lineSpan);
+            }
+
+            // Auto-scroll to show new line after animation starts
+            setTimeout(() => {
+                const container = document.querySelector('.story-text-container');
+                if (container) {
+                    container.scrollTop = container.scrollHeight;
                 }
-            );
-            timer.start(roundData.start_time);
-
-            if (scroller) scroller.stop();
-            scroller = new AutoScroller(document.querySelector('.story-text-container'), 30);
-            scroller.start(roundData.start_time, roundData.speed || 1);
+            }, 100);
         }
 
         function markJudgeBuzzed(judgeId) {

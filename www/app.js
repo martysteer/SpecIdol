@@ -146,6 +146,10 @@ class SpecIdolClient {
         this.send('reset_round');
     }
 
+    advanceText() {
+        this.send('text_advance');
+    }
+
     importSession(stories, config) {
         this.send('import_session', { stories, config });
     }

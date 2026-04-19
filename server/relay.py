@@ -47,7 +47,7 @@ def create_new_session(code):
     }
 
 CONTROLLER_ONLY = {"add_story", "remove_story", "round_start", "speed_change",
-                    "pause", "resume", "reset_round", "import_session",
+                    "pause", "resume", "reset_round", "text_advance", "import_session",
                     "eject_judges", "shutdown_audience", "delete_session"}
 
 async def handle_message(websocket, message_data):
@@ -185,10 +185,30 @@ async def handle_message(websocket, message_data):
             return
 
         story = session["stories"][story_index]
+        # Split text into sentence chunks (2-3 sentences per chunk)
+        import re
+        # Split by sentence endings (. ! ?)
+        sentences = re.split(r'([.!?]+\s+)', story["text"])
+        # Rejoin punctuation with sentences
+        sentences = [''.join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2) if sentences[i].strip()]
+
+        # Group into chunks of 2-3 sentences
+        text_lines = []
+        chunk = []
+        for sent in sentences:
+            chunk.append(sent)
+            if len(chunk) >= 3:
+                text_lines.append(' '.join(chunk))
+                chunk = []
+        if chunk:  # Add remaining sentences
+            text_lines.append(' '.join(chunk))
+
         session["current_round"] = {
             "story_index": story_index,
             "title": story["title"],
             "text": story["text"],
+            "text_lines": text_lines,
+            "text_position": 0,  # Current line index
             "start_time": time.time(),
             "speed": 1,
             "paused": False,
@@ -204,6 +224,7 @@ async def handle_message(websocket, message_data):
             "data": {
                 "title": story["title"],
                 "text": story["text"],
+                "text_line_count": len(text_lines),
                 "start_time": now,
                 "server_time": now
             }
@@ -243,6 +264,47 @@ async def handle_message(websocket, message_data):
                 "data": {
                     "timestamp": now,
                     "elapsed": session["current_round"]["elapsed_at_pause"]
+                }
+            })
+
+    elif msg_type == "text_advance":
+        # Only advance during running round
+        if session["current_round"]["status"] != "running":
+            return
+
+        text_position = session["current_round"]["text_position"]
+        text_lines = session["current_round"]["text_lines"]
+
+        # Check if text exhausted
+        if text_position >= len(text_lines):
+            # Victory - reader finished without all judges buzzing
+            now = time.time()
+            elapsed = now - session["current_round"]["start_time"]
+            session["current_round"]["status"] = "victory"
+            outcome_data = {
+                "outcome": "victory",
+                "buzzes": session["current_round"]["buzzes"],
+                "duration": round(elapsed, 1)
+            }
+            session["history"].append({
+                "title": session["current_round"]["title"],
+                **outcome_data
+            })
+            await broadcast_to_session(session_code, {
+                "type": "round_ended",
+                "data": outcome_data
+            })
+        else:
+            # Advance to next line
+            current_line = text_lines[text_position]
+            session["current_round"]["text_position"] += 1
+
+            await broadcast_to_session(session_code, {
+                "type": "text_advanced",
+                "data": {
+                    "line": current_line,
+                    "position": text_position,
+                    "total": len(text_lines)
                 }
             })
 
