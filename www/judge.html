@@ -272,6 +272,16 @@
             resetView();
         });
 
+        client.on('ejected', (data) => {
+            alert(data.message || 'You have been ejected from the session');
+            window.location.href = 'index.html';
+        });
+
+        client.on('session_deleted', (data) => {
+            alert(data.message || 'Session has been deleted');
+            window.location.href = 'index.html';
+        });
+
         client.on('judge_joined', (data) => {
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;

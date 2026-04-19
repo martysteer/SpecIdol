@@ -47,7 +47,8 @@ def create_new_session(code):
     }
 
 CONTROLLER_ONLY = {"add_story", "remove_story", "round_start", "speed_change",
-                    "pause", "resume", "reset_round", "import_session"}
+                    "pause", "resume", "reset_round", "import_session",
+                    "eject_judges", "shutdown_audience", "delete_session"}
 
 async def handle_message(websocket, message_data):
     """Process incoming message and broadcast responses"""
@@ -349,6 +350,57 @@ async def handle_message(websocket, message_data):
             "type": "session_imported",
             "data": {"story_count": len(stories)}
         })
+
+    elif msg_type == "eject_judges":
+        # Close all judge websockets with message
+        judge_sockets = [
+            ws for ws, info in session["clients"].items()
+            if info.get("role") == "judge"
+        ]
+        for judge_ws in judge_sockets:
+            if judge_ws.open:
+                await judge_ws.send(json.dumps({
+                    "type": "ejected",
+                    "data": {"message": "You have been ejected by the controller"}
+                }))
+                await judge_ws.close()
+
+    elif msg_type == "shutdown_audience":
+        # Close all audience websockets with message
+        audience_sockets = [
+            ws for ws, info in session["clients"].items()
+            if info.get("role") == "audience"
+        ]
+        for audience_ws in audience_sockets:
+            if audience_ws.open:
+                await audience_ws.send(json.dumps({
+                    "type": "shutdown",
+                    "data": {"message": "Audience view has been shutdown"}
+                }))
+                await audience_ws.close()
+
+    elif msg_type == "delete_session":
+        # Eject all clients
+        all_clients = list(session["clients"].keys())
+        for client_ws in all_clients:
+            if client_ws.open and client_ws != websocket:  # Don't close controller yet
+                client_info = session["clients"].get(client_ws, {})
+                role = client_info.get("role", "client")
+                await client_ws.send(json.dumps({
+                    "type": "session_deleted",
+                    "data": {"message": f"Session has been deleted by controller"}
+                }))
+                await client_ws.close()
+
+        # Remove session from sessions dict
+        if session_code in sessions:
+            del sessions[session_code]
+
+        # Notify controller
+        await websocket.send(json.dumps({
+            "type": "session_deleted",
+            "data": {"message": "Session deleted successfully"}
+        }))
 
 async def broadcast_to_session(session_code, message, exclude=None):
     """Send message to all clients in a specific session except exclude"""

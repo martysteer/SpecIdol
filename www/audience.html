@@ -322,6 +322,16 @@
             resetView();
         });
 
+        client.on('shutdown', (data) => {
+            alert(data.message || 'Audience view has been shutdown');
+            window.location.href = 'index.html';
+        });
+
+        client.on('session_deleted', (data) => {
+            alert(data.message || 'Session has been deleted');
+            window.location.href = 'index.html';
+        });
+
         client.on('judge_joined', (data) => {
             if (data.connected_judges) {
                 renderJudgePanels(data.connected_judges);

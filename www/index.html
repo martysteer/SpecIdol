@@ -157,6 +157,7 @@
 
             <div class="actions-column">
                 <div class="column-header">Join As</div>
+                <button onclick="joinAsController()" id="joinControllerBtn" disabled>Join as Controller</button>
                 <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
                 <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
             </div>
@@ -209,6 +210,7 @@
 
         function selectSession(code) {
             selectedCode = code;
+            document.getElementById('joinControllerBtn').disabled = false;
             document.getElementById('joinAudienceBtn').disabled = false;
             document.getElementById('joinJudgeBtn').disabled = false;
             document.querySelectorAll('#sessionButtons button').forEach(btn => {
@@ -220,6 +222,11 @@
                     btn.style.color = '#0f0';
                 }
             });
+        }
+
+        function joinAsController() {
+            if (!selectedCode) return;
+            window.location.href = `control.html?code=${selectedCode}`;
         }
 
         function joinAsAudience() {

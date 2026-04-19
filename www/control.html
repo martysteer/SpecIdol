@@ -41,10 +41,27 @@
         }
 
         .session-info {
-            text-align: center;
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            gap: 1rem;
+            align-items: center;
             padding: 1rem;
             border: 2px solid #0f0;
             margin-bottom: 2rem;
+        }
+
+        .session-left {
+            text-align: left;
+        }
+
+        .session-center {
+            text-align: center;
+        }
+
+        .session-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
 
         .code {
@@ -52,6 +69,27 @@
             font-size: 2rem;
             color: #0f0;
             letter-spacing: 0.5rem;
+        }
+
+        .session-stats {
+            font-size: 0.9rem;
+            color: #0f0;
+        }
+
+        .danger-btn {
+            font-size: 0.6rem;
+            padding: 0.5rem;
+            background: #800;
+            color: #f00;
+            border: 1px solid #f00;
+            cursor: pointer;
+            font-family: 'Press Start 2P', cursive;
+            text-transform: uppercase;
+        }
+
+        .danger-btn:hover {
+            background: #f00;
+            color: #000;
         }
 
         .section {
@@ -232,9 +270,21 @@
     <h1>CONTROLLER</h1>
 
     <div class="session-info">
-        <div>SESSION CODE</div>
-        <div class="code" id="sessionCode">----</div>
-        <div style="margin-top: 0.5rem; font-size: 0.9rem;">Connected: <span id="clientCount">0</span></div>
+        <div class="session-left">
+            <div style="font-size: 0.8rem;">SESSION CODE</div>
+            <div class="code" id="sessionCode">----</div>
+        </div>
+        <div class="session-center">
+            <div class="session-stats">
+                <div>Judges: <span id="judgeCount">0</span></div>
+                <div>Audience: <span id="audienceCount">0</span></div>
+            </div>
+        </div>
+        <div class="session-right">
+            <button class="danger-btn" onclick="ejectJudges()">Eject Judges</button>
+            <button class="danger-btn" onclick="shutdownAudience()">Shutdown Audience</button>
+            <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
+        </div>
     </div>
 
     <div class="main-grid">
@@ -333,6 +383,19 @@
         client.on('session_state', (data) => {
             sessionState = data;
             updateUI();
+            updateSessionCounts(data);
+        });
+
+        client.on('judge_joined', (data) => {
+            if (sessionState) {
+                updateSessionCounts({connected_judges: data.connected_judges});
+            }
+        });
+
+        client.on('judge_left', (data) => {
+            if (sessionState) {
+                updateSessionCounts({connected_judges: data.connected_judges});
+            }
         });
 
         client.on('story_added', (data) => {
@@ -566,6 +629,41 @@
         function toggleLeftColumn() {
             const leftCol = document.getElementById('leftColumn');
             leftCol.classList.toggle('collapsed');
+        }
+
+        function updateSessionCounts(data) {
+            const judgeCount = data.connected_judges ? data.connected_judges.length : 0;
+            // Count audience clients (clients that are not controller or judge)
+            const audienceCount = sessionState ?
+                Object.values(sessionState.clients || {}).filter(c => c.role === 'audience').length : 0;
+
+            document.getElementById('judgeCount').textContent = judgeCount;
+            document.getElementById('audienceCount').textContent = audienceCount;
+        }
+
+        function ejectJudges() {
+            if (!confirm('Eject all judges? They will be disconnected with a message.')) {
+                return;
+            }
+            client.send('eject_judges');
+        }
+
+        function shutdownAudience() {
+            if (!confirm('Shutdown all audience screens? They will be disconnected.')) {
+                return;
+            }
+            client.send('shutdown_audience');
+        }
+
+        function deleteSession() {
+            if (!confirm('DELETE SESSION? This will eject all judges, shutdown all audience screens, and delete the session. This cannot be undone.')) {
+                return;
+            }
+            client.send('delete_session');
+            // Redirect back to home after deletion
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
         }
     </script>
 </body>
