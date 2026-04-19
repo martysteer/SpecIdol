@@ -1,7 +1,7 @@
-.PHONY: build servers stop dev dev-stop
+.PHONY: docker servers stop clean dev dev-stop
 
 # Docker commands (default)
-build:
+docker:
 	docker build -t specidol .
 
 servers:
@@ -17,6 +17,12 @@ servers:
 stop:
 	docker stop specidol 2>/dev/null || true
 	docker rm specidol 2>/dev/null || true
+
+clean:
+	docker stop specidol 2>/dev/null || true
+	docker rm specidol 2>/dev/null || true
+	docker rmi specidol 2>/dev/null || true
+	@echo "Cleaned up specidol container and image"
 
 # Local development (without Docker)
 dev:
