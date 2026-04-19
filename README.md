@@ -17,58 +17,60 @@ A live "Pop Idol for writers" web application for speculative fiction convention
 
 ## Quick Start
 
-### 1. Install Dependencies
+### Option 1: Docker (Recommended)
 
 ```bash
-cd server
-pip3 install -r requirements.txt
+make build    # Build Docker image
+make servers  # Run container
 ```
 
-### 2. Start Servers
-
-```bash
-make servers
-```
-
-This starts both:
-- WebSocket relay on `ws://localhost:8765`
-- HTTP server on `http://localhost:8000`
+Access at `http://localhost` and `ws://localhost:8765`
 
 To stop: `make stop`
 
-### 3. Create a Session
+### Option 2: Local Development (No Docker)
 
-1. Open `http://localhost:8000` in a browser
+```bash
+# Install dependencies
+cd server
+pip3 install -r requirements.txt
+cd ..
+
+# Start servers
+make dev
+```
+
+Access at `http://localhost:8000` and `ws://localhost:8765`
+
+To stop: `make dev-stop`
+
+### Using the App
+
+**1. Create a Session**
+1. Open `http://localhost` in a browser
 2. Click **"Create Session"** → redirects to controller
 3. Note the 4-letter session code displayed
 
-### 4. Join as Judge
+**2. Join as Judge**
+1. Open `http://localhost` on mobile devices (or browser tabs)
+2. Select the session from the list
+3. Click **"Join as Judge"**
+4. Auto-assigned sequential ID (1, 2, 3...)
 
-1. Open `http://localhost:8000` on mobile devices (or browser tabs)
-2. Click **"Join Session"**
-3. Select the session from the list of active sessions
-4. Click **"Join as Judge"**
-5. Each judge auto-assigned sequential ID (1, 2, 3...)
-6. Each judge gets a big red BUZZ button
+**3. Join as Audience**
+1. Open `http://localhost` on projector laptop
+2. Select the session from the list
+3. Click **"Join as Audience"**
 
-### 5. Join as Audience
-
-1. Open `http://localhost:8000` on the projector laptop
-2. Click **"Join Session"**
-3. Select the session from the list
-4. Click **"Join as Audience"**
-5. This view shows on the projector for the audience to watch
-
-### 6. Run the Event
-
-In the **Controller** view:
-1. Add stories: enter title + text, click "Add Story"
-2. Click a story row to select it from the queue
-3. Click **"Start Round"** to begin
-4. Use speed controls (1x/2x/3x) and play/pause as needed
-5. Judges press their BUZZ buttons when they've heard enough
-6. When all connected judges buzz → "BUZZED OUT" (defeat)
-7. If timer reaches limit → "SURVIVOR!" (victory)
+**4. Run the Event**
+In the Controller view:
+1. Add stories (title + text)
+2. Click story row to select
+3. Click **"Start Round"**
+4. Speed controls: 1x/2x/3x, play/pause
+5. Judges buzz when done
+6. All judges buzz → "BUZZED OUT"
+7. Timer reaches limit → "SURVIVOR!"
 
 ## Architecture
 
@@ -105,21 +107,21 @@ Judge count is unlimited - as many judges as connect will participate.
 
 ## Deployment
 
-### Option A: Local Network
+See [docs/docker-deployment-plan.md](docs/docker-deployment-plan.md) for complete deployment guide.
 
-1. Run server on a laptop connected to venue WiFi
-2. Replace `localhost` with laptop's local IP in `www/app.js`:
-   ```javascript
-   connect(wsUrl = 'ws://192.168.x.x:8765')
-   ```
-3. Devices connect to same WiFi, access via IP
+### Quick Deploy to DigitalOcean
 
-### Option B: Hosted Server
+1. **Create Droplet** (Ubuntu 22.04, $4-6/mo)
+2. **Install Docker** and clone repo
+3. **Configure firewall** (ports 22, 80, 8765)
+4. **Build and run**: `docker build -t specidol . && docker run -d --name specidol --restart unless-stopped -p 80:80 -p 8765:8765 specidol`
+5. **Setup GitHub Actions** (optional): Add secrets, deploy with one click
 
-1. Deploy `server/relay.py` to a VPS (e.g., DigitalOcean, Linode)
-2. Update `www/app.js` with server's public WebSocket URL
-3. Serve `www/` files via Apache/Nginx
-4. Use `wss://` (secure WebSocket) in production
+Access at `http://YOUR_DROPLET_IP`
+
+### Local Network Deployment
+
+Run Docker on laptop connected to venue WiFi. Devices on same network access via laptop's IP.
 
 ## Browser Compatibility
 
