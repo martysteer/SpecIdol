@@ -85,3 +85,31 @@ The buzzer is not a buzzer. The license is not a fence. The commons is not yet e
 *This text is licensed under the Anti-Capitalist Software License v1.4, for whatever that's worth, given everything above.*
 
 *Co-authored by a human and Claude (Anthropic), April 2026.*
+
+---
+
+## References
+
+Barthes, R. (1957). *Mythologies*. Éditions du Seuil. [https://archive.org/details/BarthesRolandMythologies1957_201612](https://archive.org/details/BarthesRolandMythologies1957_201612) — Second-order signification; how cultural signs are naturalised into "myth."
+
+Baudrillard, J. (1981). *Simulacres et simulation*. Éditions Galilée. [https://archive.org/details/simulacresetsimu0000baud](https://archive.org/details/simulacresetsimu0000baud) — Orders of simulacra; the precession of the sign over the referent.
+
+Debord, G. (1967). *La Société du spectacle*. Buchet-Chastel. [https://archive.org/details/LaSocitDuSpectacle-GuyDebord](https://archive.org/details/LaSocitDuSpectacle-GuyDebord) — "Everything that was directly lived has receded into a representation."
+
+Foucault, M. (1983). *This Is Not a Pipe* (J. Harkness, Trans.). University of California Press. [https://doi.org/10.1525/9780520353411](https://doi.org/10.1525/9780520353411) — Analysis of Magritte's *The Treachery of Images*; the gap between representation and referent. (Original work: *Ceci n'est pas une pipe*, 1973, Éditions Fata Morgana.)
+
+Magritte, R. (1929). *La Trahison des images (Ceci n'est pas une pipe)*. Oil on canvas. Los Angeles County Museum of Art. [https://collections.lacma.org/node/239578](https://collections.lacma.org/node/239578) — The painting is not the thing. The button is not a button.
+
+Georgescu-Roegen, N. (1971). *The Entropy Law and the Economic Process*. Harvard University Press. [https://doi.org/10.4159/harvard.9780674281653](https://doi.org/10.4159/harvard.9780674281653) — Foundational critique of neoclassical economics' blindness to thermodynamic constraints; labor ≠ energy.
+
+Daly, H.E. (1977). *Steady-State Economics: The Economics of Biophysical Equilibrium and Moral Growth*. W.H. Freeman. [https://archive.org/details/steadystateecono0000daly](https://archive.org/details/steadystateecono0000daly) — Ecological economics; GDP growth as a function of energy throughput, not substitutable labor.
+
+Marx, K. (1867). *Das Kapital: Kritik der politischen Oekonomie*, Volume 1. Verlag von Otto Meissner. [https://doi.org/10.3931/e-rara-25773](https://doi.org/10.3931/e-rara-25773) — Primitive accumulation; enclosure of the commons.
+
+Wiener, N. (1948). *Cybernetics: Or Control and Communication in the Animal and the Machine*. John Wiley & Sons / Hermann et Cie. [https://doi.org/10.7551/mitpress/11810.001.0001](https://doi.org/10.7551/mitpress/11810.001.0001) — Feedback loops; the conversational structure as cybernetic oscillation. (DOI is for the 1961 MIT Press second edition.)
+
+Hardin, G. (1968). "The Tragedy of the Commons." *Science*, 162(3859), 1243–1248. [https://doi.org/10.1126/science.162.3859.1243](https://doi.org/10.1126/science.162.3859.1243) — Though widely critiqued (see Ostrom), the framework of commons and enclosure remains relevant to digital licensing.
+
+Ostrom, E. (1990). *Governing the Commons: The Evolution of Institutions for Collective Action*. Cambridge University Press. [https://doi.org/10.1017/CBO9780511807763](https://doi.org/10.1017/CBO9780511807763) — Counter to Hardin; commons can be managed without privatisation. ACSL as a digital commons governance mechanism.
+
+Anti-Capitalist Software License v1.4. [https://anticapitalist.software/](https://anticapitalist.software/) — The license applied to this software and, recursively, to this text.
