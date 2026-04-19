@@ -62,28 +62,30 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
    ```
 
 5. **Clone repository:**
+   
    ```bash
    mkdir -p /opt
    cd /opt
    git clone https://github.com/YOUR_USERNAME/SpecIdol.git specidol
    cd specidol
    ```
-
+   
 6. **Build and run Docker container:**
+   
    ```bash
    docker build -t specidol .
    docker run -d --name specidol --restart unless-stopped -p 8080:8080 -p 8765:8765 specidol
    ```
-
+   
    This single container runs:
    - nginx on port 8080 (serves HTML/CSS/JS)
    - Python relay on port 8765 (WebSocket server)
-
+   
 7. **Verify it's running:**
    ```bash
    docker ps
    # Should see specidol container with both ports listed
-
+   
    docker logs specidol
    # Should see nginx and relay startup messages
    ```
@@ -105,17 +107,18 @@ Both keys give SSH access to the same Droplet. One for you, one for GitHub.
    - `~/.ssh/specidol-github-actions.pub` (public key - goes to Droplet)
 
 2. **Add public key to Droplet:**
+   
    ```bash
    # Copy the public key
    cat ~/.ssh/specidol-github-actions.pub
-
+   
    # SSH into Droplet with YOUR key
    ssh root@YOUR_DROPLET_IP
-
+   
    # Add GitHub Actions public key
    echo "PASTE_PUBLIC_KEY_HERE" >> ~/.ssh/authorized_keys
    ```
-
+   
 3. **Add secrets to GitHub:**
    - Go to: GitHub repo → Settings → Secrets and variables → Actions
    - Click "New repository secret"
