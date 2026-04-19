@@ -43,58 +43,81 @@
         }
 
         .session-info {
-            display: grid;
-            grid-template-columns: 1fr 2fr 1fr;
-            gap: 1rem;
-            align-items: center;
             padding: 1rem;
             border: 2px solid #0f0;
-            margin-bottom: 2rem;
-        }
-
-        .session-left {
-            text-align: left;
-        }
-
-        .session-center {
+            margin-bottom: 3rem;
             text-align: center;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-body);
         }
 
-        .session-right {
+        .session-info .code {
+            display: inline;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-body);
+            color: #0f0;
+            letter-spacing: 0.3rem;
+        }
+
+        .session-info .stats {
+            display: inline;
+            opacity: 0.7;
+        }
+
+        .session-management {
+            margin-top: 3rem;
+            border: 2px solid #f00;
+            padding: 1rem;
+        }
+
+        .session-management h2 {
+            color: #f00;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: var(--text-body);
+            margin: 0;
+            border: none;
+            padding: 0;
+        }
+
+        .session-management .arrow {
+            transition: transform 0.3s;
+        }
+
+        .session-management.collapsed .arrow {
+            transform: rotate(-90deg);
+        }
+
+        .session-management.collapsed .management-content {
+            display: none;
+        }
+
+        .management-content {
+            margin-top: 1rem;
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
         }
 
-        .code {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-heading);
-            color: #0f0;
-            letter-spacing: 0.5rem;
-        }
-
-        .session-stats {
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-caption);
-            color: #0f0;
-            opacity: 0.7;
-        }
-
         .danger-btn {
-            font-size: var(--text-caption);
-            padding: 0.5rem;
-            background: #800;
+            font-size: var(--text-body);
+            padding: 0.75rem;
+            background: #000;
             color: #f00;
-            border: 1px solid #f00;
+            border: 2px solid #f00;
             cursor: pointer;
-            font-family: 'Courier New', monospace;
-            font-weight: bold;
+            font-family: 'Press Start 2P', cursive;
             text-transform: uppercase;
+            transition: all 0.2s;
         }
 
         .danger-btn:hover {
             background: #f00;
             color: #000;
+            box-shadow: 0 0 20px #f00;
         }
 
         .section {
@@ -103,57 +126,85 @@
             border: 1px solid #0f0;
         }
 
-        .main-grid {
+        .selected-story-display {
+            text-align: center;
+            padding: 2rem;
+            margin-bottom: 3rem;
+            border: 3px solid #ff0;
+            background: rgba(255, 255, 0, 0.05);
+        }
+
+        .selected-story-display .label {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            color: #0f0;
+            opacity: 0.7;
+            margin-bottom: 1rem;
+        }
+
+        .selected-story-display .title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-display);
+            color: #ff0;
+            text-shadow: 0 0 20px #ff0;
+            line-height: 1.2;
+            min-height: 4rem;
             display: flex;
-            gap: 1rem;
-            margin-bottom: 2rem;
+            align-items: center;
+            justify-content: center;
         }
 
-        .left-column {
-            flex: 1;
-            transition: all 0.3s ease;
-            overflow: hidden;
+        .selected-story-display .title.empty {
+            opacity: 0.4;
+            font-size: var(--text-heading);
         }
 
-        .left-column.collapsed {
-            flex: 0 0 50px;
-            max-width: 50px;
+        .story-management {
+            margin-bottom: 3rem;
+            border: 1px solid #0f0;
+            padding: 1rem;
         }
 
-        .left-column.collapsed .column-content {
-            display: none;
-        }
-
-        .left-column.collapsed .title-text {
-            writing-mode: vertical-rl;
-            text-orientation: mixed;
-        }
-
-        .right-column {
-            flex: 1;
-            transition: all 0.3s ease;
-        }
-
-        .left-column.collapsed ~ .right-column {
-            flex: 9;
-        }
-
-        .disclosure-header {
+        .story-management h2 {
             cursor: pointer;
             user-select: none;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 0.25rem;
+            gap: 0.5rem;
+            margin: 0;
+            border: none;
+            padding: 0;
         }
 
-        .arrow {
+        .story-management .arrow {
             transition: transform 0.3s;
-            display: inline-block;
         }
 
-        .left-column.collapsed .arrow {
+        .story-management.collapsed .arrow {
             transform: rotate(-90deg);
+        }
+
+        .story-management.collapsed .management-content {
+            display: none;
+        }
+
+        .management-content {
+            margin-top: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .management-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        @media (max-width: 900px) {
+            .management-content {
+                grid-template-columns: 1fr;
+            }
         }
 
         input, textarea, button, select {
@@ -250,7 +301,18 @@
         }
 
         .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
             margin-bottom: 0.5rem;
+        }
+
+        .management-section h3 {
+            font-size: var(--text-subheading);
+            margin-bottom: 1rem;
+            color: #0f0;
         }
 
         label {
@@ -274,66 +336,22 @@
 <body>
     <h1>CONTROLLER</h1>
 
+    <!-- Compact session info -->
     <div class="session-info">
-        <div class="session-left">
-            <div style="font-size: var(--text-caption); font-family: 'Courier New', monospace;">SESSION CODE</div>
-            <div class="code" id="sessionCode">----</div>
-        </div>
-        <div class="session-center">
-            <div class="session-stats">
-                <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience
-            </div>
-        </div>
-        <div class="session-right">
-            <button class="danger-btn" onclick="ejectJudges()">Eject Judges</button>
-            <button class="danger-btn" onclick="shutdownAudience()">Shutdown Audience</button>
-            <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
-        </div>
+        CODE: <span class="code" id="sessionCode">----</span>
+        <span class="stats">| <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience</span>
     </div>
 
-    <div class="main-grid">
-        <!-- Left column: Add Story + Import/Export -->
-        <div class="left-column section" id="leftColumn">
-            <h2 class="disclosure-header" onclick="toggleLeftColumn()">
-                <span class="arrow" id="disclosureArrow">▼</span>
-                <span class="title-text" id="columnTitle">Add Story</span>
-            </h2>
-
-            <div class="column-content" id="leftContent">
-                <div class="form-group">
-                    <label>Title:</label>
-                    <input type="text" id="storyTitle" placeholder="Story title">
-                </div>
-
-                <div class="form-group">
-                    <label>Text:</label>
-                    <textarea id="storyText" placeholder="Story text..."></textarea>
-                </div>
-
-                <button onclick="addStory()">Add Story</button>
-
-                <h3 style="margin-top: 2rem;">Import / Export</h3>
-                <div class="import-export">
-                    <textarea id="importExportJson" placeholder="Session JSON..."></textarea>
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button onclick="exportSession()">Export to JSON</button>
-                        <button onclick="importSession()">Import from JSON</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Right column: Story Queue -->
-        <div class="right-column section">
-            <h2>Story Queue</h2>
-            <ul class="story-queue" id="storyQueue"></ul>
-        </div>
+    <!-- PROMINENT: Currently selected story -->
+    <div class="selected-story-display">
+        <div class="label">NOW PERFORMING</div>
+        <div class="title empty" id="selectedStoryTitle">No story selected - choose from queue below</div>
     </div>
 
+    <!-- PRIMARY: Round controls -->
     <div class="section">
         <h2>Round Controls</h2>
-        <div id="currentStatus" style="margin-bottom: 0.5rem;">Status: Waiting</div>
-        <div id="selectedStory" style="margin-bottom: 1rem; opacity: 0.7; font-size: var(--text-body);">No story selected</div>
+        <div id="currentStatus" style="margin-bottom: 1rem;">Status: Waiting</div>
 
         <div class="controls">
             <button onclick="startRound()" id="startBtn">Start Round</button>
@@ -346,9 +364,58 @@
         </div>
     </div>
 
+    <!-- SECONDARY: Story queue (what's next) -->
+    <div class="section">
+        <h2>Story Queue</h2>
+        <ul class="story-queue" id="storyQueue"></ul>
+    </div>
+
+    <!-- TERTIARY: Story management (collapsed by default) -->
+    <div class="story-management collapsed" id="storyManagement">
+        <h2 onclick="toggleStoryManagement()">
+            <span class="arrow" id="managementArrow">▼</span>
+            Story Management
+        </h2>
+        <div class="management-content">
+            <div class="management-section">
+                <h3>Add Story</h3>
+                <div class="form-group">
+                    <label>Title:</label>
+                    <input type="text" id="storyTitle" placeholder="Story title">
+                </div>
+                <div class="form-group">
+                    <label>Text:</label>
+                    <textarea id="storyText" placeholder="Story text..."></textarea>
+                </div>
+                <button onclick="addStory()">Add Story</button>
+            </div>
+
+            <div class="management-section">
+                <h3>Import / Export</h3>
+                <textarea id="importExportJson" placeholder="Session JSON..." style="min-height: 150px;"></textarea>
+                <button onclick="exportSession()">Export to JSON</button>
+                <button onclick="importSession()">Import from JSON</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TERTIARY: History -->
     <div class="section">
         <h2>History</h2>
         <ul class="history-list" id="historyList"></ul>
+    </div>
+
+    <!-- TERTIARY: Session management (collapsed, danger zone) -->
+    <div class="session-management collapsed" id="sessionManagementSection">
+        <h2 onclick="toggleSessionManagement()">
+            <span class="arrow" id="sessionMgmtArrow">▼</span>
+            Session Management (Danger Zone)
+        </h2>
+        <div class="management-content">
+            <button class="danger-btn" onclick="ejectJudges()">Eject All Judges</button>
+            <button class="danger-btn" onclick="shutdownAudience()">Shutdown All Audience</button>
+            <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
+        </div>
     </div>
 
     <script src="app.js"></script>
@@ -562,19 +629,29 @@
         }
 
         function updateSelectedStoryDisplay() {
-            const display = document.getElementById('selectedStory');
+            const titleEl = document.getElementById('selectedStoryTitle');
             if (!sessionState) return;
 
             const index = sessionState.current_round.story_index;
             if (index !== null && sessionState.stories[index]) {
-                display.textContent = `Selected: "${sessionState.stories[index].title}"`;
-                display.style.opacity = '1';
-                display.style.color = '#ff0';
+                titleEl.textContent = sessionState.stories[index].title;
+                titleEl.classList.remove('empty');
             } else {
-                display.textContent = 'No story selected';
-                display.style.opacity = '0.7';
-                display.style.color = '#0f0';
+                titleEl.textContent = 'No story selected - choose from queue below';
+                titleEl.classList.add('empty');
             }
+        }
+
+        function toggleStoryManagement() {
+            const section = document.getElementById('storyManagement');
+            const arrow = document.getElementById('managementArrow');
+            section.classList.toggle('collapsed');
+        }
+
+        function toggleSessionManagement() {
+            const section = document.getElementById('sessionManagementSection');
+            const arrow = document.getElementById('sessionMgmtArrow');
+            section.classList.toggle('collapsed');
         }
 
         function removeStory(index) {
@@ -642,11 +719,6 @@
             } catch (e) {
                 alert('Invalid JSON: ' + e.message);
             }
-        }
-
-        function toggleLeftColumn() {
-            const leftCol = document.getElementById('leftColumn');
-            leftCol.classList.toggle('collapsed');
         }
 
         function updateSessionCounts(data) {
