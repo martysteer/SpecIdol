@@ -20,11 +20,13 @@ All notable changes to SpecIdol will be documented in this file.
 - **Para-critique essay** - `docs/para-critique-acsl-specidol.md` discussing ACSL licensing and AI co-authorship
 
 ### Changed
-- **Port standardization**: HTTP server now uses port 80 (was 8080, then 8000)
+- **Port standardization**:
+  - Production (Docker): Port 80 for web, 8765 for WebSocket
+  - Development (`make dev`): Port 8000 for web, 8765 for WebSocket (no sudo required)
 - **WebSocket connection fix**: Production mode now correctly connects to port 8765
 - **Docker architecture**: Single Dockerfile with nginx + relay via supervisord (no docker-compose)
-- **Makefile `make dev`**: Now uses port 80 (requires sudo) to match Docker config
 - **Session info layout**: Redesigned controller header with three-column grid layout
+- **Session stats**: Unified display across join page and controller (stories | judges | audience)
 
 ### Fixed
 - Port 8765 already in use handling in `make dev-stop`

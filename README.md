@@ -20,11 +20,13 @@ A live "Pop Idol for writers" web application for speculative fiction convention
 ### Option 1: Docker (Recommended)
 
 ```bash
-make build    # Build Docker image
+make docker   # Build Docker image
 make servers  # Run container
 ```
 
-Access at `http://localhost` and `ws://localhost:8765`
+**Production ports:**
+- Web interface: `http://localhost` (port 80)
+- WebSocket relay: `ws://localhost:8765`
 
 To stop: `make stop`
 
@@ -40,9 +42,13 @@ cd ..
 make dev
 ```
 
-Access at `http://localhost:8000` and `ws://localhost:8765`
+**Development ports:**
+- Web interface: `http://localhost:8000` (port 8000 - no sudo needed)
+- WebSocket relay: `ws://localhost:8765`
 
 To stop: `make dev-stop`
+
+**Note:** Dev mode uses port 8000 to avoid requiring sudo. Docker/production uses standard port 80.
 
 ### Using the App
 
