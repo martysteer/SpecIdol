@@ -79,10 +79,13 @@ async def handle_message(websocket, message_data):
         # Return all active sessions
         session_list = []
         for code, sess in sessions.items():
+            judge_count = len([j for j in sess["judge_slots"].values() if j is not None])
+            audience_count = sum(1 for c in sess["clients"].values() if c.get("role") == "audience")
             session_list.append({
                 "code": code,
                 "story_count": len(sess["stories"]),
-                "judge_count": len([j for j in sess["judge_slots"].values() if j is not None])
+                "judge_count": judge_count,
+                "audience_count": audience_count
             })
         await websocket.send(json.dumps({
             "type": "sessions_list",
@@ -141,11 +144,17 @@ async def handle_message(websocket, message_data):
             }
         }))
 
-        # Broadcast judge join to other clients in this session
+        # Broadcast join to other clients in this session
         if role == "judge":
             await broadcast_to_session(code, {
                 "type": "judge_joined",
                 "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+            }, exclude=websocket)
+        elif role == "audience":
+            audience_count = sum(1 for c in session["clients"].values() if c.get("role") == "audience")
+            await broadcast_to_session(code, {
+                "type": "audience_joined",
+                "data": {"audience_count": audience_count}
             }, exclude=websocket)
 
     elif msg_type == "add_story":
@@ -435,15 +444,24 @@ async def handler(websocket):
         if session_code and session_code in sessions:
             session = sessions[session_code]
             client_info = session["clients"].pop(websocket, None)
-            if client_info and client_info.get("role") == "judge":
-                judge_id = client_info.get("judge_id")
-                if session["judge_slots"].get(judge_id) == websocket:
-                    del session["judge_slots"][judge_id]
-                    # Broadcast judge left
-                    connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
+            if client_info:
+                role = client_info.get("role")
+                if role == "judge":
+                    judge_id = client_info.get("judge_id")
+                    if session["judge_slots"].get(judge_id) == websocket:
+                        del session["judge_slots"][judge_id]
+                        # Broadcast judge left
+                        connected_judges = sorted([jid for jid, ws in session["judge_slots"].items() if ws is not None])
+                        await broadcast_to_session(session_code, {
+                            "type": "judge_left",
+                            "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+                        })
+                elif role == "audience":
+                    # Broadcast audience left
+                    audience_count = sum(1 for c in session["clients"].values() if c.get("role") == "audience")
                     await broadcast_to_session(session_code, {
-                        "type": "judge_left",
-                        "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+                        "type": "audience_left",
+                        "data": {"audience_count": audience_count}
                     })
 
 async def main():

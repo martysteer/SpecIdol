@@ -73,8 +73,9 @@
         }
 
         .session-stats {
-            font-size: 0.9rem;
+            font-size: 0.6rem;
             color: #0f0;
+            opacity: 0.7;
         }
 
         .danger-btn {
@@ -399,6 +400,18 @@
             }
         });
 
+        client.on('audience_joined', (data) => {
+            if (sessionState) {
+                updateSessionCounts({audience_count: data.audience_count});
+            }
+        });
+
+        client.on('audience_left', (data) => {
+            if (sessionState) {
+                updateSessionCounts({audience_count: data.audience_count});
+            }
+        });
+
         client.on('story_added', (data) => {
             // Controller already updates local state in addStory().
             // This handler covers stories added by import or future multi-controller.
@@ -633,13 +646,12 @@
         }
 
         function updateSessionCounts(data) {
-            const judgeCount = data.connected_judges ? data.connected_judges.length : 0;
-            // Count audience clients (clients that are not controller or judge)
-            const audienceCount = sessionState ?
-                Object.values(sessionState.clients || {}).filter(c => c.role === 'audience').length : 0;
-
-            document.getElementById('judgeCount').textContent = judgeCount;
-            document.getElementById('audienceCount').textContent = audienceCount;
+            if (data.connected_judges !== undefined) {
+                document.getElementById('judgeCount').textContent = data.connected_judges.length;
+            }
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
         }
 
         async function ejectJudges() {
