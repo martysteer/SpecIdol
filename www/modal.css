@@ -30,9 +30,9 @@
 
 .modal-message {
     font-family: 'Press Start 2P', cursive;
-    font-size: 0.9rem;
+    font-size: var(--text-body);
     color: #0f0;
-    line-height: 1.8;
+    line-height: 1.6;
     margin-bottom: 2rem;
     text-align: center;
 }
@@ -45,7 +45,7 @@
 
 .modal-btn {
     font-family: 'Press Start 2P', cursive;
-    font-size: 0.8rem;
+    font-size: var(--text-body);
     padding: 1rem 2rem;
     background: #000;
     color: #0f0;

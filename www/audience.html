@@ -58,9 +58,10 @@
 
         .story-title {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.5rem;
+            font-size: var(--text-display);
             color: #ff0;
             text-shadow: 0 0 10px #ff0;
+            line-height: 1.2;
         }
 
         .content {
@@ -80,8 +81,8 @@
         }
 
         .story-text {
-            font-size: 1.2rem;
-            line-height: 1.8;
+            font-size: var(--text-subheading);
+            line-height: 1.7;
             white-space: pre-wrap;
         }
 
@@ -94,9 +95,10 @@
 
         .timer {
             font-family: 'Press Start 2P', cursive;
-            font-size: 2rem;
+            font-size: var(--text-display);
             color: #0f0;
             text-shadow: 0 0 10px #0f0;
+            line-height: 1.2;
         }
 
         .timer.tension {
@@ -118,7 +120,7 @@
             border: 3px solid #0f0;
             padding: 1rem 2rem;
             font-family: 'Press Start 2P', cursive;
-            font-size: 1rem;
+            font-size: var(--text-heading);
             box-shadow: 0 0 15px #0f0;
             transition: all 0.3s;
         }
@@ -132,7 +134,7 @@
 
         .judge-panel .x {
             display: none;
-            font-size: 3rem;
+            font-size: calc(var(--text-display) * 2);
             position: absolute;
             top: 50%;
             left: 50%;
@@ -161,9 +163,10 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Press Start 2P', cursive;
-            font-size: 4rem;
+            font-size: calc(var(--text-display) * 2.5);
             z-index: 100;
             text-align: center;
+            line-height: 1.2;
         }
 
         .outcome.victory {
@@ -200,18 +203,16 @@
         }
 
         @media (max-width: 900px) {
-            .story-title {
-                font-size: 1rem;
+            :root {
+                --text-display: 1.5rem;
+                --text-heading: 1.125rem;
+                --text-subheading: 1rem;
+                --text-body: 0.875rem;
+                --text-caption: 0.75rem;
             }
-            .timer {
-                font-size: 1.5rem;
-            }
+
             .judge-panel {
-                font-size: 0.8rem;
                 padding: 0.5rem 1rem;
-            }
-            .outcome {
-                font-size: 2rem;
             }
         }
     </style>
@@ -237,9 +238,9 @@
     <div class="outcome" id="outcome"></div>
 
     <div id="audioOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="enableAudio()">
-        <div style="font-family:'Press Start 2P',cursive;color:#0f0;text-align:center;font-size:1.5rem;line-height:2;">
+        <div style="font-family:'Press Start 2P',cursive;color:#0f0;text-align:center;font-size:var(--text-heading);line-height:1.5;">
             SPECULATIVE IDOL<br><br>
-            <span style="font-size:0.8rem;opacity:0.7;">Click anywhere to enable audio</span>
+            <span style="font-size:var(--text-caption);opacity:0.7;">Click anywhere to enable audio</span>
         </div>
     </div>
 

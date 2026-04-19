@@ -33,26 +33,27 @@
         }
 
         .code {
-            font-size: 0.8rem;
+            font-size: var(--text-caption);
             opacity: 0.7;
         }
 
         .judge-num {
-            font-size: 1.2rem;
+            font-size: var(--text-heading);
             margin: 0.5rem 0;
         }
 
         .story-title {
-            font-size: 0.7rem;
+            font-size: var(--text-body);
             margin-top: 0.5rem;
             color: #ff0;
         }
 
         .timer {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.5rem;
+            font-size: var(--text-display);
             color: #0f0;
             text-shadow: 0 0 10px #0f0;
+            line-height: 1.2;
         }
 
         .main {
@@ -73,7 +74,7 @@
             border: 8px solid #800000;
             border-radius: 50%;
             font-family: 'Press Start 2P', cursive;
-            font-size: 2rem;
+            font-size: var(--text-display);
             color: #fff;
             cursor: pointer;
             box-shadow: 0 15px 30px rgba(255, 0, 0, 0.5),
@@ -102,7 +103,7 @@
         }
 
         .buzzed {
-            font-size: 8rem;
+            font-size: 6rem;
             color: #f00;
             animation: buzzAnim 0.5s ease-out;
         }
@@ -123,7 +124,7 @@
         .judge-indicator {
             padding: 0.5rem;
             border: 2px solid #0f0;
-            font-size: 0.6rem;
+            font-size: var(--text-caption);
             opacity: 0.5;
         }
 
@@ -134,7 +135,7 @@
         }
 
         .waiting {
-            font-size: 1rem;
+            font-size: var(--text-body);
             text-align: center;
             opacity: 0.7;
         }
@@ -145,14 +146,11 @@
         }
 
         @media (max-width: 600px) {
-            .buzz-button {
-                font-size: 1.5rem;
-            }
-            .judge-num {
-                font-size: 1rem;
-            }
-            .timer {
-                font-size: 1.2rem;
+            :root {
+                --text-display: 1.5rem;
+                --text-heading: 1.125rem;
+                --text-body: 0.875rem;
+                --text-caption: 0.75rem;
             }
         }
     </style>

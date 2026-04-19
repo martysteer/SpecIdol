@@ -30,11 +30,11 @@
 
         h1 {
             font-family: 'Press Start 2P', cursive;
-            font-size: 2rem;
+            font-size: var(--text-display);
             text-align: center;
             margin-bottom: 3rem;
             text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
-            line-height: 1.5;
+            line-height: 1.2;
         }
 
         .container {
@@ -55,7 +55,7 @@
             border: 3px solid #0f0;
             padding: 1rem 2rem;
             font-family: 'Press Start 2P', cursive;
-            font-size: 0.9rem;
+            font-size: var(--text-body);
             cursor: pointer;
             transition: all 0.2s;
             text-transform: uppercase;
@@ -87,7 +87,7 @@
 
         .column-header {
             font-family: 'Press Start 2P', cursive;
-            font-size: 1rem;
+            font-size: var(--text-heading);
             text-align: center;
             margin-bottom: 1rem;
             color: #0f0;
@@ -100,7 +100,7 @@
             border: 2px solid #0f0;
             padding: 0.75rem;
             font-family: 'Courier New', monospace;
-            font-size: 1rem;
+            font-size: var(--text-body);
         }
 
         input:focus, select:focus {
@@ -111,7 +111,7 @@
         input[type="text"] {
             text-transform: uppercase;
             font-family: 'Press Start 2P', cursive;
-            font-size: 1.2rem;
+            font-size: var(--text-subheading);
             text-align: center;
             letter-spacing: 0.5rem;
         }
@@ -128,15 +128,16 @@
         }
 
         @media (max-width: 768px) {
-            .join-form {
-                grid-template-columns: 1fr;
+            :root {
+                --text-display: 1.5rem;   /* Scale down for mobile */
+                --text-heading: 1.125rem;
+                --text-subheading: 1rem;
+                --text-body: 0.875rem;
+                --text-caption: 0.75rem;
             }
 
-            h1 {
-                font-size: 1.2rem;
-            }
-            button {
-                font-size: 0.7rem;
+            .join-form {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -214,7 +215,7 @@
             container.innerHTML = sessions.map(session => `
                 <button onclick="selectSession('${session.code}')">
                     ${session.code}
-                    <div style="font-family: 'Press Start 2P', cursive; font-size: 0.6rem; margin-top: 0.5rem; opacity: 0.7;">
+                    <div style="font-family: 'Courier New', monospace; font-size: var(--text-caption); margin-top: 0.5rem; opacity: 0.7;">
                         ${session.story_count} stories | ${session.judge_count} judges | ${session.audience_count} audience
                     </div>
                 </button>
