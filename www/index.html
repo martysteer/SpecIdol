@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="modal.css">
     <style>
         * {
             margin: 0;
@@ -166,7 +167,19 @@
         <div class="error" id="error"></div>
     </div>
 
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-message" id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="modalOk">OK</button>
+                <button class="modal-btn cancel" id="modalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script src="modal.js"></script>
     <script>
         const client = new SpecIdolClient();
         let selectedCode = null;
@@ -224,28 +237,25 @@
             });
         }
 
-        function joinAsController() {
+        async function joinAsController() {
             if (!selectedCode) return;
-            if (!confirm("Are you sure you're fair enough to seize control?")) {
-                return;
+            if (await customConfirm("Are you sure you're fair enough to seize control?")) {
+                window.location.href = `control.html?code=${selectedCode}`;
             }
-            window.location.href = `control.html?code=${selectedCode}`;
         }
 
-        function joinAsAudience() {
+        async function joinAsAudience() {
             if (!selectedCode) return;
-            if (!confirm("Do you like to watch?")) {
-                return;
+            if (await customConfirm("Do you like to watch?")) {
+                window.location.href = `audience.html?code=${selectedCode}`;
             }
-            window.location.href = `audience.html?code=${selectedCode}`;
         }
 
-        function joinAsJudge() {
+        async function joinAsJudge() {
             if (!selectedCode) return;
-            if (!confirm("Is your opinion the truth?")) {
-                return;
+            if (await customConfirm("Is your opinion the truth?")) {
+                window.location.href = `judge.html?code=${selectedCode}`;
             }
-            window.location.href = `judge.html?code=${selectedCode}`;
         }
 
         function showError(message) {

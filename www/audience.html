@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="modal.css">
     <style>
         * {
             margin: 0;
@@ -322,13 +323,13 @@
             resetView();
         });
 
-        client.on('shutdown', (data) => {
-            alert(data.message || 'Audience view has been shutdown');
+        client.on('shutdown', async (data) => {
+            await customAlert(data.message || 'Audience view has been shutdown');
             window.location.href = 'index.html';
         });
 
-        client.on('session_deleted', (data) => {
-            alert(data.message || 'Session has been deleted');
+        client.on('session_deleted', async (data) => {
+            await customAlert(data.message || 'Session has been deleted');
             window.location.href = 'index.html';
         });
 
@@ -543,5 +544,18 @@
             }
         }
     </script>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-message" id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="modalOk">OK</button>
+                <button class="modal-btn cancel" id="modalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="modal.js"></script>
 </body>
 </html>

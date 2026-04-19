@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="modal.css">
     <style>
         * {
             margin: 0;
@@ -641,30 +642,40 @@
             document.getElementById('audienceCount').textContent = audienceCount;
         }
 
-        function ejectJudges() {
-            if (!confirm('Eject all judges? They will be disconnected with a message.')) {
-                return;
+        async function ejectJudges() {
+            if (await customConfirm('Eject all judges? They will be disconnected with a message.')) {
+                client.send('eject_judges');
             }
-            client.send('eject_judges');
         }
 
-        function shutdownAudience() {
-            if (!confirm('Shutdown all audience screens? They will be disconnected.')) {
-                return;
+        async function shutdownAudience() {
+            if (await customConfirm('Shutdown all audience screens? They will be disconnected.')) {
+                client.send('shutdown_audience');
             }
-            client.send('shutdown_audience');
         }
 
-        function deleteSession() {
-            if (!confirm('DELETE SESSION? This will eject all judges, shutdown all audience screens, and delete the session. This cannot be undone.')) {
-                return;
+        async function deleteSession() {
+            if (await customConfirm('DELETE SESSION? This will eject all judges, shutdown all audience screens, and delete the session. This cannot be undone.')) {
+                client.send('delete_session');
+                // Redirect back to home after deletion
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1000);
             }
-            client.send('delete_session');
-            // Redirect back to home after deletion
-            setTimeout(() => {
-                window.location.href = 'index.html';
-            }, 1000);
         }
     </script>
+
+    <!-- Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <div class="modal-message" id="modalMessage"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="modalOk">OK</button>
+                <button class="modal-btn cancel" id="modalCancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="modal.js"></script>
 </body>
 </html>
