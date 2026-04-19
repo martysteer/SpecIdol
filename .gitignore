@@ -1,1 +1,6 @@
 .DS_Store
+.env
+.relay.pid
+.http.pid
+__pycache__/
+*.pyc

@@ -26,7 +26,22 @@ class SpecIdolClient {
         this.messageHandlers = {};
     }
 
-    connect(wsUrl = 'ws://localhost:8765') {
+    connect(wsUrl) {
+        // Auto-detect WebSocket URL if not provided
+        if (!wsUrl) {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const host = window.location.hostname;
+            const port = window.location.port;
+
+            // In production, WebSocket on same host
+            // In dev (localhost), use port 8765
+            if (host === 'localhost' || host === '127.0.0.1') {
+                wsUrl = 'ws://localhost:8765';
+            } else {
+                wsUrl = `${protocol}//${host}${port ? ':' + port : ''}`;
+            }
+        }
+
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {

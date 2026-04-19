@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import random
 import string
 import time
@@ -394,8 +395,9 @@ async def handler(websocket):
                     })
 
 async def main():
-    async with serve(handler, "localhost", 8765):
-        print("WebSocket server running on ws://localhost:8765")
+    port = int(os.getenv('WEBSOCKET_PORT', 8765))
+    async with serve(handler, "0.0.0.0", port):
+        print(f"WebSocket server running on ws://0.0.0.0:{port}")
         await asyncio.Future()  # run forever
 
 if __name__ == "__main__":

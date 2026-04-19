@@ -1,6 +1,24 @@
-.PHONY: servers stop
+.PHONY: build servers stop dev dev-stop
+
+# Docker commands (default)
+build:
+	docker compose build
 
 servers:
+	docker compose up -d
+	@echo ""
+	@echo "Servers running:"
+	@echo "  - WebSocket relay: ws://localhost:8765"
+	@echo "  - HTTP server: http://localhost:8000"
+	@echo ""
+	@echo "Run 'make stop' to stop servers"
+	@echo "Run 'docker compose logs -f' to view logs"
+
+stop:
+	docker compose down
+
+# Local development (without Docker)
+dev:
 	@echo "Starting WebSocket relay server on port 8765..."
 	@python3 server/relay.py & echo $$! > .relay.pid
 	@echo "Starting HTTP server on port 8000..."
@@ -10,10 +28,10 @@ servers:
 	@echo "  - WebSocket relay: ws://localhost:8765"
 	@echo "  - HTTP server: http://localhost:8000"
 	@echo ""
-	@echo "Run 'make stop' to stop servers"
+	@echo "Run 'make dev-stop' to stop servers"
 	@wait
 
-stop:
+dev-stop:
 	@if [ -f .relay.pid ]; then \
 		kill `cat .relay.pid` 2>/dev/null || true; \
 		rm .relay.pid; \

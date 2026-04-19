@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  relay:
+    build: .
+    ports:
+      - "8765:8765"
+    restart: unless-stopped
+    environment:
+      - WEBSOCKET_PORT=8765
+
+  web:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./www:/usr/share/nginx/html:ro
+    restart: unless-stopped
