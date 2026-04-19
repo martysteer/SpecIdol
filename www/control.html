@@ -73,6 +73,7 @@
         }
 
         .session-stats {
+            font-family: 'Press Start 2P', cursive;
             font-size: 0.6rem;
             color: #0f0;
             opacity: 0.7;
@@ -278,8 +279,7 @@
         </div>
         <div class="session-center">
             <div class="session-stats">
-                <div>Judges: <span id="judgeCount">0</span></div>
-                <div>Audience: <span id="audienceCount">0</span></div>
+                <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience
             </div>
         </div>
         <div class="session-right">
@@ -419,6 +419,7 @@
                 sessionState.stories.push({title: data.title, text: ''});
                 renderStoryQueue();
             }
+            updateSessionCounts({stories: sessionState.stories});
         });
 
         client.on('story_removed', (data) => {
@@ -426,6 +427,7 @@
                 sessionState.stories.splice(data.index, 1);
                 renderStoryQueue();
             }
+            updateSessionCounts({stories: sessionState.stories});
         });
 
         client.on('round_started', (data) => {
@@ -646,6 +648,9 @@
         }
 
         function updateSessionCounts(data) {
+            if (data.stories !== undefined) {
+                document.getElementById('storyCount').textContent = data.stories.length;
+            }
             if (data.connected_judges !== undefined) {
                 document.getElementById('judgeCount').textContent = data.connected_judges.length;
             }
