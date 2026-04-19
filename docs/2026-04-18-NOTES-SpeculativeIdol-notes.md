@@ -1,6 +1,6 @@
 Oh hello there...
 
-![image-20260418100445064](/Users/marty/Library/Application Support/typora-user-images/image-20260418100445064.png)
+![image-20260418100445064](./image-20260418100445064.png)
 
 I was wondering, do you [fancy/having bandwidth for] ANOTHER vibecoding challenge?
 
@@ -22,8 +22,6 @@ For example:
 >  Sounds cool. So it would just be the three button timing mechanism? Will you need a list of authors/stories and wanna keep a persistent log/database or something?
 
 Hmmm
-
-Sounds cool. So it would just be the three button timing mechanism? Will you need a list of authors/stories and wanna keep a persistent log/database or something?
 
 Would certainly make it more engaging if everybody could read along instead of only listening
 
