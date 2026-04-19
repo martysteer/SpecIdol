@@ -157,9 +157,9 @@
 
             <div class="actions-column">
                 <div class="column-header">Join As</div>
-                <button onclick="joinAsController()" id="joinControllerBtn" disabled>Join as Controller</button>
                 <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
                 <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
+                <button onclick="joinAsController()" id="joinControllerBtn" disabled style="background: #440; color: #ff0; border-color: #ff0; margin-top: 1rem;">Join as Controller</button>
             </div>
         </div>
 
@@ -226,6 +226,9 @@
 
         function joinAsController() {
             if (!selectedCode) return;
+            if (!confirm("Are you sure you're fair enough to seize control?")) {
+                return;
+            }
             window.location.href = `control.html?code=${selectedCode}`;
         }
 
