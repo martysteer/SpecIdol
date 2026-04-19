@@ -1,197 +1,234 @@
-# Docker Deployment Plan
+# Docker Deployment on DigitalOcean Droplet
 
 ## Overview
 
-Containerize the Python WebSocket server with Docker for portable, reproducible deployments.
+Deploy SpecIdol to a DigitalOcean Droplet using Docker with automated GitHub Actions deployment.
 
-## Implementation
+## Architecture
 
-### 1. Create Dockerfile
+- **Single Docker container** with nginx + Python relay using supervisord
+- **Two ports exposed**: 8080 (web), 8765 (WebSocket)
+- **Clean separation**: Infrastructure doesn't force app changes
+- **Manual deployment**: GitHub Actions workflow triggered on-demand
 
-```dockerfile
-# Dockerfile
-FROM python:3.11-slim
+## Setup
 
-WORKDIR /app
+### 1. Create DigitalOcean Droplet
 
-# Install dependencies
-COPY server/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+1. **Create Droplet:**
+   - Go to DigitalOcean → Create → Droplets
+   - Choose: Ubuntu 22.04 LTS
+   - Plan: Basic ($4/mo minimum - supports Docker)
+   - Choose datacenter region
+   - Add SSH key (or create one)
+   - Create Droplet
 
-# Copy server code
-COPY server/ ./server/
+2. **Install Docker on Droplet:**
+   ```bash
+   ssh root@YOUR_DROPLET_IP
+   curl -fsSL https://get.docker.com | sh
+   ```
 
-# Expose WebSocket port
-EXPOSE 8765
+3. **Clone repository:**
+   ```bash
+   mkdir -p /opt
+   cd /opt
+   git clone https://github.com/YOUR_USERNAME/SpecIdol.git specidol
+   cd specidol
+   ```
 
-# Run relay server
-CMD ["python", "server/relay.py"]
-```
+4. **Initial build and run:**
+   ```bash
+   docker build -t specidol .
+   docker run -d --name specidol --restart unless-stopped -p 8080:8080 -p 8765:8765 specidol
+   ```
 
-### 2. Create docker-compose.yml (Local Dev)
+5. **Configure firewall:**
+   ```bash
+   ufw allow 22/tcp    # SSH
+   ufw allow 8080/tcp  # Web interface
+   ufw allow 8765/tcp  # WebSocket
+   ufw enable
+   ```
 
-```yaml
-# docker-compose.yml
-version: '3.8'
+6. **Test deployment:**
+   - Visit: `http://YOUR_DROPLET_IP:8080`
+   - Should see SpecIdol join screen
 
-services:
-  relay:
-    build: .
-    ports:
-      - "8765:8765"
-    restart: unless-stopped
+### 2. Configure GitHub Secrets
 
-  web:
-    image: nginx:alpine
-    ports:
-      - "8000:80"
-    volumes:
-      - ./www:/usr/share/nginx/html:ro
-    restart: unless-stopped
-```
+1. **Generate SSH key for GitHub Actions (on your local machine):**
+   ```bash
+   ssh-keygen -t ed25519 -C "github-actions" -f ~/.ssh/specidol-deploy
+   ```
 
-### 3. Update Makefile
+2. **Add public key to Droplet:**
+   ```bash
+   ssh root@YOUR_DROPLET_IP
+   echo "YOUR_PUBLIC_KEY_CONTENT" >> ~/.ssh/authorized_keys
+   ```
 
-```makefile
-# Makefile
-.PHONY: servers stop build dev
+3. **Add secrets to GitHub:**
+   - Go to: GitHub repo → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Add two secrets:
+     - **Name:** `DROPLET_HOST`
+       **Value:** Your Droplet IP address (e.g., `123.45.67.89`)
+     - **Name:** `DROPLET_SSH_KEY`
+       **Value:** Contents of `~/.ssh/specidol-deploy` (private key)
 
-# Production (Docker)
-build:
-	docker compose build
+### 3. Deploy via GitHub Actions
 
-servers:
-	docker compose up -d
-	@echo ""
-	@echo "Servers running:"
-	@echo "  - WebSocket relay: ws://localhost:8765"
-	@echo "  - HTTP server: http://localhost:8000"
-	@echo ""
-	@echo "Run 'make stop' to stop servers"
+1. **Push changes to GitHub:**
+   ```bash
+   git push origin main
+   ```
 
-stop:
-	docker compose down
+2. **Trigger deployment:**
+   - Go to: GitHub repo → Actions tab
+   - Click: "Deploy to DigitalOcean Droplet"
+   - Click: "Run workflow" → "Run workflow"
 
-# Development (Local Python + HTTP server)
-dev:
-	@echo "Starting WebSocket relay server..."
-	@python3 server/relay.py & echo $$! > .relay.pid
-	@echo "Starting HTTP server..."
-	@python3 -m http.server 8000 --directory www & echo $$! > .http.pid
-	@echo "Run 'make stop-dev' to stop"
+3. **Monitor deployment:**
+   - Watch workflow progress in Actions tab
+   - Check Droplet logs: `ssh root@YOUR_DROPLET_IP "docker logs -f specidol"`
 
-stop-dev:
-	@if [ -f .relay.pid ]; then kill `cat .relay.pid` 2>/dev/null || true; rm .relay.pid; fi
-	@if [ -f .http.pid ]; then kill `cat .http.pid` 2>/dev/null || true; rm .http.pid; fi
-	@lsof -ti :8765 | xargs kill -9 2>/dev/null || true
-	@lsof -ti :8000 | xargs kill -9 2>/dev/null || true
-```
+## Workflow Details
 
-### 4. Update app.js for Production
+The GitHub Actions workflow (`.github/workflows/deploy.yml`):
+1. SSHs into Droplet
+2. Pulls latest code from GitHub
+3. Stops running container
+4. Rebuilds Docker image
+5. Starts new container with `--restart unless-stopped`
+6. Cleans up old Docker images
 
-```javascript
-// www/app.js
-class SpecIdolClient {
-    connect(wsUrl) {
-        // Auto-detect WebSocket URL based on environment
-        if (!wsUrl) {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const host = window.location.hostname;
-            // In production, WebSocket on same host
-            // In dev, localhost:8765
-            wsUrl = host === 'localhost' || host === '127.0.0.1'
-                ? 'ws://localhost:8765'
-                : `${protocol}//${host}`;
-        }
+## Local Development
 
-        this.ws = new WebSocket(wsUrl);
-        // ... rest of code
-    }
-}
-```
-
-### 5. Environment Variables
-
-Create `.env` for configuration:
+Use `make dev` for local development without Docker:
 
 ```bash
-# .env (don't commit - add to .gitignore)
-WEBSOCKET_PORT=8765
-ALLOWED_ORIGINS=https://yourdomain.com
+make dev        # Start relay + HTTP server
+make dev-stop   # Stop servers
 ```
 
-Update relay.py:
-```python
-import os
-from dotenv import load_dotenv
+Or test with Docker locally:
 
-load_dotenv()
-
-port = int(os.getenv('WEBSOCKET_PORT', 8765))
+```bash
+make build      # Build Docker image
+make servers    # Run container
+make stop       # Stop container
 ```
 
 ## Production Considerations
 
-### SSL/TLS (wss://)
+### Custom Domain
 
-For production, use SSL/TLS for encrypted WebSocket connections (wss://). Most container platforms provide automatic SSL certificates.
+1. **Add A record:** Point domain to Droplet IP
+2. **Update ports:** Use 80 (HTTP) or 443 (HTTPS)
+3. **Add TLS:** Use Caddy or Certbot for HTTPS/WSS
+
+### SSL/TLS (Recommended)
+
+For production, add reverse proxy with automatic HTTPS:
+
+```bash
+# Install Caddy on Droplet
+apt install -y debian-keyring debian-archive-keyring apt-transport-https
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+apt update
+apt install caddy
+
+# Configure Caddyfile
+cat > /etc/caddy/Caddyfile <<EOF
+yourdomain.com {
+    reverse_proxy localhost:8080
+    reverse_proxy /ws localhost:8765
+}
+EOF
+
+systemctl restart caddy
+```
+
+Then update Docker ports to only expose locally: `-p 127.0.0.1:8080:8080 -p 127.0.0.1:8765:8765`
+
+### Monitoring
+
+**View logs:**
+```bash
+docker logs -f specidol
+```
+
+**Check container status:**
+```bash
+docker ps
+```
+
+**Restart container:**
+```bash
+docker restart specidol
+```
+
+### Backup
+
+**Current limitation:** Sessions stored in-memory (lost on restart).
+
+**Export/Import:**
+- Controller has Import/Export buttons
+- Manual backup before updates
+- Future: Add database persistence
 
 ### Scaling
 
-**Horizontal (multiple instances):**
-- Problem: Multiple containers = separate session state
-- Solution: Use Redis or shared database for session storage
+**Single instance sufficient for:**
+- <100 concurrent users
+- Small events/classes
 
-**Current limitation:** In-memory sessions don't work across instances.
+**For scaling:**
+- Add Redis for shared session state
+- Deploy multiple instances
+- Load balancer in front
 
-**For small events (<100 concurrent):** Single instance sufficient.
+## Troubleshooting
 
-**For scaling:** Refactor to use Redis/Postgres for session state.
-
-### Backup Strategy
-
-**Session data:** Currently in-memory (lost on restart).
-
-**Options:**
-1. Export/Import JSON (manual backup via controller)
-2. Add persistence layer (SQLite, Postgres)
-3. Automated snapshots (platform-dependent)
-
-## Testing Locally
-
+**Container won't start:**
 ```bash
-# Build and run containers
-make build
-make servers
-
-# Test in browser
-open http://localhost:8000
-
-# View logs
-docker compose logs -f relay
-
-# Stop
-make stop
+docker logs specidol
 ```
 
-## Migration Checklist
+**Ports in use:**
+```bash
+lsof -i :8080
+lsof -i :8765
+# Kill process if needed
+```
 
-- [ ] Create Dockerfile
-- [ ] Create docker-compose.yml
-- [ ] Update Makefile with Docker commands
-- [ ] Add .env support to relay.py
-- [ ] Update app.js for auto-detection
-- [ ] Test locally with Docker
-- [ ] Choose hosting platform
-- [ ] Deploy to staging
-- [ ] Test production deployment
-- [ ] Update DNS (if custom domain)
-- [ ] Monitor logs for 24 hours
+**GitHub Actions fails:**
+- Check Droplet SSH access: `ssh -i ~/.ssh/specidol-deploy root@YOUR_DROPLET_IP`
+- Verify secrets are set correctly
+- Check workflow logs in Actions tab
+
+**WebSocket won't connect:**
+- Verify port 8765 open: `ufw status`
+- Check browser console for errors
+- Confirm relay running: `docker exec specidol ps aux | grep relay`
+
+## Cost Estimate
+
+**DigitalOcean Droplet:**
+- Basic plan: $4/mo (512MB RAM, 10GB disk)
+- Recommended: $6/mo (1GB RAM, 25GB disk)
+- Bandwidth: 500GB-1TB included
+
+**DNS (optional):**
+- DigitalOcean: Free with Droplet
+- Namecheap/Cloudflare: ~$10-15/year
 
 ## Next Steps
 
-1. **Create Docker files:** Dockerfile, docker-compose.yml
-2. **Update Makefile:** Add Docker commands
-3. **Test locally:** `make build && make servers`
-4. **Deploy:** Push to container hosting platform of choice
-5. **Monitor:** Check logs for errors
+1. Create Droplet and install Docker
+2. Add GitHub secrets
+3. Run initial deployment via Actions
+4. Test at `http://YOUR_DROPLET_IP:8080`
+5. (Optional) Add custom domain + HTTPS
