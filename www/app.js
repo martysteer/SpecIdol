@@ -33,12 +33,11 @@ class SpecIdolClient {
             const host = window.location.hostname;
             const port = window.location.port;
 
-            // In production, WebSocket on same host
-            // In dev (localhost), use port 8765
+            // Always connect to WebSocket on port 8765
             if (host === 'localhost' || host === '127.0.0.1') {
                 wsUrl = 'ws://localhost:8765';
             } else {
-                wsUrl = `${protocol}//${host}${port ? ':' + port : ''}`;
+                wsUrl = `${protocol}//${host}:8765`;
             }
         }
 
