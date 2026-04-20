@@ -6,7 +6,8 @@
     <title>Audience - SPECULATIVE IDOL</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"></noscript>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
@@ -91,7 +92,7 @@
             display: block;
             opacity: 0;
             transform: translateY(20px);
-            animation: lineAppear 0.5s ease-out forwards;
+            animation: lineAppear 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; /* ease-out-expo */
         }
 
         @keyframes lineAppear {
@@ -311,7 +312,6 @@
         });
 
         client.on('text_advanced', (data) => {
-            console.log('text_advanced event:', data);
             appendTextLine(data.line);
         });
 

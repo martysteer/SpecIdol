@@ -187,21 +187,35 @@ async def handle_message(websocket, message_data):
         story = session["stories"][story_index]
         # Split text into sentence chunks (2-3 sentences per chunk)
         import re
-        # Split by sentence endings (. ! ?)
-        sentences = re.split(r'([.!?]+\s+)', story["text"])
-        # Rejoin punctuation with sentences
-        sentences = [''.join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2) if sentences[i].strip()]
 
-        # Group into chunks of 2-3 sentences
-        text_lines = []
-        chunk = []
-        for sent in sentences:
-            chunk.append(sent)
-            if len(chunk) >= 3:
+        # Fallback to full text if empty or malformed
+        text = story.get("text", "").strip()
+        if not text:
+            text_lines = ["[Empty story]"]
+        else:
+            # Split by sentence endings (. ! ?)
+            sentences = re.split(r'([.!?]+\s+)', text)
+            # Rejoin punctuation with sentences
+            sentences = [''.join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2) if sentences[i].strip()]
+
+            # Fallback if no sentences found
+            if not sentences:
+                sentences = [text]
+
+            # Group into chunks of 2-3 sentences
+            text_lines = []
+            chunk = []
+            for sent in sentences:
+                chunk.append(sent)
+                if len(chunk) >= 3:
+                    text_lines.append(' '.join(chunk))
+                    chunk = []
+            if chunk:  # Add remaining sentences
                 text_lines.append(' '.join(chunk))
-                chunk = []
-        if chunk:  # Add remaining sentences
-            text_lines.append(' '.join(chunk))
+
+            # Final fallback
+            if not text_lines:
+                text_lines = [text]
 
         session["current_round"] = {
             "story_index": story_index,
