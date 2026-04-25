@@ -268,6 +268,7 @@
         let scroller = null;
         let tensionMode = false;
         let timerDuration = 120; // default, updated from config
+        let connectedJudges = [];  // [{id, name}, ...]
 
         client.connect();
 
@@ -282,7 +283,8 @@
             }
             // Render judge panels based on connected judges
             if (data.connected_judges) {
-                renderJudgePanels(data.connected_judges);
+                connectedJudges = data.connected_judges;
+                renderJudgePanels();
             }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
@@ -342,21 +344,36 @@
 
         client.on('judge_joined', (data) => {
             if (data.connected_judges) {
-                renderJudgePanels(data.connected_judges);
+                connectedJudges = data.connected_judges;
+                renderJudgePanels();
             }
         });
 
         client.on('judge_left', (data) => {
             if (data.connected_judges) {
-                renderJudgePanels(data.connected_judges);
+                connectedJudges = data.connected_judges;
+                renderJudgePanels();
             }
         });
 
-        function renderJudgePanels(connectedJudges) {
+        client.on('judge_name_changed', (data) => {
+            if (data.connected_judges) {
+                connectedJudges = data.connected_judges;
+                renderJudgePanels();
+            }
+        });
+
+        function renderJudgePanels() {
             const container = document.getElementById('judgePanels');
-            container.innerHTML = connectedJudges.map(judgeId => `
-                <div class="judge-panel" data-judge="${judgeId}">
-                    <span class="label">JUDGE ${judgeId}</span>
+            // Preserve buzzed state across re-renders
+            const buzzedIds = new Set(
+                [...container.querySelectorAll('.judge-panel.buzzed')]
+                    .map(el => parseInt(el.dataset.judge))
+            );
+            const initials = calculateInitials(connectedJudges);
+            container.innerHTML = connectedJudges.map(j => `
+                <div class="judge-panel${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">
+                    <span class="label">${initials[j.id]}</span>
                     <span class="x">✕</span>
                 </div>
             `).join('');

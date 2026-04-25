@@ -192,7 +192,7 @@
     <div class="header">
         <div class="code" id="code">session code: ----</div>
         <div class="judge-count" id="judgeCount">- judges connected</div>
-        <div class="judge-num" id="judgeNum">you are judge -</div>
+        <div class="judge-num" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
         <div class="story-title" id="storyTitle"></div>
     </div>
 
@@ -204,6 +204,20 @@
         <div class="timer" id="timer">0:00.0</div>
     </div>
 
+    <!-- Name Editor Modal -->
+    <div class="modal-overlay" id="nameModalOverlay">
+        <div class="modal-box">
+            <div class="modal-message">Who do you think you are?</div>
+            <div style="padding:1rem 0;">
+                <input type="text" id="nameInput" maxlength="20" style="width:100%;font-family:'Press Start 2P',cursive;font-size:var(--text-caption);" placeholder="Your name">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="nameSaveBtn">SAVE</button>
+                <button class="modal-btn cancel" id="nameCancelBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <script src="app.js"></script>
     <script>
         const params = getUrlParams();
@@ -212,12 +226,34 @@
         let buzzed = false;
         let timerDuration = 120;
         let myJudgeId = null;
-        let connectedJudges = [];
+        let myJudgeName = null;
+        let connectedJudges = [];  // [{id, name}, ...]
+
+        // localStorage: read saved name (2hr expiry)
+        const TWO_HOURS = 2 * 60 * 60 * 1000;
+        function getSavedName() {
+            try {
+                const stored = JSON.parse(localStorage.getItem('specidol_judge_name'));
+                if (stored && (Date.now() - stored.timestamp) < TWO_HOURS) {
+                    return stored.name;
+                }
+                localStorage.removeItem('specidol_judge_name');
+            } catch (e) {}
+            return null;
+        }
+        function saveName(name) {
+            localStorage.setItem('specidol_judge_name', JSON.stringify({
+                name: name,
+                timestamp: Date.now()
+            }));
+        }
+
+        const savedName = getSavedName();
 
         client.connect();
 
         client.onConnect = () => {
-            client.joinSession(params.code, 'judge');
+            client.joinSession(params.code, 'judge', null, savedName);
         };
 
         client.on('session_state', (data) => {
@@ -229,11 +265,15 @@
             if (data.client_info && data.client_info.judge_id) {
                 myJudgeId = data.client_info.judge_id;
                 document.getElementById('code').textContent = `session code: ${data.code || '----'}`;
-                document.getElementById('judgeNum').textContent = `you are judge ${myJudgeId}`;
             }
-            // Update connected judges
+            // Update connected judges and own name
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
+                const me = connectedJudges.find(j => j.id === myJudgeId);
+                if (me) {
+                    myJudgeName = me.name;
+                    document.getElementById('judgeNum').textContent = `${myJudgeName}`;
+                }
                 updateJudgeCount();
             }
             const round = data.current_round;
@@ -332,6 +372,17 @@
             }
         });
 
+        client.on('judge_name_changed', (data) => {
+            if (data.connected_judges) {
+                connectedJudges = data.connected_judges;
+            }
+            if (data.judge_id === myJudgeId) {
+                myJudgeName = data.name;
+                document.getElementById('judgeNum').textContent = `${myJudgeName}`;
+            }
+            renderJudgeStatus();
+        });
+
         function startRound(roundData) {
             buzzed = false;
             document.getElementById('storyTitle').textContent = roundData.title || '';
@@ -374,8 +425,10 @@
             const container = document.getElementById('judgeStatus');
             if (!container) return;
 
-            const buzzedCount = connectedJudges.filter(jid => {
-                const el = document.querySelector(`[data-judge="${jid}"]`);
+            const initials = calculateInitials(connectedJudges);
+
+            const buzzedCount = connectedJudges.filter(j => {
+                const el = document.querySelector(`[data-judge="${j.id}"]`);
                 return el && el.classList.contains('buzzed');
             }).length;
 
@@ -385,8 +438,8 @@
             container.innerHTML = `
                 <div class="buzz-count ${buzzCountClass}" id="buzzCountDisplay">${buzzedCount} of ${totalCount} buzzed</div>
                 <div class="judge-indicators">
-                    ${connectedJudges.map(judgeId => `
-                        <div class="judge-indicator" data-judge="${judgeId}">J${judgeId}</div>
+                    ${connectedJudges.map(j => `
+                        <div class="judge-indicator" data-judge="${j.id}">${initials[j.id]}</div>
                     `).join('')}
                 </div>
             `;
@@ -429,6 +482,36 @@
             document.getElementById('timer').textContent = '0:00.0';
             document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
         }
+
+        // Name editor modal
+        function openNameEditor() {
+            const overlay = document.getElementById('nameModalOverlay');
+            const input = document.getElementById('nameInput');
+            input.value = myJudgeName || '';
+            overlay.classList.add('active');
+            input.focus();
+        }
+
+        document.getElementById('nameSaveBtn').addEventListener('click', () => {
+            const name = document.getElementById('nameInput').value.trim().slice(0, 20);
+            if (name) {
+                myJudgeName = name;
+                saveName(name);
+                client.setJudgeName(name);
+                document.getElementById('judgeNum').textContent = name;
+            }
+            document.getElementById('nameModalOverlay').classList.remove('active');
+        });
+
+        document.getElementById('nameCancelBtn').addEventListener('click', () => {
+            document.getElementById('nameModalOverlay').classList.remove('active');
+        });
+
+        // Allow Enter to save, Escape to cancel
+        document.getElementById('nameInput').addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') document.getElementById('nameSaveBtn').click();
+            if (e.key === 'Escape') document.getElementById('nameCancelBtn').click();
+        });
     </script>
 
     <!-- Modal -->

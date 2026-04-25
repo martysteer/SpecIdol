@@ -112,8 +112,8 @@ session["judge_slots"] = {
 ### Judge View (judge.html)
 
 **Header:**
-- Display: `"You are the judge called 'Alice Smith'"`
-- Default: `"You are the judge called 'Judge 2'"`
+- Display: `"You are judge 'Alice Smith'"`
+- Default: `"You are judge 'Judge 2'"`
 - Clickable to open name editor modal
 
 **Name Editor Modal:**
@@ -185,7 +185,7 @@ judges = [
 
 1. Add localStorage get/set with expiry check
 2. Send name in `join` message if available
-3. Add click handler to header text
+3. Add click handler to header text (and style it slightly similar to the other clickable buttons)
 4. Add modal HTML/CSS for name editor
 5. Add `set_judge_name` send on save
 6. Add `judge_name_changed` handler
@@ -203,7 +203,7 @@ judges = [
 
 1. **Expired localStorage:** Clear and use default "Judge X"
 2. **Empty name input:** Reject, keep current name
-3. **Name > 20 chars:** Truncate or reject in UI
+3. **Name > 20 chars:** Truncate or reject in UI (limit typing)
 4. **All same initials:** Number all after first (AS, AS2, AS3, AS4...)
 5. **Special characters in name:** Allow, extract letters only for initials
 6. **Single-word name:** Use first letter only (e.g., "Alice" → "A")

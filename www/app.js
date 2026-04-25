@@ -103,11 +103,17 @@ class SpecIdolClient {
         this.send('create_session');
     }
 
-    joinSession(code, role, judgeId = null) {
+    joinSession(code, role, judgeId = null, name = null) {
         this.sessionCode = code;
         this.role = role;
         this.judgeId = judgeId;
-        this.send('join', { code, role, judge_id: judgeId });
+        const data = { code, role, judge_id: judgeId };
+        if (name) data.name = name;
+        this.send('join', data);
+    }
+
+    setJudgeName(name) {
+        this.send('set_judge_name', { name });
     }
 
     addStory(title, text) {
@@ -291,6 +297,35 @@ function formatTime(seconds) {
     const secs = Math.floor(seconds % 60);
     const tenths = Math.floor((seconds % 1) * 10);
     return `${minutes}:${secs.toString().padStart(2, '0')}.${tenths}`;
+}
+
+// Calculate initials from judge names with collision numbering
+function calculateInitials(judges) {
+    // judges: [{id, name}, ...]
+    // returns: {id: "AS", id2: "AS2", ...}
+    const initialsMap = {};
+    const groups = {};
+
+    // Extract initials for each judge
+    judges.forEach(j => {
+        const initials = j.name
+            .split(/\s+/)
+            .map(w => w.charAt(0))
+            .join('')
+            .toUpperCase();
+        initialsMap[j.id] = initials;
+        if (!groups[initials]) groups[initials] = [];
+        groups[initials].push(j.id);
+    });
+
+    // Number collisions
+    const result = {};
+    for (const [initials, ids] of Object.entries(groups)) {
+        ids.forEach((id, index) => {
+            result[id] = index === 0 ? initials : initials + (index + 1);
+        });
+    }
+    return result;
 }
 
 // Utility: parse URL params
