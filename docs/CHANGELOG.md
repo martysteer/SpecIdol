@@ -1,79 +1,75 @@
-# Speculative Idol - Changelog
+# Changelog
 
-## Recent Changes
+All notable changes to SpecIdol will be documented in this file.
 
-### Multiple Sessions Support
-**Date:** 2026-04-18
+## [Unreleased]
 
-Server now supports multiple concurrent game sessions:
-- Each session has unique 4-letter code
-- Sessions isolated (separate stories, judges, rounds, history)
-- Join screen shows all active sessions as buttons
-- Click session → select → join as audience/judge
+### Added
+- **Design improvements** from comprehensive design critique:
+  - Systematic typography scale (5 levels: 3rem → 0.75rem)
+  - Controller layout restructured with clear primary/secondary/tertiary hierarchy
+  - Empty states with progressive onboarding (story management auto-expands when queue empty)
+  - Judge social awareness (connected count, buzz status indicators with animations)
+  - Session list 2-column responsive grid layout for better scalability
+- **History enhancements**:
+  - Copy JSON button to export round history to clipboard
+  - Story titles now included in history entries
+- **Round controls improvements**:
+  - Story selection blocked during active rounds (running/paused)
+  - Round controls merged into selected-story-display box (unified yellow container)
+  - Visual feedback when story selection disabled
+- **Join as Controller button** on session join page - rejoin existing sessions as controller
+- **Session control panel** in controller interface:
+  - Eject Judges button - disconnects all judges with confirmation
+  - Shutdown Audience button - disconnects all audience screens with confirmation
+  - Delete Session button - removes session and ejects all clients with confirmation
+  - Judge count and audience count display
+- **Makefile improvements**:
+  - `make help` - show all available commands (default target)
+  - `make docker` - build Docker image (renamed from `make build`)
+  - `make clean` - stop and remove container and image
+- **GitHub Actions workflow** - manual deployment to DigitalOcean Droplet
+- **Deployment documentation** - complete guide in `docs/docker-deployment-plan.md`
+- **Para-critique essay** - `docs/para-critique-acsl-specidol.md` discussing ACSL licensing and AI co-authorship
 
-**Technical:**
-- `sessions = {code: session_data}` dict
-- `websocket_sessions = {websocket: code}` tracking
-- `broadcast_to_session(code, msg)` for session-specific broadcasts
+### Changed
+- **Port standardization**:
+  - Production (Docker): Port 80 for web, 8765 for WebSocket
+  - Development (`make dev`): Port 8000 for web, 8765 for WebSocket (no sudo required)
+- **WebSocket connection fix**: Production mode now correctly connects to port 8765
+- **Docker architecture**: Single Dockerfile with nginx + relay via supervisord (no docker-compose)
+- **Session info layout**: Redesigned controller header with three-column grid layout
+- **Session stats**: Unified display across join page and controller (stories | judges | audience)
 
-### Auto-Assign Judge IDs
-**Date:** 2026-04-18
+### Fixed
+- Port 8765 already in use handling in `make dev-stop`
+- WebSocket connection in production (was trying to connect to HTTP port instead of 8765)
+- Dockerfile EXPOSE declarations now match actual ports
+- All deployment documentation updated with correct ports
+- `updateStory` text loss bug
+- Story update in place without changing queue order
 
-Judges auto-assigned sequential IDs (1, 2, 3...) on join:
-- No dropdown selection needed
-- Supports unlimited judges (not limited to 3)
-- Join screen: just "Join as Judge" button
-- Server assigns next available ID
+### Security
+- Firewall configuration documented for ports 22, 80, 8765
+- Controller-only authentication for session deletion commands
 
-**Technical:**
-- `next_judge_id` counter per session
-- `judge_slots = {}` dynamic dict
-- Broadcast `judge_joined`/`judge_left` events
+## [1.0.0] - 2026-04-18
 
-### Dynamic Judge Indicators
-**Date:** 2026-04-18
+Initial release of SpecIdol - Pop Idol for speculative fiction writers at conventions.
 
-Judge panels/indicators now dynamic:
-- **Audience screen:** Judge panels generated from `connected_judges`
-- **Judge screen:** Status indicators show all connected judges
-- Updates in real-time as judges join/leave
+### Features
+- Real-time WebSocket coordination between controller, judges, and audience
+- Multiple concurrent sessions with 4-letter session codes
+- Auto-assign judge IDs (sequential: 1, 2, 3...)
+- Auto-scrolling story text synchronized across all clients
+- Judge buzzer system with big red buttons
+- Audience projector view with CRT effects and animations
+- Controller interface with story queue management
+- Import/Export session functionality
+- Dynamic judge indicators (panels generated from connected judges)
+- UI refinements: two-column controller layout, session list grid, collapsible sections
+- Retro/campy game show aesthetic
+- No build step, no framework - pure HTML/CSS/JS + Python WebSocket server
 
-### UI Refinements
-**Date:** 2026-04-18
-
-**Controller:**
-- Two-column layout (50/50 split)
-- Left: Add Story + Import/Export (collapsible)
-- Right: Story Queue
-- Click entire row to select story
-- Disclosure arrow collapses Add Story column (queue expands to 90%)
-
-**Judge:**
-- Text: "session code:" and "you are judge X" (lowercase)
-- Timer moved to bottom left footer (matches audience)
-
-**Join:**
-- Session list buttons instead of code input
-- Shows story count and judge count per session
-- Select session → enables join buttons
-
-## Architecture
-
-### Server (relay.py)
-- WebSocket relay on port 8765
-- In-memory session storage (no persistence)
-- Message types: `list_sessions`, `create_session`, `join`, `add_story`, `round_start`, `buzz`, etc.
-- Broadcasts to session clients only
-
-### Client (www/)
-- Vanilla HTML/CSS/JS (no framework)
-- `app.js`: Shared WebSocket client + utilities
-- `index.html`: Landing/join screen
-- `control.html`: Controller interface (create stories, start rounds)
-- `judge.html`: Judge view (buzz button)
-- `audience.html`: Audience view (story text + auto-scroll + timer)
-
-### Protocol
-- Clock sync: Server sends `server_time`, clients calculate offset
-- State restoration: Late joiners receive full `session_state`
-- Real-time: Judge buzzes, round events broadcast immediately
+### License
+Licensed under Anti-Capitalist Software License v1.4
