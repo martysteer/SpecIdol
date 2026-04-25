@@ -11,25 +11,11 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background: #000;
-            color: #0f0;
             font-family: 'Press Start 2P', cursive;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
         }
 
-        .header {
-            padding: 1rem;
-            text-align: center;
+        .page-header {
             border-bottom: 2px solid #0f0;
         }
 
@@ -63,8 +49,7 @@
             line-height: 1.2;
         }
 
-        .main {
-            flex: 1;
+        .page-content {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -173,36 +158,26 @@
             opacity: 0.7;
         }
 
-        .footer {
-            padding: 1rem;
+        .page-footer {
             border-top: 2px solid #0f0;
-        }
-
-        @media (max-width: 600px) {
-            :root {
-                --text-display: 1.5rem;
-                --text-heading: 1.125rem;
-                --text-body: 0.875rem;
-                --text-caption: 0.75rem;
-            }
         }
     </style>
 </head>
-<body>
-    <div class="header">
+<body class="page-locked">
+    <header class="page-header">
         <div class="code" id="code">session code: ----</div>
         <div class="judge-count" id="judgeCount">- judges connected</div>
         <div class="judge-num" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
         <div class="story-title" id="storyTitle"></div>
-    </div>
+    </header>
 
-    <div class="main" id="main">
+    <main class="page-content" id="main">
         <div class="waiting">Waiting for round to start...</div>
-    </div>
+    </main>
 
-    <div class="footer">
+    <footer class="page-footer">
         <div class="timer" id="timer">0:00.0</div>
-    </div>
+    </footer>
 
     <!-- Name Editor Modal -->
     <div class="modal-overlay" id="nameModalOverlay">

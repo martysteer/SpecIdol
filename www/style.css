@@ -27,6 +27,9 @@ body {
     font-family: 'Courier New', monospace;
     font-size: var(--text-body);
     line-height: 1.6;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 h1 {
@@ -87,6 +90,49 @@ input, textarea, select {
 input:focus, textarea:focus, select:focus {
     outline: none;
     box-shadow: 0 0 10px var(--neon-green);
+}
+
+/* Layout shell — shared page structure */
+.page-centered {
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.page-scrollable {
+    padding: 2rem;
+}
+
+.page-locked {
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page-header {
+    padding: 1rem;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.page-content {
+    flex: 1;
+    min-height: 0;
+}
+
+.page-footer {
+    padding: 1rem;
+    flex-shrink: 0;
+}
+
+/* Unified responsive typography */
+@media (max-width: 900px) {
+    :root {
+        --text-display: 1.5rem;
+        --text-heading: 1.125rem;
+        --text-subheading: 1rem;
+        --text-body: 0.875rem;
+        --text-caption: 0.75rem;
+    }
 }
 
 /* Accessibility: Respect reduced motion preference */

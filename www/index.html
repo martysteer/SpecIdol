@@ -11,31 +11,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
         h1 {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-display);
-            text-align: center;
             margin-bottom: 3rem;
             text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
-            line-height: 1.2;
         }
 
         .container {
@@ -48,24 +26,6 @@
             flex-direction: column;
             gap: 1rem;
             margin-bottom: 2rem;
-        }
-
-        button {
-            background: #0f0;
-            color: #000;
-            border: 3px solid #0f0;
-            padding: 1rem 2rem;
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-body);
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-
-        button:hover {
-            background: #000;
-            color: #0f0;
-            box-shadow: 0 0 20px #0f0;
         }
 
         .join-form {
@@ -131,20 +91,6 @@
             text-shadow: 0 0 10px #0f0;
         }
 
-        input, select {
-            background: #000;
-            color: #0f0;
-            border: 2px solid #0f0;
-            padding: 0.75rem;
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-body);
-        }
-
-        input:focus, select:focus {
-            outline: none;
-            box-shadow: 0 0 10px #0f0;
-        }
-
         input[type="text"] {
             text-transform: uppercase;
             font-family: 'Press Start 2P', cursive;
@@ -164,15 +110,7 @@
             display: block;
         }
 
-        @media (max-width: 768px) {
-            :root {
-                --text-display: 1.5rem;   /* Scale down for mobile */
-                --text-heading: 1.125rem;
-                --text-subheading: 1rem;
-                --text-body: 0.875rem;
-                --text-caption: 0.75rem;
-            }
-
+        @media (max-width: 900px) {
             .join-form {
                 grid-template-columns: 1fr;
             }
@@ -183,31 +121,35 @@
         }
     </style>
 </head>
-<body>
-    <h1>SPECULATIVE<br>IDOL</h1>
+<body class="page-centered">
+    <header class="page-header">
+        <h1>SPECULATIVE<br>IDOL</h1>
+    </header>
 
-    <div class="container">
-        <div class="mode-select" id="modeSelect">
-            <button onclick="createSession()">Create Session</button>
-            <button onclick="showJoinForm()">Join Session</button>
-        </div>
-
-        <div class="join-form" id="joinForm">
-            <div class="sessions-column">
-                <div class="column-header">Select Session</div>
-                <div id="sessionButtons"></div>
+    <main class="page-content">
+        <div class="container">
+            <div class="mode-select" id="modeSelect">
+                <button onclick="createSession()">Create Session</button>
+                <button onclick="showJoinForm()">Join Session</button>
             </div>
 
-            <div class="actions-column">
-                <div class="column-header">Join As</div>
-                <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
-                <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
-                <button onclick="joinAsController()" id="joinControllerBtn" disabled style="background: #440; color: #ff0; border-color: #ff0; margin-top: 1rem;">Join as Controller</button>
-            </div>
-        </div>
+            <div class="join-form" id="joinForm">
+                <div class="sessions-column">
+                    <div class="column-header">Select Session</div>
+                    <div id="sessionButtons"></div>
+                </div>
 
-        <div class="error" id="error"></div>
-    </div>
+                <div class="actions-column">
+                    <div class="column-header">Join As</div>
+                    <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
+                    <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
+                    <button onclick="joinAsController()" id="joinControllerBtn" disabled style="background: #440; color: #ff0; border-color: #ff0; margin-top: 1rem;">Join as Controller</button>
+                </div>
+            </div>
+
+            <div class="error" id="error"></div>
+        </div>
+    </main>
 
     <!-- Modal -->
     <div class="modal-overlay" id="modalOverlay">

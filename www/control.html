@@ -11,30 +11,14 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            padding: 2rem;
-        }
-
         h1 {
-            font-family: 'Press Start 2P', cursive;
             font-size: var(--text-heading);
-            text-align: center;
             color: #ff0;
             margin-bottom: 1rem;
             line-height: 1.3;
         }
 
         h2 {
-            font-family: 'Press Start 2P', cursive;
             font-size: var(--text-subheading);
             margin-top: 2rem;
             margin-bottom: 1rem;
@@ -408,16 +392,19 @@
         }
     </style>
 </head>
-<body>
-    <h1>CONTROLLER</h1>
+<body class="page-scrollable">
+    <header class="page-header">
+        <h1>CONTROLLER</h1>
 
-    <!-- Compact session info -->
-    <div class="session-info">
-        CODE: <span class="code" id="sessionCode">----</span>
-        <span class="stats">| <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience</span>
-        <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
-    </div>
+        <!-- Compact session info -->
+        <div class="session-info">
+            CODE: <span class="code" id="sessionCode">----</span>
+            <span class="stats">| <span id="storyCount">0</span> stories | <span id="judgeCount">0</span> judges | <span id="audienceCount">0</span> audience</span>
+            <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
+        </div>
+    </header>
 
+    <main class="page-content">
     <!-- PRIMARY: Selected story + Round controls (unified) -->
     <div class="selected-story-display">
         <div class="label">NOW PERFORMING</div>
@@ -479,18 +466,22 @@
         <ul class="history-list" id="historyList"></ul>
     </div>
 
-    <!-- TERTIARY: Session management (collapsed, danger zone) -->
-    <div class="session-management collapsed" id="sessionManagementSection">
-        <h2 onclick="toggleSessionManagement()">
-            <span class="arrow" id="sessionMgmtArrow">▼</span>
-            Session Management (Danger Zone)
-        </h2>
-        <div class="management-content">
-            <button class="danger-btn" onclick="ejectJudges()">Eject All Judges</button>
-            <button class="danger-btn" onclick="shutdownAudience()">Shutdown All Audience</button>
-            <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
+    </main>
+
+    <footer class="page-footer">
+        <!-- Session management (collapsed, danger zone) -->
+        <div class="session-management collapsed" id="sessionManagementSection">
+            <h2 onclick="toggleSessionManagement()">
+                <span class="arrow" id="sessionMgmtArrow">▼</span>
+                Session Management (Danger Zone)
+            </h2>
+            <div class="management-content">
+                <button class="danger-btn" onclick="ejectJudges()">Eject All Judges</button>
+                <button class="danger-btn" onclick="shutdownAudience()">Shutdown All Audience</button>
+                <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
+            </div>
         </div>
-    </div>
+    </footer>
 
     <script src="app.js"></script>
     <script>

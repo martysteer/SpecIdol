@@ -11,18 +11,7 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
-            background: #000;
-            color: #0f0;
-            font-family: 'Courier New', monospace;
-            height: 100vh;
-            overflow: hidden;
             position: relative;
         }
 
@@ -45,16 +34,22 @@
             z-index: 1000;
         }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            padding: 2rem;
+        .page-header {
+            margin-bottom: 1rem;
         }
 
-        .header {
-            text-align: center;
-            margin-bottom: 2rem;
+        .page-content {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding: 0 2rem;
+        }
+
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
         }
 
         .story-title {
@@ -63,13 +58,6 @@
             color: #ff0;
             text-shadow: 0 0 10px #ff0;
             line-height: 1.2;
-        }
-
-        .content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
         }
 
         .story-text-container {
@@ -100,13 +88,6 @@
                 opacity: 1;
                 transform: translateY(0);
             }
-        }
-
-        .footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 0;
         }
 
         .timer {
@@ -219,37 +200,27 @@
         }
 
         @media (max-width: 900px) {
-            :root {
-                --text-display: 1.5rem;
-                --text-heading: 1.125rem;
-                --text-subheading: 1rem;
-                --text-body: 0.875rem;
-                --text-caption: 0.75rem;
-            }
-
             .judge-panel {
                 padding: 0.5rem 1rem;
             }
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <div class="story-title" id="storyTitle">Waiting for story...</div>
-        </div>
+<body class="page-locked">
+    <header class="page-header">
+        <div class="story-title" id="storyTitle">Waiting for story...</div>
+    </header>
 
-        <div class="content">
-            <div class="story-text-container">
-                <div class="story-text" id="storyText"></div>
-            </div>
+    <main class="page-content">
+        <div class="story-text-container">
+            <div class="story-text" id="storyText"></div>
         </div>
+    </main>
 
-        <div class="footer">
-            <div class="timer" id="timer" style="display: none;">0:00.0</div>
-            <div class="judge-panels" id="judgePanels"></div>
-        </div>
-    </div>
+    <footer class="page-footer">
+        <div class="timer" id="timer" style="display: none;">0:00.0</div>
+        <div class="judge-panels" id="judgePanels"></div>
+    </footer>
 
     <div class="outcome" id="outcome"></div>
 

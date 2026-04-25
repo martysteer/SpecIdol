@@ -12,7 +12,7 @@ help:
 	@echo "  make clean       Stop container, remove container and image"
 	@echo ""
 	@echo "Local development commands:"
-	@echo "  make dev         Run without Docker (port 8000 + 8765)"
+	@echo "  make dev         Run without Docker (port 80 + 8765, needs sudo)"
 	@echo "  make dev-stop    Stop local dev servers"
 	@echo ""
 	@echo "Quick start:"
@@ -47,12 +47,12 @@ clean:
 dev:
 	@echo "Starting WebSocket relay server on port 8765..."
 	@python3 server/relay.py & echo $$! > .relay.pid
-	@echo "Starting HTTP server on port 8000..."
-	@python3 -m http.server 8000 --directory www & echo $$! > .http.pid
+	@echo "Starting HTTP server on port 80..."
+	@python3 -m http.server 80 --directory www & echo $$! > .http.pid
 	@echo ""
 	@echo "Servers running:"
 	@echo "  - WebSocket relay: ws://localhost:8765"
-	@echo "  - HTTP server: http://localhost:8000"
+	@echo "  - HTTP server: http://localhost"
 	@echo ""
 	@echo "Run 'make dev-stop' to stop servers"
 	@wait
@@ -69,4 +69,4 @@ dev-stop:
 		echo "Stopped HTTP server"; \
 	fi
 	@lsof -ti :8765 | xargs kill -9 2>/dev/null || true
-	@lsof -ti :8000 | xargs kill -9 2>/dev/null || true
+	@lsof -ti :80 | xargs kill -9 2>/dev/null || true
