@@ -100,7 +100,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .page-scrollable {
-    padding: 2rem;
+    overflow-y: auto;
 }
 
 .page-locked {
@@ -117,11 +117,38 @@ input:focus, textarea:focus, select:focus {
     border-bottom: 2px solid var(--neon-green);
 }
 
+.header-left {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.page-label {
+    font-family: 'Press Start 2P', cursive;
+    font-size: var(--text-body);
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green);
+    line-height: 1.2;
+}
+
 .header-info {
     font-family: 'Courier New', monospace;
     font-size: var(--text-caption);
-    text-align: right;
     opacity: 0.7;
+}
+
+.header-context {
+    font-family: 'Press Start 2P', cursive;
+    font-size: var(--text-heading);
+    color: #ff0;
+    text-shadow: 0 0 10px #ff0;
+    line-height: 1.3;
+    text-align: right;
+}
+
+.header-context.waiting {
+    color: #997700;
+    text-shadow: none;
 }
 
 .page-content {
@@ -148,6 +175,10 @@ input:focus, textarea:focus, select:focus {
         flex-direction: column;
         align-items: flex-start;
         gap: 0.5rem;
+    }
+
+    .header-context {
+        text-align: left;
     }
 }
 

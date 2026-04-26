@@ -48,19 +48,10 @@
             padding: 1rem 2rem;
         }
 
-        .story-title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-display);
-            color: #ff0;
-            text-shadow: 0 0 10px #ff0;
-            line-height: 1.2;
-        }
-
         .story-text-container {
             flex: 1;
             overflow-y: auto;
             scroll-behavior: smooth;
-            border-top: 2px solid #0f0;
             border-bottom: 2px solid #0f0;
             padding: 2rem;
             margin-bottom: 2rem;
@@ -205,17 +196,19 @@
 </head>
 <body class="page-locked">
     <header class="page-header">
-        <h1>AUDIENCE</h1>
-        <div class="header-info">
-            <span id="sessionCode">----</span> |
-            <span id="storyCount">0</span> stories |
-            <span id="judgeCount">0</span> judges |
-            <span id="audienceCount">0</span> audience
+        <div class="header-left">
+            <div class="page-label">WATCHING</div>
+            <div class="header-info">
+                <span id="sessionCode">----</span> |
+                <span id="storyCount">0</span> stories |
+                <span id="judgeCount">0</span> judges |
+                <span id="audienceCount">0</span> audience
+            </div>
         </div>
+        <div class="header-context waiting" id="storyTitle">Waiting for story...</div>
     </header>
 
     <main class="page-content">
-        <div class="story-title" id="storyTitle">Waiting for story...</div>
         <div class="story-text-container">
             <div class="story-text" id="storyText"></div>
         </div>
@@ -387,7 +380,9 @@
         function startRound(roundData) {
             resetView();
 
-            document.getElementById('storyTitle').textContent = roundData.title || 'Untitled';
+            const titleEl = document.getElementById('storyTitle');
+            titleEl.textContent = roundData.title || 'Untitled';
+            titleEl.classList.remove('waiting');
             document.getElementById('storyText').textContent = ''; // Clear - will be populated line by line
         }
 
@@ -450,7 +445,9 @@
 
             document.getElementById('timer').classList.remove('tension');
             document.getElementById('outcome').style.display = 'none';
-            document.getElementById('storyTitle').textContent = 'Waiting for story...';
+            const titleEl = document.getElementById('storyTitle');
+            titleEl.textContent = 'Waiting for story...';
+            titleEl.classList.add('waiting');
             document.getElementById('storyText').textContent = '';
             document.getElementById('timer').textContent = '0:00.0';
 

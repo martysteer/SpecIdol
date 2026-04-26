@@ -11,26 +11,22 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="modal.css">
     <style>
-        h1 {
-            font-size: var(--text-heading);
-            color: #ff0;
-            line-height: 1.3;
-        }
-
         h2 {
             font-size: var(--text-subheading);
-            margin-top: 2rem;
             margin-bottom: 1rem;
             border-bottom: 2px solid #0f0;
             padding-bottom: 0.5rem;
             line-height: 1.4;
         }
 
+        .page-footer {
+            padding: 0;
+        }
+
         .session-management {
-            margin-top: 3rem;
             border-top: 2px solid #f00;
             border-bottom: 2px solid #f00;
-            padding: 1rem;
+            padding: 1rem 2rem;
         }
 
         .session-management h2 {
@@ -58,7 +54,7 @@
             display: none;
         }
 
-        .management-content {
+        .session-management .management-content {
             margin-top: 1rem;
             display: flex;
             flex-direction: column;
@@ -85,15 +81,14 @@
 
         .section {
             margin-bottom: 2rem;
-            padding: 1rem;
+            padding: 1rem 2rem;
             border-top: 2px solid #0f0;
             border-bottom: 2px solid #0f0;
         }
 
         .selected-story-display {
             text-align: center;
-            padding: 2rem;
-            margin-bottom: 3rem;
+            padding: 1.5rem 2rem;
             border-top: 3px solid #ff0;
             border-bottom: 3px solid #ff0;
             background: rgba(255, 255, 0, 0.05);
@@ -139,10 +134,9 @@
         }
 
         .story-management {
-            margin-bottom: 3rem;
             border-top: 2px solid #0f0;
             border-bottom: 2px solid #0f0;
-            padding: 1rem;
+            padding: 1rem 2rem;
         }
 
         .story-management h2 {
@@ -168,7 +162,7 @@
             display: none;
         }
 
-        .management-content {
+        .story-management .management-content {
             margin-top: 1rem;
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -187,32 +181,15 @@
             }
         }
 
-        input, textarea, button, select {
-            background: #000;
-            color: #0f0;
-            border: 2px solid #0f0;
-            padding: 0.5rem;
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-body);
-            margin: 0.25rem;
-        }
-
+        /* Ghost-style buttons for controller (inverted from core filled style) */
         button {
-            cursor: pointer;
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-body);
-            padding: 0.75rem 1.5rem;
-            transition: all 0.2s;
+            background: var(--black);
+            color: var(--neon-green);
         }
 
-        button:hover {
-            background: #0f0;
-            color: #000;
-        }
-
-        button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
+        button:hover:not(:disabled) {
+            background: var(--neon-green);
+            color: var(--black);
         }
 
         textarea {
@@ -375,14 +352,17 @@
 </head>
 <body class="page-scrollable">
     <header class="page-header">
-        <h1>CONTROLLER</h1>
-        <div class="header-info">
-            <span class="code" id="sessionCode">----</span> |
-            <span id="storyCount">0</span> stories |
-            <span id="judgeCount">0</span> judges |
-            <span id="audienceCount">0</span> audience
-            <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
+        <div class="header-left">
+            <div class="page-label">CONTROLLING</div>
+            <div class="header-info">
+                <span class="code" id="sessionCode">----</span> |
+                <span id="storyCount">0</span> stories |
+                <span id="judgeCount">0</span> judges |
+                <span id="audienceCount">0</span> audience
+                <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
+            </div>
         </div>
+        <div class="header-context waiting" id="headerStoryTitle">No story selected</div>
     </header>
 
     <main class="page-content">
@@ -821,15 +801,21 @@
 
         function updateSelectedStoryDisplay() {
             const titleEl = document.getElementById('selectedStoryTitle');
+            const headerEl = document.getElementById('headerStoryTitle');
             if (!sessionState) return;
 
             const index = sessionState.current_round.story_index;
             if (index !== null && sessionState.stories[index]) {
-                titleEl.textContent = sessionState.stories[index].title;
+                const title = sessionState.stories[index].title;
+                titleEl.textContent = title;
                 titleEl.classList.remove('empty');
+                headerEl.textContent = title;
+                headerEl.classList.remove('waiting');
             } else {
                 titleEl.textContent = 'No story selected - choose from queue below';
                 titleEl.classList.add('empty');
+                headerEl.textContent = 'No story selected';
+                headerEl.classList.add('waiting');
             }
         }
 

@@ -5,6 +5,13 @@ All notable changes to SpecIdol will be documented in this file.
 ## [Unreleased]
 
 ### Added
+- **Consistent headers** across judge, audience, and controller pages:
+  - Left side: page label (WATCHING/JUDGING/CONTROLLING) in green + session stats
+  - Right side: contextual info in yellow (story title, judge name, selected story)
+  - Waiting/active color states (muted brown-yellow → bright yellow with glow)
+  - Mobile stacking at ≤900px
+- **Live session stats** on judge and audience pages (code, stories, judges, audience count via WebSocket)
+- **Full-width horizontal lines** replacing box borders on all content sections
 - **Design improvements** from comprehensive design critique:
   - Systematic typography scale (5 levels: 3rem → 0.75rem)
   - Controller layout restructured with clear primary/secondary/tertiary hierarchy
@@ -33,6 +40,8 @@ All notable changes to SpecIdol will be documented in this file.
 - **Para-critique essay** - `docs/para-critique-acsl-specidol.md` discussing ACSL licensing and AI co-authorship
 
 ### Changed
+- **Controller CSS refactored** — removed body padding so borders go edge-to-edge, removed redundant form element overrides, scoped management-content selectors
+- **`.page-scrollable`** no longer adds body padding — sections handle their own horizontal padding
 - **Port standardization**:
   - Production (Docker): Port 80 for web, 8765 for WebSocket
   - Development (`make dev`): Port 8000 for web, 8765 for WebSocket (no sudo required)

@@ -1,7 +1,7 @@
 # HTML Layout Refactor — Consistent Page Structure
 
 **Date:** 2026-04-25
-**Status:** Implementing
+**Status:** Complete (extended by `2026-04-25-FEATURE-consistent-headers.md`)
 
 ## Problem
 

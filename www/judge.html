@@ -145,13 +145,16 @@
 </head>
 <body class="page-locked">
     <header class="page-header">
-        <h1 id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</h1>
-        <div class="header-info">
-            <span id="code">----</span> |
-            <span id="storyCount">0</span> stories |
-            <span id="judgeCount">0</span> judges |
-            <span id="audienceCount">0</span> audience
+        <div class="header-left">
+            <div class="page-label">JUDGING</div>
+            <div class="header-info">
+                <span id="code">----</span> |
+                <span id="storyCount">0</span> stories |
+                <span id="judgeCount">0</span> judges |
+                <span id="audienceCount">0</span> audience
+            </div>
         </div>
+        <div class="header-context waiting" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
     </header>
 
     <main class="page-content" id="main">
@@ -234,7 +237,9 @@
                 const me = connectedJudges.find(j => j.id === myJudgeId);
                 if (me) {
                     myJudgeName = me.name;
-                    document.getElementById('judgeNum').textContent = `${myJudgeName}`;
+                    const el = document.getElementById('judgeNum');
+                    el.textContent = myJudgeName;
+                    el.classList.remove('waiting');
                 }
                 updateJudgeCount();
             }
@@ -340,7 +345,9 @@
             }
             if (data.judge_id === myJudgeId) {
                 myJudgeName = data.name;
-                document.getElementById('judgeNum').textContent = `${myJudgeName}`;
+                const el = document.getElementById('judgeNum');
+                el.textContent = myJudgeName;
+                el.classList.remove('waiting');
             }
             renderJudgeStatus();
         });
@@ -479,7 +486,9 @@
                 myJudgeName = name;
                 saveName(name);
                 client.setJudgeName(name);
-                document.getElementById('judgeNum').textContent = name;
+                const el = document.getElementById('judgeNum');
+                el.textContent = name;
+                el.classList.remove('waiting');
             }
             document.getElementById('nameModalOverlay').classList.remove('active');
         });
