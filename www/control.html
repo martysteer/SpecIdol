@@ -13,9 +13,6 @@
     <style>
         h2 {
             font-size: var(--text-subheading);
-            margin-bottom: 1rem;
-            border-bottom: 2px solid #0f0;
-            padding-bottom: 0.5rem;
             line-height: 1.4;
         }
 
@@ -23,42 +20,55 @@
             padding: 0;
         }
 
-        .session-management {
-            border-top: 2px solid #f00;
-            border-bottom: 2px solid #f00;
+        /* Collapsible section pattern */
+        .collapsible {
+            border-top: 2px solid #0f0;
             padding: 1rem 2rem;
         }
 
-        .session-management h2 {
-            color: #f00;
+        .collapsible h2 {
             cursor: pointer;
             user-select: none;
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            font-size: var(--text-body);
             margin: 0;
-            border: none;
             padding: 0;
         }
 
-        .session-management .arrow {
+        .collapsible .arrow {
             transition: transform 0.3s;
         }
 
-        .session-management.collapsed .arrow {
+        .collapsible.collapsed .arrow {
             transform: rotate(-90deg);
         }
 
-        .session-management.collapsed .management-content {
+        .collapsible.collapsed .section-content {
             display: none;
         }
 
-        .session-management .management-content {
+        .collapsible .section-content {
             margin-top: 1rem;
-            display: flex;
+        }
+
+        /* Session management — danger zone override */
+        .session-management {
+            border-top-color: #f00;
+        }
+
+        .session-management h2 {
+            color: #f00;
+            font-size: var(--text-body);
+        }
+
+        .session-management .section-content {
             flex-direction: column;
             gap: 0.5rem;
+        }
+
+        .session-management:not(.collapsed) .section-content {
+            display: flex;
         }
 
         .danger-btn {
@@ -79,94 +89,70 @@
             box-shadow: 0 0 20px #f00;
         }
 
-        .section {
-            margin-bottom: 2rem;
-            padding: 1rem 2rem;
-            border-top: 2px solid #0f0;
-            border-bottom: 2px solid #0f0;
-        }
 
         .selected-story-display {
-            text-align: center;
-            padding: 1.5rem 2rem;
+            display: flex;
             border-top: 3px solid #ff0;
             border-bottom: 3px solid #ff0;
             background: rgba(255, 255, 0, 0.05);
+            min-height: 200px;
         }
 
-        .selected-story-display .label {
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-caption);
-            color: #0f0;
-            opacity: 0.7;
-            margin-bottom: 1rem;
-        }
-
-        .selected-story-display .title {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-display);
-            color: #ff0;
-            text-shadow: 0 0 20px #ff0;
-            line-height: 1.2;
-            min-height: 4rem;
+        .round-controls-column {
+            flex: 0 0 33%;
+            padding: 1.5rem 2rem;
+            border-right: 2px solid #ff0;
             display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 2rem;
+            flex-direction: column;
+            gap: 1rem;
         }
 
-        .selected-story-display .title.empty {
+        .story-text-column {
+            flex: 1;
+            padding: 1.5rem 2rem;
+            overflow-y: auto;
+            max-height: 50vh;
+        }
+
+        .story-text-column .story-text {
+            font-size: var(--text-body);
+            line-height: 1.7;
+            white-space: pre-wrap;
+        }
+
+        .story-text-column .text-line {
+            display: block;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: lineAppear 0.3s ease-out forwards;
+        }
+
+        @keyframes lineAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .story-text-column .empty-text {
             opacity: 0.4;
-            font-size: var(--text-heading);
-        }
-
-        .round-controls-section {
-            border-top: 2px solid #ff0;
-            padding-top: 1.5rem;
-            margin-top: 1.5rem;
+            font-style: italic;
         }
 
         .status-text {
             font-family: 'Courier New', monospace;
             font-size: var(--text-body);
             color: #0f0;
-            margin-bottom: 1rem;
         }
 
-        .story-management {
-            border-top: 2px solid #0f0;
-            border-bottom: 2px solid #0f0;
-            padding: 1rem 2rem;
-        }
-
-        .story-management h2 {
-            cursor: pointer;
-            user-select: none;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0;
-            border: none;
-            padding: 0;
-        }
-
-        .story-management .arrow {
-            transition: transform 0.3s;
-        }
-
-        .story-management.collapsed .arrow {
-            transform: rotate(-90deg);
-        }
-
-        .story-management.collapsed .management-content {
-            display: none;
-        }
-
-        .story-management .management-content {
-            margin-top: 1rem;
-            display: grid;
+        /* Story management — grid content */
+        .story-management .section-content {
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
+        }
+
+        .story-management:not(.collapsed) .section-content {
+            display: grid;
         }
 
         .management-section {
@@ -176,7 +162,7 @@
         }
 
         @media (max-width: 900px) {
-            .management-content {
+            .story-management .section-content {
                 grid-template-columns: 1fr;
             }
         }
@@ -200,13 +186,11 @@
 
         .story-queue {
             list-style: none;
-            min-height: 100px;
         }
 
         .story-item {
-            border: 1px solid #0f0;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -214,12 +198,15 @@
             transition: all 0.2s;
         }
 
+        .story-item:last-child {
+            border-bottom: none;
+        }
+
         .story-item:hover {
-            background: rgba(0, 255, 0, 0.1);
+            color: #ff0;
         }
 
         .story-item.current {
-            border-color: #ff0;
             color: #ff0;
         }
 
@@ -229,7 +216,7 @@
         }
 
         .story-item.disabled:hover {
-            background: transparent;
+            color: inherit;
         }
 
         .story-info {
@@ -290,18 +277,16 @@
         }
 
         .history-item {
-            border: 1px solid #0f0;
-            padding: 0.5rem;
-            margin-bottom: 0.5rem;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
             font-size: var(--text-body);
         }
 
-        .history-item.victory {
-            border-color: #0f0;
+        .history-item:last-child {
+            border-bottom: none;
         }
 
         .history-item.defeat {
-            border-color: #f00;
             color: #f00;
         }
 
@@ -359,43 +344,48 @@
                 <span id="storyCount">0</span> stories |
                 <span id="judgeCount">0</span> judges |
                 <span id="audienceCount">0</span> audience
-                <button onclick="openAudienceView()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Open Audience View</button>
             </div>
         </div>
         <div class="header-context waiting" id="headerStoryTitle">No story selected</div>
     </header>
 
     <main class="page-content">
-    <!-- PRIMARY: Selected story + Round controls (unified) -->
+    <!-- PRIMARY: Controls + live story text -->
     <div class="selected-story-display">
-        <div class="label">NOW PERFORMING</div>
-        <div class="title empty" id="selectedStoryTitle">No story selected - choose from queue below</div>
-
-        <div class="round-controls-section">
+        <div class="round-controls-column">
             <div id="currentStatus" class="status-text">Status: Waiting</div>
-
             <div class="controls">
                 <button onclick="startRound()" id="startBtn">Start Round</button>
                 <button onclick="advanceText()" id="advanceBtn" disabled style="background: #ff0; color: #000; border-color: #ff0;">Advance Text</button>
                 <button onclick="resetRound()" id="resetBtn">Reset</button>
             </div>
-            <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); margin-top: 1rem; opacity: 0.7; text-align: center;"></div>
+            <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); opacity: 0.7;"></div>
+        </div>
+        <div class="story-text-column">
+            <div class="story-text" id="liveStoryText">
+                <span class="empty-text">Story text appears here during round...</span>
+            </div>
         </div>
     </div>
 
     <!-- SECONDARY: Story queue (what's next) -->
-    <div class="section">
-        <h2>Story Queue</h2>
-        <ul class="story-queue" id="storyQueue"></ul>
+    <div class="collapsible" id="storyQueueSection">
+        <h2 onclick="toggleSection('storyQueueSection')">
+            <span class="arrow">▼</span>
+            Story Queue
+        </h2>
+        <div class="section-content">
+            <ul class="story-queue" id="storyQueue"></ul>
+        </div>
     </div>
 
     <!-- TERTIARY: Story management (collapsed by default) -->
-    <div class="story-management collapsed" id="storyManagement">
-        <h2 onclick="toggleStoryManagement()">
-            <span class="arrow" id="managementArrow">▼</span>
+    <div class="collapsible story-management collapsed" id="storyManagement">
+        <h2 onclick="toggleSection('storyManagement')">
+            <span class="arrow">▼</span>
             Story Management
         </h2>
-        <div class="management-content">
+        <div class="section-content">
             <div class="management-section">
                 <h3 id="storyFormTitle">Add Story</h3>
                 <div class="form-group">
@@ -419,24 +409,28 @@
         </div>
     </div>
 
-    <!-- TERTIARY: History -->
-    <div class="section">
-        <h2>History
-            <button onclick="copyHistory()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Copy JSON</button>
+    <!-- TERTIARY: History (collapsed by default) -->
+    <div class="collapsible collapsed" id="historySection">
+        <h2 onclick="toggleSection('historySection')">
+            <span class="arrow">▼</span>
+            History
+            <button onclick="event.stopPropagation(); copyHistory()" style="font-size: var(--text-caption); padding: 0.5rem 1rem; margin-left: 1rem; vertical-align: middle;">Copy JSON</button>
         </h2>
-        <ul class="history-list" id="historyList"></ul>
+        <div class="section-content">
+            <ul class="history-list" id="historyList"></ul>
+        </div>
     </div>
 
     </main>
 
     <footer class="page-footer">
         <!-- Session management (collapsed, danger zone) -->
-        <div class="session-management collapsed" id="sessionManagementSection">
-            <h2 onclick="toggleSessionManagement()">
-                <span class="arrow" id="sessionMgmtArrow">▼</span>
+        <div class="collapsible session-management collapsed" id="sessionManagementSection">
+            <h2 onclick="toggleSection('sessionManagementSection')">
+                <span class="arrow">▼</span>
                 Session Management (Danger Zone)
             </h2>
-            <div class="management-content">
+            <div class="section-content">
                 <button class="danger-btn" onclick="ejectJudges()">Eject All Judges</button>
                 <button class="danger-btn" onclick="shutdownAudience()">Shutdown All Audience</button>
                 <button class="danger-btn" onclick="deleteSession()">Delete Session</button>
@@ -527,6 +521,7 @@
 
         client.on('round_started', (data) => {
             updateStatus('running');
+            clearStoryText();
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 sessionState.current_round.text_line_count = data.text_line_count || 0;
@@ -538,6 +533,7 @@
 
         client.on('text_advanced', (data) => {
             updateTextProgress(data.position + 1, data.total);
+            appendStoryLine(data.line);
         });
 
         client.on('paused', (data) => {
@@ -571,6 +567,7 @@
 
         client.on('round_reset', () => {
             updateStatus('waiting');
+            clearStoryText();
             if (sessionState) {
                 sessionState.current_round.status = 'waiting';
                 renderStoryQueue(); // Re-render to remove disabled state
@@ -622,10 +619,7 @@
                 return `
                     <li class="story-item ${isCurrent ? 'current' : ''} ${disabledClass}" onclick="selectStory(${i})">
                         <div class="story-info">
-                            <strong>${escapeHtml(story.title)}</strong><br>
-                            <span style="opacity: 0.7; font-size: var(--text-caption);">
-                                ${escapeHtml(story.text.substring(0, 80))}...
-                            </span>
+                            <strong>${escapeHtml(story.title)}</strong>
                         </div>
                         <div class="story-actions">
                             <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
@@ -643,13 +637,11 @@
             }
 
             list.innerHTML = sessionState.history.map(entry => {
-                const buzzInfo = entry.buzzes.map(b => `J${b.judge_id}:${b.time}s`).join(', ');
+                const buzzCount = entry.buzzes ? entry.buzzes.length : 0;
                 return `
                     <li class="history-item ${entry.outcome}">
-                        <strong>${escapeHtml(entry.title)}</strong> - ${entry.outcome.toUpperCase()}<br>
-                        <span style="font-size: var(--text-caption);">
-                            Duration: ${entry.duration}s | Buzzes: ${buzzInfo || 'none'}
-                        </span>
+                        ${escapeHtml(entry.title)} — ${entry.outcome.toUpperCase()}
+                        <span style="font-size: var(--text-caption); opacity: 0.7;">(${entry.duration}s, ${buzzCount} buzz${buzzCount !== 1 ? 'es' : ''})</span>
                     </li>
                 `;
             }).join('');
@@ -675,6 +667,32 @@
             } else {
                 progressEl.textContent = `Line ${position}/${total}`;
             }
+        }
+
+        function appendStoryLine(line) {
+            const textEl = document.getElementById('liveStoryText');
+            // Clear placeholder on first line
+            const placeholder = textEl.querySelector('.empty-text');
+            if (placeholder) placeholder.remove();
+
+            const lineSpan = document.createElement('span');
+            lineSpan.className = 'text-line';
+            lineSpan.textContent = line;
+
+            if (textEl.children.length > 0) {
+                const br = document.createElement('br');
+                textEl.appendChild(br);
+            }
+            textEl.appendChild(lineSpan);
+
+            setTimeout(() => {
+                lineSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }, 100);
+        }
+
+        function clearStoryText() {
+            document.getElementById('liveStoryText').innerHTML =
+                '<span class="empty-text">Story text appears here during round...</span>';
         }
 
         async function addStory() {
@@ -800,35 +818,22 @@
         }
 
         function updateSelectedStoryDisplay() {
-            const titleEl = document.getElementById('selectedStoryTitle');
             const headerEl = document.getElementById('headerStoryTitle');
             if (!sessionState) return;
 
             const index = sessionState.current_round.story_index;
             if (index !== null && sessionState.stories[index]) {
                 const title = sessionState.stories[index].title;
-                titleEl.textContent = title;
-                titleEl.classList.remove('empty');
                 headerEl.textContent = title;
                 headerEl.classList.remove('waiting');
             } else {
-                titleEl.textContent = 'No story selected - choose from queue below';
-                titleEl.classList.add('empty');
                 headerEl.textContent = 'No story selected';
                 headerEl.classList.add('waiting');
             }
         }
 
-        function toggleStoryManagement() {
-            const section = document.getElementById('storyManagement');
-            const arrow = document.getElementById('managementArrow');
-            section.classList.toggle('collapsed');
-        }
-
-        function toggleSessionManagement() {
-            const section = document.getElementById('sessionManagementSection');
-            const arrow = document.getElementById('sessionMgmtArrow');
-            section.classList.toggle('collapsed');
+        function toggleSection(id) {
+            document.getElementById(id).classList.toggle('collapsed');
         }
 
         async function removeStory(index) {
@@ -875,16 +880,6 @@
                     btn.disabled = false;
                 }
             }, 300);
-        }
-
-        function openAudienceView() {
-            if (!sessionState) {
-                alert('No session active');
-                return;
-            }
-            const code = sessionState.code || params.code;
-            const audienceUrl = `audience.html?code=${code}`;
-            window.open(audienceUrl, 'audience', 'width=1200,height=800');
         }
 
         function exportSession() {
