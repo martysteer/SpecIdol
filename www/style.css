@@ -157,7 +157,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .page-footer {
-    padding: 0.5rem 1rem;
+    padding: 0;
     flex-shrink: 0;
     border-top: 2px solid var(--neon-green);
 }
@@ -167,29 +167,59 @@ input:focus, textarea:focus, select:focus {
     display: flex;
     overflow-x: auto;
     flex: 1;
+    align-items: stretch;
 }
 
 .judge-cell {
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.25rem;
     font-family: 'Press Start 2P', cursive;
-    font-size: var(--text-caption);
+    font-size: var(--text-body);
     color: var(--neon-green);
     white-space: nowrap;
-    transition: color 0.3s, opacity 0.3s;
+    transition: color 0.3s, opacity 0.3s, border-color 0.3s;
     order: 0;
     border-left: 2px solid var(--neon-green);
     border-right: 2px solid var(--neon-green);
     margin-left: -2px;
+    position: relative;
 }
 
 .judge-cell:first-child {
     margin-left: 0;
 }
 
+.judge-cell .initials {
+    position: relative;
+}
+
+.judge-cell .x-mark {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 3em;
+    color: var(--neon-red);
+    text-shadow: 0 0 10px var(--neon-red);
+    opacity: 0;
+    pointer-events: none;
+}
+
 .judge-cell.buzzed {
     color: var(--neon-red);
     order: 1;
     border-color: var(--neon-red);
+}
+
+.judge-cell.buzzed .x-mark {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(1);
+    animation: xSlam 0.4s ease-out;
+}
+
+@keyframes xSlam {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0) rotate(-45deg); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
+    100% { opacity: 0.8; transform: translate(-50%, -50%) scale(1) rotate(0deg); }
 }
 
 /* Unified responsive typography */

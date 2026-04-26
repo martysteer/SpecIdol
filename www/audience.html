@@ -296,7 +296,7 @@
             );
             const initials = calculateInitials(connectedJudges);
             container.innerHTML = connectedJudges.map(j =>
-                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">${initials[j.id]}</div>`
+                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}"><span class="x-mark">✕</span><span class="initials">${initials[j.id]}</span></div>`
             ).join('');
         }
 

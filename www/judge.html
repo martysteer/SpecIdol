@@ -397,7 +397,7 @@
 
             const initials = calculateInitials(connectedJudges);
             container.innerHTML = connectedJudges.map(j =>
-                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">${initials[j.id]}</div>`
+                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}"><span class="x-mark">✕</span><span class="initials">${initials[j.id]}</span></div>`
             ).join('');
 
             updateBuzzCount();
@@ -437,6 +437,9 @@
             buzzed = false;
             document.getElementById('storyTitle').textContent = '';
             document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
+            document.querySelectorAll('.judge-cell').forEach(cell => {
+                cell.classList.remove('buzzed');
+            });
         }
 
         // Name editor modal
