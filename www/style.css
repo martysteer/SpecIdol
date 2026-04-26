@@ -157,8 +157,39 @@ input:focus, textarea:focus, select:focus {
 }
 
 .page-footer {
-    padding: 1rem;
+    padding: 0.5rem 1rem;
     flex-shrink: 0;
+    border-top: 2px solid var(--neon-green);
+}
+
+/* Shared judge panel footer */
+.judge-panels {
+    display: flex;
+    overflow-x: auto;
+    flex: 1;
+}
+
+.judge-cell {
+    padding: 0.5rem 1rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: var(--text-caption);
+    color: var(--neon-green);
+    white-space: nowrap;
+    transition: color 0.3s, opacity 0.3s;
+    order: 0;
+    border-left: 2px solid var(--neon-green);
+    border-right: 2px solid var(--neon-green);
+    margin-left: -2px;
+}
+
+.judge-cell:first-child {
+    margin-left: 0;
+}
+
+.judge-cell.buzzed {
+    color: var(--neon-red);
+    order: 1;
+    border-color: var(--neon-red);
 }
 
 /* Unified responsive typography */

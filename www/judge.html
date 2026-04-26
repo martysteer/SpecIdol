@@ -74,7 +74,7 @@
             box-shadow: none;
         }
 
-        .buzzed {
+        .buzz-button .buzzed {
             font-size: 6rem;
             color: #f00;
             animation: buzzAnim 0.5s ease-out;
@@ -105,42 +105,12 @@
             color: #ff0;
         }
 
-        .judge-indicators {
-            display: flex;
-            gap: 0.5rem;
-            justify-content: center;
-        }
-
-        .judge-indicator {
-            padding: 0.5rem;
-            border: 2px solid #0f0;
-            font-size: var(--text-caption);
-            opacity: 0.5;
-            transition: all 0.3s;
-        }
-
-        .judge-indicator.buzzed {
-            color: #f00;
-            border-color: #f00;
-            opacity: 1;
-            animation: buzzPulse 0.5s ease-out;
-        }
-
-        @keyframes buzzPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); box-shadow: 0 0 20px #f00; }
-            100% { transform: scale(1); }
-        }
-
         .waiting {
             font-size: var(--text-body);
             text-align: center;
             opacity: 0.7;
         }
 
-        .page-footer {
-            border-top: 2px solid #0f0;
-        }
     </style>
 </head>
 <body class="page-locked">
@@ -163,7 +133,7 @@
     </main>
 
     <footer class="page-footer">
-        <div class="timer" id="timer">0:00.0</div>
+        <div class="judge-panels" id="judgePanels"></div>
     </footer>
 
     <!-- Name Editor Modal -->
@@ -242,6 +212,7 @@
                     el.classList.remove('waiting');
                 }
                 updateJudgeCount();
+                renderJudgePanels();
             }
             const round = data.current_round;
             if (round.status === 'running' || round.status === 'paused') {
@@ -327,7 +298,7 @@
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
                 updateJudgeCount();
-                renderJudgeStatus();
+                renderJudgePanels();
             }
         });
 
@@ -335,7 +306,7 @@
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
                 updateJudgeCount();
-                renderJudgeStatus();
+                renderJudgePanels();
             }
         });
 
@@ -349,7 +320,7 @@
                 el.textContent = myJudgeName;
                 el.classList.remove('waiting');
             }
-            renderJudgeStatus();
+            renderJudgePanels();
         });
 
         client.on('audience_joined', (data) => {
@@ -381,16 +352,20 @@
                 <button class="buzz-button" id="buzzButton" onclick="buzz()">
                     BUZZ
                 </button>
-                <div class="judge-status" id="judgeStatus"></div>
+                <div class="judge-status" id="judgeStatus">
+                    <div class="buzz-count" id="buzzCountDisplay">0 of ${connectedJudges.length} buzzed</div>
+                    <div class="timer" id="timer">0:00.0</div>
+                </div>
             `;
 
-            renderJudgeStatus();
+            renderJudgePanels();
 
             if (timer) timer.stop();
             timer = new Timer(
                 timerDuration,
                 (elapsed) => {
-                    document.getElementById('timer').textContent = formatTime(elapsed);
+                    const timerEl = document.getElementById('timer');
+                    if (timerEl) timerEl.textContent = formatTime(elapsed);
                 },
                 () => {
                     // Timer complete (victory)
@@ -410,28 +385,22 @@
             client.buzz(myJudgeId);
         }
 
-        function renderJudgeStatus() {
-            const container = document.getElementById('judgeStatus');
+        function renderJudgePanels() {
+            const container = document.getElementById('judgePanels');
             if (!container) return;
 
+            // Preserve buzzed state across re-renders
+            const buzzedIds = new Set(
+                [...container.querySelectorAll('.judge-cell.buzzed')]
+                    .map(el => parseInt(el.dataset.judge))
+            );
+
             const initials = calculateInitials(connectedJudges);
+            container.innerHTML = connectedJudges.map(j =>
+                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">${initials[j.id]}</div>`
+            ).join('');
 
-            const buzzedCount = connectedJudges.filter(j => {
-                const el = document.querySelector(`[data-judge="${j.id}"]`);
-                return el && el.classList.contains('buzzed');
-            }).length;
-
-            const totalCount = connectedJudges.length;
-            const buzzCountClass = buzzedCount > 0 ? 'active' : '';
-
-            container.innerHTML = `
-                <div class="buzz-count ${buzzCountClass}" id="buzzCountDisplay">${buzzedCount} of ${totalCount} buzzed</div>
-                <div class="judge-indicators">
-                    ${connectedJudges.map(j => `
-                        <div class="judge-indicator" data-judge="${j.id}">${initials[j.id]}</div>
-                    `).join('')}
-                </div>
-            `;
+            updateBuzzCount();
         }
 
         function updateJudgeCount() {
@@ -445,7 +414,7 @@
             const buzzCountEl = document.getElementById('buzzCountDisplay');
             if (!buzzCountEl) return;
 
-            const buzzedCount = document.querySelectorAll('.judge-indicator.buzzed').length;
+            const buzzedCount = document.querySelectorAll('.judge-cell.buzzed').length;
             const totalCount = connectedJudges.length;
 
             buzzCountEl.textContent = `${buzzedCount} of ${totalCount} buzzed`;
@@ -456,9 +425,9 @@
         }
 
         function updateJudgeStatus(judgeId) {
-            const indicator = document.querySelector(`[data-judge="${judgeId}"]`);
-            if (indicator) {
-                indicator.classList.add('buzzed');
+            const cell = document.querySelector(`.judge-cell[data-judge="${judgeId}"]`);
+            if (cell) {
+                cell.classList.add('buzzed');
                 updateBuzzCount();
             }
         }
@@ -467,7 +436,6 @@
             if (timer) timer.stop();
             buzzed = false;
             document.getElementById('storyTitle').textContent = '';
-            document.getElementById('timer').textContent = '0:00.0';
             document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
         }
 

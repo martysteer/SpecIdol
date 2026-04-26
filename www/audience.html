@@ -41,12 +41,6 @@
             padding: 0 2rem;
         }
 
-        .page-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 2rem;
-        }
 
         .story-text-container {
             flex: 1;
@@ -78,68 +72,6 @@
             }
         }
 
-        .timer {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-display);
-            color: #0f0;
-            text-shadow: 0 0 10px #0f0;
-            line-height: 1.2;
-        }
-
-        .timer.tension {
-            color: #f00;
-            animation: pulse 0.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.7; transform: scale(1.05); }
-        }
-
-        .judge-panels {
-            display: flex;
-            gap: 1rem;
-        }
-
-        .judge-panel {
-            border: 3px solid #0f0;
-            padding: 1rem 2rem;
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-heading);
-            box-shadow: 0 0 15px #0f0;
-            transition: all 0.3s;
-        }
-
-        .judge-panel.buzzed {
-            border-color: #f00;
-            color: #f00;
-            box-shadow: 0 0 15px #f00;
-            position: relative;
-        }
-
-        .judge-panel .x {
-            display: none;
-            font-size: calc(var(--text-display) * 2);
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .judge-panel.buzzed .x {
-            display: block;
-            animation: xSlam 0.5s ease-out;
-        }
-
-        @keyframes xSlam {
-            0% { transform: translate(-50%, -50%) scale(0) rotate(-45deg); opacity: 0; }
-            50% { transform: translate(-50%, -50%) scale(1.3) rotate(5deg); }
-            100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 1; }
-        }
-
-        .judge-panel.buzzed .label {
-            opacity: 0.3;
-        }
 
         .outcome {
             display: none;
@@ -187,11 +119,6 @@
             50% { background: #300; }
         }
 
-        @media (max-width: 900px) {
-            .judge-panel {
-                padding: 0.5rem 1rem;
-            }
-        }
     </style>
 </head>
 <body class="page-locked">
@@ -215,7 +142,6 @@
     </main>
 
     <footer class="page-footer">
-        <div class="timer" id="timer" style="display: none;">0:00.0</div>
         <div class="judge-panels" id="judgePanels"></div>
     </footer>
 
@@ -365,16 +291,13 @@
             const container = document.getElementById('judgePanels');
             // Preserve buzzed state across re-renders
             const buzzedIds = new Set(
-                [...container.querySelectorAll('.judge-panel.buzzed')]
+                [...container.querySelectorAll('.judge-cell.buzzed')]
                     .map(el => parseInt(el.dataset.judge))
             );
             const initials = calculateInitials(connectedJudges);
-            container.innerHTML = connectedJudges.map(j => `
-                <div class="judge-panel${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">
-                    <span class="label">${initials[j.id]}</span>
-                    <span class="x">✕</span>
-                </div>
-            `).join('');
+            container.innerHTML = connectedJudges.map(j =>
+                `<div class="judge-cell${buzzedIds.has(j.id) ? ' buzzed' : ''}" data-judge="${j.id}">${initials[j.id]}</div>`
+            ).join('');
         }
 
         function startRound(roundData) {
@@ -402,19 +325,16 @@
                 textEl.insertBefore(br, lineSpan);
             }
 
-            // Auto-scroll to show new line after animation starts
+            // Scroll new line into view — 'nearest' scrolls minimum amount needed
             setTimeout(() => {
-                const container = document.querySelector('.story-text-container');
-                if (container) {
-                    container.scrollTop = container.scrollHeight;
-                }
+                lineSpan.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }, 100);
         }
 
         function markJudgeBuzzed(judgeId) {
-            const panel = document.querySelector(`[data-judge="${judgeId}"]`);
-            if (panel) {
-                panel.classList.add('buzzed');
+            const cell = document.querySelector(`.judge-cell[data-judge="${judgeId}"]`);
+            if (cell) {
+                cell.classList.add('buzzed');
             }
         }
 
@@ -443,16 +363,14 @@
             if (timer) timer.stop();
             if (scroller) scroller.stop();
 
-            document.getElementById('timer').classList.remove('tension');
             document.getElementById('outcome').style.display = 'none';
             const titleEl = document.getElementById('storyTitle');
             titleEl.textContent = 'Waiting for story...';
             titleEl.classList.add('waiting');
             document.getElementById('storyText').textContent = '';
-            document.getElementById('timer').textContent = '0:00.0';
 
-            document.querySelectorAll('.judge-panel').forEach(panel => {
-                panel.classList.remove('buzzed');
+            document.querySelectorAll('.judge-cell').forEach(cell => {
+                cell.classList.remove('buzzed');
             });
         }
 
