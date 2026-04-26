@@ -15,26 +15,6 @@
             font-family: 'Press Start 2P', cursive;
         }
 
-        .page-header {
-            border-bottom: 2px solid #0f0;
-        }
-
-        .code {
-            font-size: var(--text-caption);
-            opacity: 0.7;
-        }
-
-        .judge-count {
-            font-size: var(--text-caption);
-            opacity: 0.5;
-            margin-top: 0.25rem;
-        }
-
-        .judge-num {
-            font-size: var(--text-heading);
-            margin: 0.5rem 0;
-        }
-
         .story-title {
             font-size: var(--text-body);
             margin-top: 0.5rem;
@@ -165,13 +145,17 @@
 </head>
 <body class="page-locked">
     <header class="page-header">
-        <div class="code" id="code">session code: ----</div>
-        <div class="judge-count" id="judgeCount">- judges connected</div>
-        <div class="judge-num" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
-        <div class="story-title" id="storyTitle"></div>
+        <h1 id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</h1>
+        <div class="header-info">
+            <span id="code">----</span> |
+            <span id="storyCount">0</span> stories |
+            <span id="judgeCount">0</span> judges |
+            <span id="audienceCount">0</span> audience
+        </div>
     </header>
 
     <main class="page-content" id="main">
+        <div class="story-title" id="storyTitle"></div>
         <div class="waiting">Waiting for round to start...</div>
     </main>
 
@@ -239,7 +223,10 @@
             // Update judge info from server
             if (data.client_info && data.client_info.judge_id) {
                 myJudgeId = data.client_info.judge_id;
-                document.getElementById('code').textContent = `session code: ${data.code || '----'}`;
+                document.getElementById('code').textContent = data.code || '----';
+            }
+            if (data.stories) {
+                document.getElementById('storyCount').textContent = data.stories.length;
             }
             // Update connected judges and own name
             if (data.connected_judges) {
@@ -358,6 +345,26 @@
             renderJudgeStatus();
         });
 
+        client.on('audience_joined', (data) => {
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
+        });
+
+        client.on('audience_left', (data) => {
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
+        });
+
+        client.on('story_added', (data) => {
+            document.getElementById('storyCount').textContent = data.story_count || '';
+        });
+
+        client.on('story_removed', (data) => {
+            document.getElementById('storyCount').textContent = data.story_count || '';
+        });
+
         function startRound(roundData) {
             buzzed = false;
             document.getElementById('storyTitle').textContent = roundData.title || '';
@@ -423,8 +430,7 @@
         function updateJudgeCount() {
             const countEl = document.getElementById('judgeCount');
             if (countEl) {
-                const count = connectedJudges.length;
-                countEl.textContent = `${count} ${count === 1 ? 'judge' : 'judges'} connected`;
+                countEl.textContent = connectedJudges.length;
             }
         }
 

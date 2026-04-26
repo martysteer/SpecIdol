@@ -34,10 +34,6 @@
             z-index: 1000;
         }
 
-        .page-header {
-            margin-bottom: 1rem;
-        }
-
         .page-content {
             display: flex;
             flex-direction: column;
@@ -64,7 +60,8 @@
             flex: 1;
             overflow-y: auto;
             scroll-behavior: smooth;
-            border: 2px solid #0f0;
+            border-top: 2px solid #0f0;
+            border-bottom: 2px solid #0f0;
             padding: 2rem;
             margin-bottom: 2rem;
             position: relative;
@@ -208,10 +205,17 @@
 </head>
 <body class="page-locked">
     <header class="page-header">
-        <div class="story-title" id="storyTitle">Waiting for story...</div>
+        <h1>AUDIENCE</h1>
+        <div class="header-info">
+            <span id="sessionCode">----</span> |
+            <span id="storyCount">0</span> stories |
+            <span id="judgeCount">0</span> judges |
+            <span id="audienceCount">0</span> audience
+        </div>
     </header>
 
     <main class="page-content">
+        <div class="story-title" id="storyTitle">Waiting for story...</div>
         <div class="story-text-container">
             <div class="story-text" id="storyText"></div>
         </div>
@@ -252,9 +256,17 @@
             if (data.config && data.config.timer_duration) {
                 timerDuration = data.config.timer_duration;
             }
+            // Populate header stats
+            if (data.code) {
+                document.getElementById('sessionCode').textContent = data.code;
+            }
+            if (data.stories) {
+                document.getElementById('storyCount').textContent = data.stories.length;
+            }
             // Render judge panels based on connected judges
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
+                document.getElementById('judgeCount').textContent = connectedJudges.length;
                 renderJudgePanels();
             }
             const round = data.current_round;
@@ -316,6 +328,7 @@
         client.on('judge_joined', (data) => {
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
+                document.getElementById('judgeCount').textContent = connectedJudges.length;
                 renderJudgePanels();
             }
         });
@@ -323,8 +336,29 @@
         client.on('judge_left', (data) => {
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
+                document.getElementById('judgeCount').textContent = connectedJudges.length;
                 renderJudgePanels();
             }
+        });
+
+        client.on('audience_joined', (data) => {
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
+        });
+
+        client.on('audience_left', (data) => {
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
+        });
+
+        client.on('story_added', (data) => {
+            document.getElementById('storyCount').textContent = data.story_count || '';
+        });
+
+        client.on('story_removed', (data) => {
+            document.getElementById('storyCount').textContent = data.story_count || '';
         });
 
         client.on('judge_name_changed', (data) => {
