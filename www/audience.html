@@ -212,6 +212,14 @@
             startRound(data);
         });
 
+        client.on('paused', (data) => {
+            if (timer) timer.pause();
+        });
+
+        client.on('resumed', (data) => {
+            if (timer) timer.resume(data.timestamp - data.elapsed);
+        });
+
         client.on('text_advanced', (data) => {
             appendTextLine(data.line);
         });

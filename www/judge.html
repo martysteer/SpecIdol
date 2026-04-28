@@ -269,6 +269,10 @@
             }
         });
 
+        client.on('text_advanced', (data) => {
+            // Judges don't display text, but handle event to suppress console warning
+        });
+
         client.on('speed_changed', (data) => {
             // Speed doesn't affect judge view, but we track it
         });
