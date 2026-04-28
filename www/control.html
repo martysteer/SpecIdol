@@ -882,6 +882,17 @@
             }, 300);
         }
 
+        // Keyboard shortcut: spacebar or right arrow to advance text
+        document.addEventListener('keydown', (e) => {
+            // Don't capture if typing in an input/textarea
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.code === 'Space' || e.code === 'ArrowRight') {
+                e.preventDefault();
+                advanceText();
+            }
+        });
+
         function exportSession() {
             if (!sessionState) return;
 
