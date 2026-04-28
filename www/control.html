@@ -994,6 +994,10 @@
             // Don't capture if typing in an input/textarea
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
+            // Don't capture if modal is open
+            const modalOverlay = document.getElementById('modalOverlay');
+            if (modalOverlay && modalOverlay.classList.contains('active')) return;
+
             if (e.code === 'Space' || e.code === 'ArrowRight') {
                 e.preventDefault();
                 advanceText();

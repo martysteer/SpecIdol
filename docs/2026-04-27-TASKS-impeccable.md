@@ -1,6 +1,6 @@
 # SpecIdol UI Quality Pass — Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Resolve all issues from the 2026-04-27 design critique and UI audit — accessibility, inline style extraction, controller UX, responsive breakpoints, and code cleanup.
 
@@ -34,7 +34,7 @@
 - Modify: `www/style.css:76-78` (disabled button opacity)
 - Modify: `www/style.css:149-152` (`.header-context.waiting` color)
 
-- [ ] **Step 1: Fix disabled button contrast**
+- [x] **Step 1: Fix disabled button contrast**
 
 In `www/style.css`, change `button:disabled` from `opacity: 0.3` to `opacity: 0.5`:
 
@@ -45,7 +45,7 @@ button:disabled {
 }
 ```
 
-- [ ] **Step 2: Fix `.header-context.waiting` contrast**
+- [x] **Step 2: Fix `.header-context.waiting` contrast**
 
 In `www/style.css`, change `#997700` to `#aa8800` (~5.0:1 on black):
 
@@ -56,11 +56,11 @@ In `www/style.css`, change `#997700` to `#aa8800` (~5.0:1 on black):
 }
 ```
 
-- [ ] **Step 3: Browser-verify both changes**
+- [x] **Step 3: Browser-verify both changes**
 
 Open controller page. Check disabled buttons are visible but clearly inactive. Check "No story selected" header text is readable.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add www/style.css
@@ -76,7 +76,7 @@ git commit -m "fix: contrast ratios on disabled buttons and waiting text (C2, C3
 - Modify: `www/audience.html` (story text, outcome, judge panels)
 - Modify: `www/control.html` (status, text progress)
 
-- [ ] **Step 1: Add ARIA to judge.html**
+- [x] **Step 1: Add ARIA to judge.html**
 
 On the buzz button template in `startRound()` (judge.html ~line 352):
 ```html
@@ -105,7 +105,7 @@ On main waiting area (line 130):
 <main class="page-content" id="main" role="main">
 ```
 
-- [ ] **Step 2: Add ARIA to audience.html**
+- [x] **Step 2: Add ARIA to audience.html**
 
 On story title (line 135):
 ```html
@@ -122,7 +122,7 @@ On story text container (line 140):
 <div class="story-text" id="storyText" aria-live="polite" aria-relevant="additions"></div>
 ```
 
-- [ ] **Step 3: Add ARIA to control.html**
+- [x] **Step 3: Add ARIA to control.html**
 
 On status text (line 356):
 ```html
@@ -134,9 +134,9 @@ On text progress (line 362 — will become a class in Task 5):
 <div id="textProgress" class="text-progress" role="status" aria-live="polite"></div>
 ```
 
-- [ ] **Step 4: Browser-verify with screen reader or accessibility inspector**
+- [x] **Step 4: Browser-verify with screen reader or accessibility inspector**
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add www/judge.html www/audience.html www/control.html
@@ -150,7 +150,7 @@ git commit -m "fix: add ARIA roles and live regions for screen readers (C1)"
 **Files:**
 - Modify: `www/control.html` (add keydown listener, ~after line 883)
 
-- [ ] **Step 1: Add keyboard listener**
+- [x] **Step 1: Add keyboard listener**
 
 Add after the `advanceText()` function in control.html (after line 883):
 
@@ -167,11 +167,11 @@ document.addEventListener('keydown', (e) => {
 });
 ```
 
-- [ ] **Step 2: Browser-verify**
+- [x] **Step 2: Browser-verify**
 
 Start round. Press spacebar — should advance text. Press right arrow — should advance text. Click into story title input, press spacebar — should type space, NOT advance. When round not running, spacebar should do nothing (advanceText checks status).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add www/control.html
@@ -187,7 +187,7 @@ git commit -m "feat: keyboard shortcut for advance text — spacebar and right a
 - Modify: `www/control.html` inline styles (add `.btn-pause` class)
 - Modify: `www/control.html` JS `updateStatus()` function (~line 650)
 
-- [ ] **Step 1: Add btn-pause CSS class**
+- [x] **Step 1: Add btn-pause CSS class**
 
 In control.html `<style>` block, add after the `.controls` rule (~line 273):
 
@@ -205,7 +205,7 @@ In control.html `<style>` block, add after the `.controls` rule (~line 273):
 }
 ```
 
-- [ ] **Step 2: Add pause/resume button to HTML**
+- [x] **Step 2: Add pause/resume button to HTML**
 
 In the controls div (line 357-361), add the pause button after advanceBtn:
 
@@ -220,7 +220,7 @@ In the controls div (line 357-361), add the pause button after advanceBtn:
 
 Note: this also extracts the advanceBtn inline style (Task 5) — use the `.btn-advance` class instead of `style="..."`.
 
-- [ ] **Step 3: Add togglePause function and update updateStatus**
+- [x] **Step 3: Add togglePause function and update updateStatus**
 
 Add `togglePause()` after `advanceText()`:
 
@@ -253,11 +253,11 @@ function updateStatus(status) {
 }
 ```
 
-- [ ] **Step 4: Browser-verify**
+- [x] **Step 4: Browser-verify**
 
 Start round. Pause button active. Click pause — status shows "paused", advance disabled, pause becomes "Resume". Click Resume — back to running. When waiting or ended, pause disabled.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add www/control.html
@@ -272,7 +272,7 @@ git commit -m "feat: pause/resume button on controller (H5)"
 - Modify: `www/control.html` (advanceBtn, textProgress, cancelEditBtn, Copy JSON button)
 - Modify: `www/index.html` (joinControllerBtn)
 
-- [ ] **Step 1: Add CSS classes in control.html style block**
+- [x] **Step 1: Add CSS classes in control.html style block**
 
 Add to control.html `<style>`:
 
@@ -314,7 +314,7 @@ Update `#cancelEditBtn` rules to handle display toggle via class:
 
 Remove existing `#cancelEditBtn` color rules since they're already defined at lines 308-318.
 
-- [ ] **Step 2: Replace inline styles in control.html HTML**
+- [x] **Step 2: Replace inline styles in control.html HTML**
 
 Replace advanceBtn (line 359):
 ```html
@@ -336,7 +336,7 @@ Replace Copy JSON button (line 417):
 <button onclick="event.stopPropagation(); copyHistory()" class="btn-copy-json">Copy JSON</button>
 ```
 
-- [ ] **Step 3: Update updateFormUI() to use class toggle**
+- [x] **Step 3: Update updateFormUI() to use class toggle**
 
 ```javascript
 if (editingStoryIndex !== null) {
@@ -350,7 +350,7 @@ if (editingStoryIndex !== null) {
 }
 ```
 
-- [ ] **Step 4: Add CSS class in index.html and remove inline style**
+- [x] **Step 4: Add CSS class in index.html and remove inline style**
 
 Add to index.html `<style>`:
 
@@ -374,9 +374,9 @@ Replace joinControllerBtn (line 146):
 <button onclick="joinAsController()" id="joinControllerBtn" disabled class="btn-controller">Join as Controller</button>
 ```
 
-- [ ] **Step 5: Browser-verify all affected buttons render identically**
+- [x] **Step 5: Browser-verify all affected buttons render identically**
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add www/control.html www/index.html
@@ -390,7 +390,7 @@ git commit -m "refactor: extract inline styles to CSS classes (H2, H3, L3, L5)"
 **Files:**
 - Modify: `www/control.html` inline styles (~after line 115)
 
-- [ ] **Step 1: Add responsive breakpoint**
+- [x] **Step 1: Add responsive breakpoint**
 
 Add to the existing `@media (max-width: 900px)` block in control.html (line 164-168):
 
@@ -416,11 +416,11 @@ Add to the existing `@media (max-width: 900px)` block in control.html (line 164-
 }
 ```
 
-- [ ] **Step 2: Browser-verify**
+- [x] **Step 2: Browser-verify**
 
 Resize browser to < 900px. Controls column stacks above story text. Border switches from right to bottom.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add www/control.html
@@ -434,7 +434,7 @@ git commit -m "fix: responsive breakpoint for controller two-column layout (H4)"
 **Files:**
 - Modify: `www/modal.js`
 
-- [ ] **Step 1: Add focus trap logic**
+- [x] **Step 1: Add focus trap logic**
 
 Replace `modal.js` with focus-trap-aware version. Key changes:
 - `okBtn.focus()` on modal open
@@ -516,11 +516,11 @@ function customAlert(message) {
 }
 ```
 
-- [ ] **Step 2: Browser-verify**
+- [x] **Step 2: Browser-verify**
 
 Trigger confirm dialog. Tab cycles between OK/Cancel. Shift+Tab wraps. Focus doesn't escape to background.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add www/modal.js
@@ -534,7 +534,7 @@ git commit -m "fix: focus trap in modal dialogs (H6)"
 **Files:**
 - Modify: `www/control.html` inline styles + JS `updateStatus()`
 
-- [ ] **Step 1: Add state-based CSS classes**
+- [x] **Step 1: Add state-based CSS classes**
 
 Add to control.html `<style>`:
 
@@ -569,7 +569,7 @@ Add to control.html `<style>`:
 }
 ```
 
-- [ ] **Step 2: Update updateStatus() to set data attributes**
+- [x] **Step 2: Update updateStatus() to set data attributes**
 
 ```javascript
 function updateStatus(status) {
@@ -591,11 +591,11 @@ function updateStatus(status) {
 }
 ```
 
-- [ ] **Step 3: Browser-verify**
+- [x] **Step 3: Browser-verify**
 
 Start round — controls column glows green. Pause — yellow. End — red.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add www/control.html
@@ -609,7 +609,7 @@ git commit -m "feat: controller state-aware controls with visual differentiation
 **Files:**
 - Modify: `www/control.html` JS
 
-- [ ] **Step 1: Update clearStoryText to show preview**
+- [x] **Step 1: Update clearStoryText to show preview**
 
 Replace `clearStoryText()`:
 
@@ -632,25 +632,25 @@ function clearStoryText() {
 }
 ```
 
-- [ ] **Step 2: Update round_started handler**
+- [x] **Step 2: Update round_started handler**
 
 In the `round_started` handler, replace `clearStoryText()` with a hard clear:
 ```javascript
 document.getElementById('liveStoryText').innerHTML = '';
 ```
 
-- [ ] **Step 3: Add clearStoryText call to selectStory**
+- [x] **Step 3: Add clearStoryText call to selectStory**
 
 Add at end of `selectStory()` after `loadStoryForEditing(index)`:
 ```javascript
 clearStoryText();
 ```
 
-- [ ] **Step 4: Browser-verify**
+- [x] **Step 4: Browser-verify**
 
 Select story — dimmed preview appears. Start round — preview clears, live text populates. Reset — preview returns.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add www/control.html
@@ -665,7 +665,7 @@ git commit -m "feat: story text preview when story selected but round not starte
 - Modify: `www/judge.html:338-344`
 - Modify: `www/audience.html:275-281`
 
-- [ ] **Step 1: Fix judge.html handlers**
+- [x] **Step 1: Fix judge.html handlers**
 
 Replace story_added handler:
 ```javascript
@@ -683,13 +683,13 @@ client.on('story_removed', (data) => {
 });
 ```
 
-- [ ] **Step 2: Fix audience.html handlers — same pattern**
+- [x] **Step 2: Fix audience.html handlers — same pattern**
 
-- [ ] **Step 3: Browser-verify**
+- [x] **Step 3: Browser-verify**
 
 Add/remove stories from controller. Judge and audience pages show correct counts.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add www/judge.html www/audience.html
@@ -703,7 +703,7 @@ git commit -m "fix: story count display — increment/decrement instead of readi
 **Files:**
 - Modify: `www/control.html:413-421`
 
-- [ ] **Step 1: Move button to section-content**
+- [x] **Step 1: Move button to section-content**
 
 ```html
 <div class="collapsible collapsed" id="historySection">
@@ -718,7 +718,7 @@ git commit -m "fix: story count display — increment/decrement instead of readi
 </div>
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add www/control.html
@@ -732,7 +732,7 @@ git commit -m "fix: move Copy JSON button out of h2 for semantic correctness (M6
 **Files:**
 - Modify: `www/control.html:19-21`
 
-- [ ] **Step 1: Remove border-top from controller's page-footer**
+- [x] **Step 1: Remove border-top from controller's page-footer**
 
 ```css
 .page-footer {
@@ -741,7 +741,7 @@ git commit -m "fix: move Copy JSON button out of h2 for semantic correctness (M6
 }
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add www/control.html
@@ -755,7 +755,7 @@ git commit -m "fix: remove double border on controller footer (L1)"
 **Files:**
 - Modify: `www/index.html` JS
 
-- [ ] **Step 1: Add escapeHtml to index.html**
+- [x] **Step 1: Add escapeHtml to index.html**
 
 ```javascript
 function escapeHtml(str) {
@@ -765,7 +765,7 @@ function escapeHtml(str) {
 }
 ```
 
-- [ ] **Step 2: Rewrite renderSessions with DOM API**
+- [x] **Step 2: Rewrite renderSessions with DOM API**
 
 ```javascript
 function renderSessions(sessions) {
@@ -790,7 +790,7 @@ function renderSessions(sessions) {
 }
 ```
 
-- [ ] **Step 3: Update selectSession to not rely on textContent matching**
+- [x] **Step 3: Update selectSession to not rely on textContent matching**
 
 ```javascript
 function selectSession(code) {
@@ -806,7 +806,7 @@ function selectSession(code) {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add www/index.html
@@ -822,7 +822,7 @@ git commit -m "fix: XSS-safe session rendering with DOM API (M8)"
 - Modify: `www/judge.html`
 - Modify: `www/audience.html`
 
-- [ ] **Step 1: Add shared renderJudgePanelCells to app.js**
+- [x] **Step 1: Add shared renderJudgePanelCells to app.js**
 
 ```javascript
 function renderJudgePanelCells(containerId, judges) {
@@ -841,7 +841,7 @@ function renderJudgePanelCells(containerId, judges) {
 }
 ```
 
-- [ ] **Step 2: Update judge.html renderJudgePanels to call shared function**
+- [x] **Step 2: Update judge.html renderJudgePanels to call shared function**
 
 ```javascript
 function renderJudgePanels() {
@@ -850,7 +850,7 @@ function renderJudgePanels() {
 }
 ```
 
-- [ ] **Step 3: Update audience.html renderJudgePanels to call shared function**
+- [x] **Step 3: Update audience.html renderJudgePanels to call shared function**
 
 ```javascript
 function renderJudgePanels() {
@@ -858,7 +858,7 @@ function renderJudgePanels() {
 }
 ```
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add www/app.js www/judge.html www/audience.html
@@ -872,25 +872,25 @@ git commit -m "refactor: consolidate renderJudgePanels into shared app.js (Syste
 **Files:**
 - Modify: `www/control.html`, `www/judge.html`, `www/audience.html`, `www/index.html`
 
-- [ ] **Step 1: Replace in control.html**
+- [x] **Step 1: Replace in control.html**
 
 All `#0f0` → `var(--neon-green)`, `#ff0` → `var(--neon-yellow)`, `#f00` → `var(--neon-red)`, `#000` → `var(--black)` in the `<style>` block.
 
 Key locations: `.collapsible` border, `.session-management`, `.danger-btn`, `.selected-story-display`, `.round-controls-column`, `.story-item`, `.story-actions button`, `.history-item.defeat`, `.management-section h3`, `.status-text`, `.empty-state .cta`.
 
-- [ ] **Step 2: Replace in index.html**
+- [x] **Step 2: Replace in index.html**
 
 `h1` text-shadow, `.column-header`, `.error`.
 
-- [ ] **Step 3: Replace in judge.html**
+- [x] **Step 3: Replace in judge.html**
 
 `.story-title`, `.timer`, `.buzz-count`, `.buzz-count.active`. Leave buzz button gradient stops hard-coded.
 
-- [ ] **Step 4: Replace in audience.html**
+- [x] **Step 4: Replace in audience.html**
 
 `.story-text-container` border, `.outcome.victory`, `.outcome.defeat`. Leave CRT scanline rgba values and dark variant `#300`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add www/control.html www/index.html www/judge.html www/audience.html
@@ -904,11 +904,11 @@ git commit -m "refactor: replace hard-coded hex colors with CSS custom propertie
 **Files:**
 - Modify: `www/audience.html`
 
-- [ ] **Step 1: Remove dead scroller references**
+- [x] **Step 1: Remove dead scroller references**
 
 Remove `let scroller = null;` and all `if (scroller)` guards.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add www/audience.html
@@ -922,7 +922,7 @@ git commit -m "refactor: remove dead scroller code from audience.html (L6)"
 **Files:**
 - Modify: `www/audience.html:378-383`
 
-- [ ] **Step 1: Make AudioContext lazy**
+- [x] **Step 1: Make AudioContext lazy**
 
 ```javascript
 let audioContext = null;
@@ -942,7 +942,7 @@ function enableAudio() {
 
 Replace all `audioContext.` references in `play*Sound()` functions with `getAudioContext().`.
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add www/audience.html
@@ -956,7 +956,7 @@ git commit -m "refactor: lazy AudioContext creation on audience page (M5)"
 **Files:**
 - Modify: `www/control.html`, `www/judge.html`, `www/audience.html`
 
-- [ ] **Step 1: Add error handler to each page**
+- [x] **Step 1: Add error handler to each page**
 
 ```javascript
 client.on('error', async (data) => {
@@ -967,7 +967,7 @@ client.on('error', async (data) => {
 });
 ```
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 git add www/control.html www/judge.html www/audience.html
@@ -982,7 +982,7 @@ git commit -m "fix: handle reconnect to dead session with redirect to index (L7)
 - Modify: `www/app.js`
 - Modify: `www/control.html` (remove local copy)
 
-- [ ] **Step 1: Add escapeHtml to app.js**
+- [x] **Step 1: Add escapeHtml to app.js**
 
 ```javascript
 function escapeHtml(str) {
@@ -992,9 +992,9 @@ function escapeHtml(str) {
 }
 ```
 
-- [ ] **Step 2: Remove local escapeHtml from control.html (lines 448-452)**
+- [x] **Step 2: Remove local escapeHtml from control.html (lines 448-452)**
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add www/app.js www/control.html
