@@ -19,19 +19,19 @@
 }
 
 .modal-box {
-    background: #000;
-    border: 3px solid #0f0;
+    background: var(--black);
+    border: 3px solid var(--neon-green);
     padding: 2rem;
     max-width: 500px;
     min-width: 300px;
-    box-shadow: 0 0 30px #0f0;
+    box-shadow: 0 0 30px var(--neon-green);
     animation: slideIn 0.3s ease;
 }
 
 .modal-message {
     font-family: 'Press Start 2P', cursive;
     font-size: var(--text-body);
-    color: #0f0;
+    color: var(--neon-green);
     line-height: 1.6;
     margin-bottom: 2rem;
     text-align: center;
@@ -47,29 +47,29 @@
     font-family: 'Press Start 2P', cursive;
     font-size: var(--text-body);
     padding: 1rem 2rem;
-    background: #000;
-    color: #0f0;
-    border: 2px solid #0f0;
+    background: var(--black);
+    color: var(--neon-green);
+    border: 2px solid var(--neon-green);
     cursor: pointer;
     text-transform: uppercase;
     transition: all 0.2s;
 }
 
 .modal-btn:hover {
-    background: #0f0;
-    color: #000;
-    box-shadow: 0 0 20px #0f0;
+    background: var(--neon-green);
+    color: var(--black);
+    box-shadow: 0 0 20px var(--neon-green);
 }
 
 .modal-btn.cancel {
-    color: #f00;
-    border-color: #f00;
+    color: var(--neon-red);
+    border-color: var(--neon-red);
 }
 
 .modal-btn.cancel:hover {
-    background: #f00;
-    color: #000;
-    box-shadow: 0 0 20px #f00;
+    background: var(--neon-red);
+    color: var(--black);
+    box-shadow: 0 0 20px var(--neon-red);
 }
 
 @keyframes fadeIn {
