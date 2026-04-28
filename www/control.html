@@ -272,6 +272,18 @@
             flex-wrap: wrap;
         }
 
+        .btn-pause {
+            background: var(--black);
+            color: var(--neon-yellow);
+            border-color: var(--neon-yellow);
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            background: var(--neon-yellow);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-yellow);
+        }
+
         .history-list {
             list-style: none;
         }
@@ -357,6 +369,7 @@
             <div class="controls">
                 <button onclick="startRound()" id="startBtn">Start Round</button>
                 <button onclick="advanceText()" id="advanceBtn" disabled style="background: #ff0; color: #000; border-color: #ff0;">Advance Text</button>
+                <button onclick="togglePause()" id="pauseBtn" class="btn-pause" disabled>Pause</button>
                 <button onclick="resetRound()" id="resetBtn">Reset</button>
             </div>
             <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); opacity: 0.7;" role="status" aria-live="polite"></div>
@@ -650,12 +663,14 @@
         function updateStatus(status) {
             document.getElementById('currentStatus').textContent = `Status: ${status}`;
 
-            // Enable/disable buttons based on status
             const startBtn = document.getElementById('startBtn');
             const advanceBtn = document.getElementById('advanceBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
 
-            startBtn.disabled = (status === 'running');
+            startBtn.disabled = (status === 'running' || status === 'paused');
             advanceBtn.disabled = (status !== 'running');
+            pauseBtn.disabled = (status !== 'running' && status !== 'paused');
+            pauseBtn.textContent = (status === 'paused') ? 'Resume' : 'Pause';
         }
 
         function updateTextProgress(position, total) {
@@ -892,6 +907,16 @@
                 advanceText();
             }
         });
+
+        function togglePause() {
+            if (!sessionState) return;
+            const status = sessionState.current_round.status;
+            if (status === 'running') {
+                client.pause();
+            } else if (status === 'paused') {
+                client.resume();
+            }
+        }
 
         function exportSession() {
             if (!sessionState) return;
