@@ -363,28 +363,35 @@
         }
 
         // Simple tone generator for sound effects
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        let audioContext = null;
+
+        function getAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioContext;
+        }
 
         function enableAudio() {
-            audioContext.resume();
+            getAudioContext().resume();
             document.getElementById('audioOverlay').style.display = 'none';
         }
 
         function playBuzzSound() {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const oscillator = getAudioContext().createOscillator();
+            const gainNode = getAudioContext().createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(getAudioContext().destination);
 
             oscillator.frequency.value = 200; // Low buzzer tone
             oscillator.type = 'sawtooth';
 
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+            gainNode.gain.setValueAtTime(0.3, getAudioContext().currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + 0.5);
 
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.5);
+            oscillator.start(getAudioContext().currentTime);
+            oscillator.stop(getAudioContext().currentTime + 0.5);
         }
 
         function playVictorySound() {
@@ -392,20 +399,20 @@
             const freqs = [523, 659, 784, 1047]; // C, E, G, C (major chord)
 
             times.forEach((time, i) => {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                const oscillator = getAudioContext().createOscillator();
+                const gainNode = getAudioContext().createGain();
 
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(getAudioContext().destination);
 
                 oscillator.frequency.value = freqs[i];
                 oscillator.type = 'square';
 
-                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime + time);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.3);
+                gainNode.gain.setValueAtTime(0.2, getAudioContext().currentTime + time);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + time + 0.3);
 
-                oscillator.start(audioContext.currentTime + time);
-                oscillator.stop(audioContext.currentTime + time + 0.3);
+                oscillator.start(getAudioContext().currentTime + time);
+                oscillator.stop(getAudioContext().currentTime + time + 0.3);
             });
         }
 
@@ -414,38 +421,38 @@
             const freqs = [440, 349, 262]; // Descending sad trombone
 
             times.forEach((time, i) => {
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
+                const oscillator = getAudioContext().createOscillator();
+                const gainNode = getAudioContext().createGain();
 
                 oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
+                gainNode.connect(getAudioContext().destination);
 
                 oscillator.frequency.value = freqs[i];
                 oscillator.type = 'sawtooth';
 
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime + time);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + time + 0.4);
+                gainNode.gain.setValueAtTime(0.3, getAudioContext().currentTime + time);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + time + 0.4);
 
-                oscillator.start(audioContext.currentTime + time);
-                oscillator.stop(audioContext.currentTime + time + 0.4);
+                oscillator.start(getAudioContext().currentTime + time);
+                oscillator.stop(getAudioContext().currentTime + time + 0.4);
             });
         }
 
         function playTickSound() {
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
+            const oscillator = getAudioContext().createOscillator();
+            const gainNode = getAudioContext().createGain();
 
             oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
+            gainNode.connect(getAudioContext().destination);
 
             oscillator.frequency.value = 800;
             oscillator.type = 'sine';
 
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.05);
+            gainNode.gain.setValueAtTime(0.1, getAudioContext().currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + 0.05);
 
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.05);
+            oscillator.start(getAudioContext().currentTime);
+            oscillator.stop(getAudioContext().currentTime + 0.05);
         }
 
         function playSound(type) {
