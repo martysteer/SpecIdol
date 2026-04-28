@@ -181,6 +181,12 @@
         const client = new SpecIdolClient();
         let selectedCode = null;
 
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
         client.connect();
 
         client.on('session_created', (data) => {
@@ -208,14 +214,18 @@
                 return;
             }
 
-            container.innerHTML = sessions.map(session => `
-                <button onclick="selectSession('${session.code}')">
-                    <div class="session-code">${session.code}</div>
+            container.innerHTML = '';
+            sessions.forEach(session => {
+                const btn = document.createElement('button');
+                btn.addEventListener('click', () => selectSession(session.code));
+                btn.innerHTML = `
+                    <div class="session-code">${escapeHtml(session.code)}</div>
                     <div class="session-stats">
                         ${session.story_count} stories | ${session.judge_count} judges | ${session.audience_count} audience
                     </div>
-                </button>
-            `).join('');
+                `;
+                container.appendChild(btn);
+            });
         }
 
         function selectSession(code) {
@@ -224,13 +234,9 @@
             document.getElementById('joinAudienceBtn').disabled = false;
             document.getElementById('joinJudgeBtn').disabled = false;
             document.querySelectorAll('#sessionButtons button').forEach(btn => {
-                if (btn.textContent.includes(code)) {
-                    btn.style.background = '#0f0';
-                    btn.style.color = '#000';
-                } else {
-                    btn.style.background = '#000';
-                    btn.style.color = '#0f0';
-                }
+                const isSelected = btn.querySelector('.session-code').textContent === code;
+                btn.style.background = isSelected ? '#0f0' : '#000';
+                btn.style.color = isSelected ? '#000' : '#0f0';
             });
         }
 
