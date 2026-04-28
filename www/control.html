@@ -547,6 +547,7 @@
         const client = new SpecIdolClient();
         let sessionState = null;
         let editingStoryIndex = null;
+        let currentLineProgress = { position: 0, total: 0 };
 
         client.connect();
 
@@ -572,6 +573,12 @@
             sessionState = data;
             updateUI();
             updateSessionCounts(data);
+
+            // Initialize status on page load
+            const hasStory = sessionState.current_round.story_index !== null;
+            if (!hasStory && sessionState.current_round.status === 'waiting') {
+                updateStatus('waiting'); // Will show "select a story"
+            }
         });
 
         client.on('judge_joined', (data) => {
@@ -634,7 +641,7 @@
         });
 
         client.on('paused', (data) => {
-            updateStatus('paused');
+            updateStatus('paused', currentLineProgress.position, currentLineProgress.total);
             if (sessionState) {
                 sessionState.current_round.status = 'paused';
                 renderStoryQueue(); // Re-render to show disabled state
@@ -642,7 +649,7 @@
         });
 
         client.on('resumed', (data) => {
-            updateStatus('running');
+            updateStatus('running', currentLineProgress.position, currentLineProgress.total);
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 renderStoryQueue(); // Re-render to show disabled state
@@ -665,9 +672,12 @@
         client.on('round_reset', () => {
             updateStatus('waiting');
             clearStoryText();
+            currentLineProgress = { position: 0, total: 0 };
             if (sessionState) {
                 sessionState.current_round.status = 'waiting';
-                renderStoryQueue(); // Re-render to remove disabled state
+                sessionState.current_round.story_index = null; // Deselect story
+                updateSelectedStoryDisplay(); // Update header to show "No story selected"
+                renderStoryQueue(); // Remove current highlight
             }
         });
 
@@ -755,10 +765,12 @@
             const statusEl = document.getElementById('currentStatus');
 
             let statusText;
-            if (status === 'running' && position !== null && total !== null) {
-                statusText = `Status: running line ${position}/${total}`;
+            if ((status === 'running' || status === 'paused') && position !== null && total !== null && position > 0) {
+                const statusWord = status === 'paused' ? 'paused' : 'running';
+                statusText = `Status: ${statusWord} line ${position}/${total}`;
             } else if (status === 'waiting') {
-                statusText = 'Status: waiting';
+                const hasStory = sessionState && sessionState.current_round.story_index !== null;
+                statusText = hasStory ? 'Status: waiting' : 'Status: select a story';
             } else {
                 // For other states, check if story is selected
                 const hasStory = sessionState && sessionState.current_round.story_index !== null;
@@ -782,6 +794,7 @@
         }
 
         function updateTextProgress(position, total) {
+            currentLineProgress = { position, total };
             if (sessionState && sessionState.current_round.status === 'running') {
                 updateStatus('running', position, total);
             }
