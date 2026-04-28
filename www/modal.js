@@ -9,10 +9,12 @@ function customConfirm(message) {
 
         messageEl.textContent = message;
 
-        // Show cancel button for confirm
         if (cancelBtn) cancelBtn.style.display = 'block';
 
         overlay.classList.add('active');
+        okBtn.focus();
+
+        const focusableEls = [okBtn, cancelBtn].filter(el => el && el.style.display !== 'none');
 
         const cleanup = () => {
             overlay.classList.remove('active');
@@ -23,7 +25,24 @@ function customConfirm(message) {
 
         const handleOk = () => { cleanup(); resolve(true); };
         const handleCancel = () => { cleanup(); resolve(false); };
-        const handleKey = (e) => { if (e.key === 'Escape') handleCancel(); };
+        const handleKey = (e) => {
+            if (e.key === 'Escape') { handleCancel(); return; }
+            if (e.key === 'Tab') {
+                const first = focusableEls[0];
+                const last = focusableEls[focusableEls.length - 1];
+                if (e.shiftKey) {
+                    if (document.activeElement === first) {
+                        e.preventDefault();
+                        last.focus();
+                    }
+                } else {
+                    if (document.activeElement === last) {
+                        e.preventDefault();
+                        first.focus();
+                    }
+                }
+            }
+        };
 
         okBtn.addEventListener('click', handleOk);
         if (cancelBtn) cancelBtn.addEventListener('click', handleCancel);
@@ -40,10 +59,10 @@ function customAlert(message) {
 
         messageEl.textContent = message;
 
-        // Hide cancel button for alert
         if (cancelBtn) cancelBtn.style.display = 'none';
 
         overlay.classList.add('active');
+        okBtn.focus();
 
         const cleanup = () => {
             overlay.classList.remove('active');
@@ -52,7 +71,13 @@ function customAlert(message) {
         };
 
         const handleOk = () => { cleanup(); resolve(); };
-        const handleKey = (e) => { if (e.key === 'Escape') handleOk(); };
+        const handleKey = (e) => {
+            if (e.key === 'Escape') { handleOk(); return; }
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                okBtn.focus();
+            }
+        };
 
         okBtn.addEventListener('click', handleOk);
         document.addEventListener('keydown', handleKey);
