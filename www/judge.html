@@ -336,11 +336,13 @@
         });
 
         client.on('story_added', (data) => {
-            document.getElementById('storyCount').textContent = data.story_count || '';
+            const el = document.getElementById('storyCount');
+            el.textContent = (parseInt(el.textContent) || 0) + 1;
         });
 
         client.on('story_removed', (data) => {
-            document.getElementById('storyCount').textContent = data.story_count || '';
+            const el = document.getElementById('storyCount');
+            el.textContent = Math.max(0, (parseInt(el.textContent) || 0) - 1);
         });
 
         function startRound(roundData) {
