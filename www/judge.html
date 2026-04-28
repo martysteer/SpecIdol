@@ -345,6 +345,13 @@
             el.textContent = Math.max(0, (parseInt(el.textContent) || 0) - 1);
         });
 
+        client.on('error', async (data) => {
+            if (data.message === 'Invalid session code') {
+                await customAlert('Session no longer exists. Returning to home.');
+                window.location.href = 'index.html';
+            }
+        });
+
         function startRound(roundData) {
             buzzed = false;
             document.getElementById('storyTitle').textContent = roundData.title || '';

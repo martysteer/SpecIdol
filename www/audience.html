@@ -285,6 +285,13 @@
             }
         });
 
+        client.on('error', async (data) => {
+            if (data.message === 'Invalid session code') {
+                await customAlert('Session no longer exists. Returning to home.');
+                window.location.href = 'index.html';
+            }
+        });
+
         function renderJudgePanels() {
             renderJudgePanelCells('judgePanels', connectedJudges);
         }
