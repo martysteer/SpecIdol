@@ -110,6 +110,19 @@
             display: block;
         }
 
+        .btn-controller {
+            background: #440;
+            color: var(--neon-yellow);
+            border-color: var(--neon-yellow);
+            margin-top: 1rem;
+        }
+
+        .btn-controller:hover:not(:disabled) {
+            background: var(--neon-yellow);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-yellow);
+        }
+
         @media (max-width: 900px) {
             .join-form {
                 grid-template-columns: 1fr;
@@ -143,7 +156,7 @@
                     <div class="column-header">Join As</div>
                     <button onclick="joinAsAudience()" id="joinAudienceBtn" disabled>Join as Audience</button>
                     <button onclick="joinAsJudge()" id="joinJudgeBtn" disabled>Join as Judge</button>
-                    <button onclick="joinAsController()" id="joinControllerBtn" disabled style="background: #440; color: #ff0; border-color: #ff0; margin-top: 1rem;">Join as Controller</button>
+                    <button onclick="joinAsController()" id="joinControllerBtn" disabled class="btn-controller">Join as Controller</button>
                 </div>
             </div>
 
