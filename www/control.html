@@ -145,6 +145,35 @@
             color: #0f0;
         }
 
+        .round-controls-column[data-status="running"] {
+            border-color: var(--neon-green);
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .round-controls-column[data-status="paused"] {
+            border-color: var(--neon-yellow);
+            background: rgba(255, 255, 0, 0.05);
+        }
+
+        .round-controls-column[data-status="ended"] {
+            border-color: var(--neon-red);
+            background: rgba(255, 0, 0, 0.05);
+        }
+
+        .status-text[data-status="running"] {
+            color: var(--neon-green);
+            text-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .status-text[data-status="paused"] {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 10px var(--neon-yellow);
+        }
+
+        .status-text[data-status="ended"] {
+            color: var(--neon-red);
+        }
+
         /* Story management — grid content */
         .story-management .section-content {
             grid-template-columns: 1fr 1fr;
@@ -703,7 +732,12 @@
         }
 
         function updateStatus(status) {
-            document.getElementById('currentStatus').textContent = `Status: ${status}`;
+            const statusEl = document.getElementById('currentStatus');
+            statusEl.textContent = `Status: ${status}`;
+            statusEl.dataset.status = status;
+
+            const controlsCol = document.querySelector('.round-controls-column');
+            if (controlsCol) controlsCol.dataset.status = status;
 
             const startBtn = document.getElementById('startBtn');
             const advanceBtn = document.getElementById('advanceBtn');
