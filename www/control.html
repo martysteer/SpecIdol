@@ -605,7 +605,7 @@
 
         client.on('round_started', (data) => {
             updateStatus('running');
-            clearStoryText();
+            document.getElementById('liveStoryText').innerHTML = '';
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 sessionState.current_round.text_line_count = data.text_line_count || 0;
@@ -782,8 +782,21 @@
         }
 
         function clearStoryText() {
-            document.getElementById('liveStoryText').innerHTML =
-                '<span class="empty-text">Story text appears here during round...</span>';
+            const textEl = document.getElementById('liveStoryText');
+            const index = sessionState ? sessionState.current_round.story_index : null;
+
+            if (index !== null && sessionState.stories[index]) {
+                // Show dimmed preview of full story text
+                textEl.innerHTML = '';
+                const preview = document.createElement('div');
+                preview.style.opacity = '0.3';
+                preview.style.whiteSpace = 'pre-wrap';
+                preview.style.lineHeight = '1.7';
+                preview.textContent = sessionState.stories[index].text;
+                textEl.appendChild(preview);
+            } else {
+                textEl.innerHTML = '<span class="empty-text">Story text appears here during round...</span>';
+            }
         }
 
         async function addStory() {
@@ -906,6 +919,7 @@
 
             // Load story into form for editing (when round not active)
             loadStoryForEditing(index);
+            clearStoryText();
         }
 
         function updateSelectedStoryDisplay() {
