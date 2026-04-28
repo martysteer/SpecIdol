@@ -18,6 +18,7 @@
 
         .page-footer {
             padding: 0;
+            border-top: none;
         }
 
         /* Collapsible section pattern */
@@ -498,9 +499,9 @@
         <h2 onclick="toggleSection('historySection')">
             <span class="arrow">▼</span>
             History
-            <button onclick="event.stopPropagation(); copyHistory()" class="btn-copy-json">Copy JSON</button>
         </h2>
         <div class="section-content">
+            <button onclick="copyHistory()" class="btn-copy-json">Copy JSON</button>
             <ul class="history-list" id="historyList"></ul>
         </div>
     </div>
