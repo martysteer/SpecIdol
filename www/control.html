@@ -23,7 +23,7 @@
 
         /* Collapsible section pattern */
         .collapsible {
-            border-top: 2px solid #0f0;
+            border-top: 2px solid var(--neon-green);
             padding: 1rem 2rem;
         }
 
@@ -55,11 +55,11 @@
 
         /* Session management — danger zone override */
         .session-management {
-            border-top-color: #f00;
+            border-top-color: var(--neon-red);
         }
 
         .session-management h2 {
-            color: #f00;
+            color: var(--neon-red);
             font-size: var(--text-body);
         }
 
@@ -75,9 +75,9 @@
         .danger-btn {
             font-size: var(--text-body);
             padding: 0.75rem;
-            background: #000;
-            color: #f00;
-            border: 2px solid #f00;
+            background: var(--black);
+            color: var(--neon-red);
+            border: 2px solid var(--neon-red);
             cursor: pointer;
             font-family: 'Press Start 2P', cursive;
             text-transform: uppercase;
@@ -85,16 +85,16 @@
         }
 
         .danger-btn:hover {
-            background: #f00;
-            color: #000;
-            box-shadow: 0 0 20px #f00;
+            background: var(--neon-red);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-red);
         }
 
 
         .selected-story-display {
             display: flex;
-            border-top: 3px solid #ff0;
-            border-bottom: 3px solid #ff0;
+            border-top: 3px solid var(--neon-yellow);
+            border-bottom: 3px solid var(--neon-yellow);
             background: rgba(255, 255, 0, 0.05);
             min-height: 200px;
         }
@@ -102,7 +102,7 @@
         .round-controls-column {
             flex: 0 0 33%;
             padding: 1.5rem 2rem;
-            border-right: 2px solid #ff0;
+            border-right: 2px solid var(--neon-yellow);
             display: flex;
             flex-direction: column;
             gap: 1rem;
@@ -143,7 +143,7 @@
         .status-text {
             font-family: 'Courier New', monospace;
             font-size: var(--text-body);
-            color: #0f0;
+            color: var(--neon-green);
         }
 
         .round-controls-column[data-status="running"] {
@@ -247,11 +247,11 @@
         }
 
         .story-item:hover {
-            color: #ff0;
+            color: var(--neon-yellow);
         }
 
         .story-item.current {
-            color: #ff0;
+            color: var(--neon-yellow);
         }
 
         .story-item.disabled {
@@ -282,17 +282,17 @@
         }
 
         .story-actions button {
-            background: #000;
-            color: #f00;
-            border-color: #f00;
+            background: var(--black);
+            color: var(--neon-red);
+            border-color: var(--neon-red);
             font-size: var(--text-caption);
             padding: 0.5rem 1rem;
         }
 
         .story-actions button:hover {
-            background: #f00;
-            color: #000;
-            box-shadow: 0 0 20px #f00;
+            background: var(--neon-red);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-red);
         }
 
         /* Empty state styling */
@@ -304,7 +304,7 @@
         }
 
         .empty-state .cta {
-            color: #ff0;
+            color: var(--neon-yellow);
             font-weight: bold;
             margin-top: 0.5rem;
             display: block;
@@ -366,7 +366,7 @@
         }
 
         .history-item.defeat {
-            color: #f00;
+            color: var(--neon-red);
         }
 
         .form-group {
@@ -381,14 +381,14 @@
         .management-section h3 {
             font-size: var(--text-subheading);
             margin-bottom: 1rem;
-            color: #0f0;
+            color: var(--neon-green);
         }
 
         #cancelEditBtn {
             display: none;
-            background: #000;
-            color: #f00;
-            border-color: #f00;
+            background: var(--black);
+            color: var(--neon-red);
+            border-color: var(--neon-red);
         }
 
         #cancelEditBtn.visible {
@@ -396,9 +396,9 @@
         }
 
         #cancelEditBtn:hover {
-            background: #f00;
-            color: #000;
-            box-shadow: 0 0 20px #f00;
+            background: var(--neon-red);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-red);
         }
 
         label {
