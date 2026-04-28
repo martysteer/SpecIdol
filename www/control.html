@@ -767,7 +767,7 @@
             let statusText;
             if ((status === 'running' || status === 'paused') && position !== null && total !== null && position > 0) {
                 const statusWord = status === 'paused' ? 'paused' : 'running';
-                statusText = `Status: ${statusWord} line ${position}/${total}`;
+                statusText = `Status: ${statusWord}, part ${position}/${total}`;
             } else if (status === 'waiting') {
                 const hasStory = sessionState && sessionState.current_round.story_index !== null;
                 statusText = hasStory ? 'Status: waiting' : 'Status: select a story';
