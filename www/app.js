@@ -352,3 +352,10 @@ function getUrlParams() {
         judge: params.get('judge') ? parseInt(params.get('judge')) : null
     };
 }
+
+// Utility: escape HTML special characters
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
