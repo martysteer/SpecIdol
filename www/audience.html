@@ -132,12 +132,12 @@
                 <span id="audienceCount">0</span> audience
             </div>
         </div>
-        <div class="header-context waiting" id="storyTitle">Waiting for story...</div>
+        <div class="header-context waiting" id="storyTitle" aria-live="polite">Waiting for story...</div>
     </header>
 
     <main class="page-content">
         <div class="story-text-container">
-            <div class="story-text" id="storyText"></div>
+            <div class="story-text" id="storyText" aria-live="polite" aria-relevant="additions"></div>
         </div>
     </main>
 
@@ -145,7 +145,7 @@
         <div class="judge-panels" id="judgePanels"></div>
     </footer>
 
-    <div class="outcome" id="outcome"></div>
+    <div class="outcome" id="outcome" role="alert" aria-live="assertive"></div>
 
     <div id="audioOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="enableAudio()">
         <div style="font-family:'Press Start 2P',cursive;color:#0f0;text-align:center;font-size:var(--text-heading);line-height:1.5;">

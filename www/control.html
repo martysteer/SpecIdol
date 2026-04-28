@@ -353,13 +353,13 @@
     <!-- PRIMARY: Controls + live story text -->
     <div class="selected-story-display">
         <div class="round-controls-column">
-            <div id="currentStatus" class="status-text">Status: Waiting</div>
+            <div id="currentStatus" class="status-text" role="status" aria-live="polite">Status: Waiting</div>
             <div class="controls">
                 <button onclick="startRound()" id="startBtn">Start Round</button>
                 <button onclick="advanceText()" id="advanceBtn" disabled style="background: #ff0; color: #000; border-color: #ff0;">Advance Text</button>
                 <button onclick="resetRound()" id="resetBtn">Reset</button>
             </div>
-            <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); opacity: 0.7;"></div>
+            <div id="textProgress" style="font-family: 'Courier New', monospace; font-size: var(--text-caption); opacity: 0.7;" role="status" aria-live="polite"></div>
         </div>
         <div class="story-text-column">
             <div class="story-text" id="liveStoryText">

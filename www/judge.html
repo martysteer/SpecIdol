@@ -127,8 +127,8 @@
         <div class="header-context waiting" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
     </header>
 
-    <main class="page-content" id="main">
-        <div class="story-title" id="storyTitle"></div>
+    <main class="page-content" id="main" role="main">
+        <div class="story-title" id="storyTitle" aria-live="polite"></div>
         <div class="waiting">Waiting for round to start...</div>
     </main>
 
@@ -349,12 +349,12 @@
 
             const main = document.getElementById('main');
             main.innerHTML = `
-                <button class="buzz-button" id="buzzButton" onclick="buzz()">
+                <button class="buzz-button" id="buzzButton" onclick="buzz()" aria-label="Buzz out the reader">
                     BUZZ
                 </button>
                 <div class="judge-status" id="judgeStatus">
-                    <div class="buzz-count" id="buzzCountDisplay">0 of ${connectedJudges.length} buzzed</div>
-                    <div class="timer" id="timer">0:00.0</div>
+                    <div class="buzz-count" id="buzzCountDisplay" aria-live="polite">0 of ${connectedJudges.length} buzzed</div>
+                    <div class="timer" id="timer" role="timer" aria-live="off">0:00.0</div>
                 </div>
             `;
 
