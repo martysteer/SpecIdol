@@ -74,7 +74,7 @@ button:active:not(:disabled) {
 }
 
 button:disabled {
-    opacity: 0.3;
+    opacity: 0.5;
     cursor: not-allowed;
 }
 
@@ -147,7 +147,7 @@ input:focus, textarea:focus, select:focus {
 }
 
 .header-context.waiting {
-    color: #997700;
+    color: #aa8800;
     text-shadow: none;
 }
 
