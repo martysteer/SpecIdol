@@ -313,8 +313,9 @@
 
         .controls {
             display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             gap: 0.5rem;
-            flex-wrap: wrap;
         }
 
         .btn-advance {
@@ -354,6 +355,18 @@
             background: var(--neon-yellow);
             color: var(--black);
             box-shadow: 0 0 20px var(--neon-yellow);
+        }
+
+        .btn-reset {
+            background: var(--black);
+            color: var(--neon-red);
+            border-color: var(--neon-red);
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            background: var(--neon-red);
+            color: var(--black);
+            box-shadow: 0 0 20px var(--neon-red);
         }
 
         .history-list {
@@ -447,7 +460,7 @@
                 <button onclick="startRound()" id="startBtn">Start Round</button>
                 <button onclick="advanceText()" id="advanceBtn" class="btn-advance" disabled>Advance Text</button>
                 <button onclick="togglePause()" id="pauseBtn" class="btn-pause" disabled>Pause</button>
-                <button onclick="resetRound()" id="resetBtn">Reset</button>
+                <button onclick="resetRound()" id="resetBtn" class="btn-reset">Reset</button>
             </div>
             <div id="textProgress" class="text-progress" role="status" aria-live="polite"></div>
         </div>
