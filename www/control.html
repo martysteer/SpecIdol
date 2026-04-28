@@ -333,6 +333,10 @@
             opacity: 0.7;
         }
 
+        #textProgress {
+            display: none;
+        }
+
         .btn-copy-json {
             font-size: var(--text-caption);
             padding: 0.5rem 1rem;
@@ -734,9 +738,21 @@
             }).join('');
         }
 
-        function updateStatus(status) {
+        function updateStatus(status, position = null, total = null) {
             const statusEl = document.getElementById('currentStatus');
-            statusEl.textContent = `Status: ${status}`;
+
+            let statusText;
+            if (status === 'running' && position !== null && total !== null) {
+                statusText = `Status: running line ${position}/${total}`;
+            } else if (status === 'waiting') {
+                statusText = 'Status: waiting';
+            } else {
+                // For other states, check if story is selected
+                const hasStory = sessionState && sessionState.current_round.story_index !== null;
+                statusText = hasStory ? `Status: ${status}` : 'Status: select a story';
+            }
+
+            statusEl.textContent = statusText;
             statusEl.dataset.status = status;
 
             const controlsCol = document.querySelector('.round-controls-column');
@@ -753,13 +769,8 @@
         }
 
         function updateTextProgress(position, total) {
-            const progressEl = document.getElementById('textProgress');
-            if (!progressEl) return;
-
-            if (total === null) {
-                progressEl.textContent = 'Ready to advance text';
-            } else {
-                progressEl.textContent = `Line ${position}/${total}`;
+            if (sessionState && sessionState.current_round.status === 'running') {
+                updateStatus('running', position, total);
             }
         }
 
@@ -934,9 +945,18 @@
                 const title = sessionState.stories[index].title;
                 headerEl.textContent = title;
                 headerEl.classList.remove('waiting');
+
+                // Update status when story selected
+                const currentStatus = sessionState.current_round.status;
+                if (currentStatus === 'waiting' || currentStatus === 'ended') {
+                    updateStatus('waiting');
+                }
             } else {
                 headerEl.textContent = 'No story selected';
                 headerEl.classList.add('waiting');
+
+                // Update status when no story selected
+                updateStatus('waiting'); // Will become "select a story" in updateStatus
             }
         }
 
