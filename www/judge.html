@@ -22,14 +22,6 @@
             color: var(--neon-yellow);
         }
 
-        .timer {
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-display);
-            color: var(--neon-green);
-            text-shadow: 0 0 10px var(--neon-green);
-            line-height: 1.2;
-        }
-
         .page-content {
             display: flex;
             flex-direction: column;
@@ -115,6 +107,8 @@
     </style>
 </head>
 <body class="page-locked">
+    <div id="countdown-container" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1000;"></div>
+
     <header class="page-header">
         <div class="header-left">
             <div class="page-label">JUDGING</div>
@@ -125,6 +119,7 @@
                 <span id="audienceCount">0</span> audience
             </div>
         </div>
+        <div class="header-timer" id="headerTimer" style="display:none;">0:00.0</div>
         <div class="header-context waiting" id="judgeNum" onclick="openNameEditor()" style="cursor:pointer;text-decoration:underline;text-decoration-style:dotted;">Judge -</div>
     </header>
 
@@ -152,6 +147,7 @@
     </div>
 
     <script src="app.js"></script>
+    <script src="sounds.js"></script>
     <script>
         const params = getUrlParams();
         const client = new SpecIdolClient();
@@ -248,6 +244,53 @@
             }
         });
 
+        client.on('countdown_start', (data) => {
+            // Reset judge state (fix: judge interface didn't reset)
+            buzzed = false;
+            if (timer) timer.stop();
+
+            document.getElementById('storyTitle').textContent = data.story_title || '';
+
+            const main = document.getElementById('main');
+            main.innerHTML = `
+                <button class="buzz-button" id="buzzButton" onclick="buzz()" aria-label="Buzz out the reader" disabled>
+                    BUZZ
+                </button>
+                <div class="judge-status" id="judgeStatus">
+                    <div class="buzz-count" id="buzzCountDisplay" aria-live="polite">0 of ${connectedJudges.length} buzzed</div>
+                </div>
+            `;
+            renderJudgePanels();
+
+            // Show header timer (reset to 0)
+            const headerTimer = document.getElementById('headerTimer');
+            headerTimer.textContent = '0:00.0';
+            headerTimer.style.display = 'flex';
+
+            // Start countdown, then activate
+            const countdown = new Countdown('countdown-container', () => {
+                // Countdown complete — activate buzz button, start timer
+                const button = document.getElementById('buzzButton');
+                if (button && !buzzed) button.disabled = false;
+
+                timer = new Timer(
+                    timerDuration,
+                    (elapsed) => {
+                        document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                    },
+                    () => {
+                        // Timer complete (victory) — fanfare
+                        if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                    }
+                );
+                // Start timer from "now" (server will sync via round_start if needed)
+                timer.startTime = Date.now() / 1000;
+                timer.tick();
+                timer.intervalId = setInterval(() => timer.tick(), 100);
+            });
+            countdown.start();
+        });
+
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
             startRound(data);
@@ -279,6 +322,26 @@
 
         client.on('buzzed', (data) => {
             updateJudgeStatus(data.judge_id);
+
+            // Play buzz sound
+            if (typeof playBuzz === 'function' && client.judgeSounds) {
+                const soundIndex = client.judgeSounds[data.judge_id];
+                if (soundIndex !== undefined) {
+                    playBuzz(soundIndex, data.buzz_count || 1);
+                }
+            }
+
+            // Check if all judges buzzed (final combo)
+            if (client.judgeSounds) {
+                const totalJudges = connectedJudges.length;
+                if (data.buzz_count >= totalJudges && totalJudges > 0) {
+                    setTimeout(() => {
+                        if (typeof playFinalCombo === 'function') {
+                            playFinalCombo(Object.values(client.judgeSounds));
+                        }
+                    }, 500);
+                }
+            }
         });
 
         client.on('round_ended', (data) => {
@@ -368,21 +431,24 @@
                 </button>
                 <div class="judge-status" id="judgeStatus">
                     <div class="buzz-count" id="buzzCountDisplay" aria-live="polite">0 of ${connectedJudges.length} buzzed</div>
-                    <div class="timer" id="timer" role="timer" aria-live="off">0:00.0</div>
                 </div>
             `;
 
             renderJudgePanels();
 
+            // Show header timer
+            const headerTimer = document.getElementById('headerTimer');
+            headerTimer.style.display = 'flex';
+
             if (timer) timer.stop();
             timer = new Timer(
                 timerDuration,
                 (elapsed) => {
-                    const timerEl = document.getElementById('timer');
-                    if (timerEl) timerEl.textContent = formatTime(elapsed);
+                    document.getElementById('headerTimer').textContent = formatTime(elapsed);
                 },
                 () => {
                     // Timer complete (victory)
+                    if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
                 }
             );
             timer.start(roundData.start_time);
@@ -438,6 +504,7 @@
             buzzed = false;
             document.getElementById('storyTitle').textContent = '';
             document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
+            document.getElementById('headerTimer').style.display = 'none';
             document.querySelectorAll('.judge-cell').forEach(cell => {
                 cell.classList.remove('buzzed');
             });
