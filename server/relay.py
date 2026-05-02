@@ -288,24 +288,41 @@ async def handle_message(websocket, message_data):
             return
 
         story = session["stories"][story_index]
-        # Split text into sentence chunks (2-3 sentences per chunk)
-        import re
 
-        # Fallback to full text if empty or malformed
+        # If countdown already set up this round, just transition to running
+        current = session["current_round"]
+        if (current.get("status") == "countdown"
+                and current.get("story_index") == story_index
+                and current.get("text_lines")):
+            now = time.time()
+            current["start_time"] = now
+            current["status"] = "running"
+            # Position 1: first line was already shown during countdown
+            current["text_position"] = 1
+
+            text_lines = current["text_lines"]
+            await broadcast_to_session(session_code, {
+                "type": "round_started",
+                "data": {
+                    "title": story["title"],
+                    "text": story["text"],
+                    "text_line_count": len(text_lines),
+                    "start_time": now,
+                    "server_time": now
+                }
+            })
+            return
+
+        # Full setup (no countdown preceded this)
+        import re
         text = story.get("text", "").strip()
         if not text:
             text_lines = ["[Empty story]"]
         else:
-            # Split by sentence endings (. ! ?)
             sentences = re.split(r'([.!?]+\s+)', text)
-            # Rejoin punctuation with sentences
             sentences = [''.join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2) if sentences[i].strip()]
-
-            # Fallback if no sentences found
             if not sentences:
                 sentences = [text]
-
-            # Group into chunks of 2-3 sentences
             text_lines = []
             chunk = []
             for sent in sentences:
@@ -313,10 +330,8 @@ async def handle_message(websocket, message_data):
                 if len(chunk) >= 3:
                     text_lines.append(' '.join(chunk))
                     chunk = []
-            if chunk:  # Add remaining sentences
+            if chunk:
                 text_lines.append(' '.join(chunk))
-
-            # Final fallback
             if not text_lines:
                 text_lines = [text]
 
@@ -325,7 +340,7 @@ async def handle_message(websocket, message_data):
             "title": story["title"],
             "text": story["text"],
             "text_lines": text_lines,
-            "text_position": 0,  # Current line index
+            "text_position": 0,
             "start_time": time.time(),
             "speed": 1,
             "paused": False,

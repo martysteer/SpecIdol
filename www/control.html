@@ -296,6 +296,21 @@
             text-shadow: 0 0 5px var(--neon-red);
         }
 
+        .story-status.running {
+            color: var(--neon-green);
+            animation: pulse-glow 1.5s ease-in-out infinite;
+        }
+
+        .story-status.paused {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 5px var(--neon-yellow);
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 1; text-shadow: 0 0 5px var(--neon-green); }
+            50% { opacity: 0.5; text-shadow: none; }
+        }
+
         /* Empty state styling */
         .empty-state {
             text-align: center;
@@ -735,6 +750,13 @@
         });
 
         client.on('countdown_start', (data) => {
+            // Track title for history
+            if (sessionState) {
+                sessionState.current_round.title = data.story_title;
+                sessionState.current_round.status = 'countdown';
+                renderMgmtQueue();
+            }
+
             // Reset timer and outcome
             hideOutcome();
             if (timer) timer.stop();
@@ -851,6 +873,7 @@
             if (timer) timer.pause();
             if (sessionState) {
                 sessionState.current_round.status = 'paused';
+                renderMgmtQueue();
             }
         });
 
@@ -859,6 +882,7 @@
             if (timer) timer.resume(data.start_time || (Date.now() / 1000));
             if (sessionState) {
                 sessionState.current_round.status = 'running';
+                renderMgmtQueue();
             }
         });
 
@@ -1055,9 +1079,14 @@
                 const editingClass = i === editingStoryIndex ? 'editing' : '';
                 const disabledClass = roundActive ? 'disabled' : '';
 
-                // Look up outcome from history
+                // Determine status marker
                 let statusHtml = '';
-                if (sessionState.history) {
+                const roundStatus = sessionState.current_round.status;
+                if (isCurrent && (roundStatus === 'running' || roundStatus === 'countdown')) {
+                    statusHtml = '<span class="story-status running">RUNNING</span>';
+                } else if (isCurrent && roundStatus === 'paused') {
+                    statusHtml = '<span class="story-status paused">PAUSED</span>';
+                } else if (sessionState.history) {
                     const entry = sessionState.history.find(h => h.title === story.title);
                     if (entry && entry.outcome === 'victory') {
                         statusHtml = '<span class="story-status victory">SURVIVOR</span>';
@@ -1190,6 +1219,7 @@
             }
 
             sessionState.current_round.story_index = index;
+            sessionState.current_round.title = sessionState.stories[index].title;
             updateSelectedStoryDisplay();
             clearStoryText();
             editStory(index);
