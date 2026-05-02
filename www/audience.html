@@ -122,6 +122,8 @@
     </style>
 </head>
 <body class="page-locked">
+    <div id="countdown-container" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:1000;"></div>
+
     <header class="page-header">
         <div class="header-left">
             <div class="page-label">WATCHING</div>
@@ -132,6 +134,7 @@
                 <span id="audienceCount">0</span> audience
             </div>
         </div>
+        <div class="header-timer" id="headerTimer" style="display:none;">0:00.0</div>
         <div class="header-context waiting" id="storyTitle" aria-live="polite">Waiting for story...</div>
     </header>
 
@@ -146,6 +149,7 @@
     </footer>
 
     <div class="outcome" id="outcome" role="alert" aria-live="assertive"></div>
+    <div id="qr-overlay" class="qr-overlay"></div>
 
     <div id="audioOverlay" style="position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);z-index:2000;display:flex;align-items:center;justify-content:center;cursor:pointer;" onclick="enableAudio()">
         <div style="font-family:'Press Start 2P',cursive;color:#0f0;text-align:center;font-size:var(--text-heading);line-height:1.5;">
@@ -154,7 +158,9 @@
         </div>
     </div>
 
+    <script src="lib/qrcode-generator.js"></script>
     <script src="app.js"></script>
+    <script src="sounds.js"></script>
     <script>
         const params = getUrlParams();
         const client = new SpecIdolClient();
@@ -177,6 +183,18 @@
             // Populate header stats
             if (data.code) {
                 document.getElementById('sessionCode').textContent = data.code;
+
+                // Generate QR code overlay
+                const joinURL = window.location.origin + '/index.html#' + data.code;
+                const qrElement = createQRElement(joinURL, data.code, 200);
+                const overlay = document.getElementById('qr-overlay');
+                overlay.innerHTML = '';
+                overlay.appendChild(qrElement);
+
+                // Set initial QR visibility
+                if (data.audience_qr_visible === false) {
+                    overlay.classList.add('hidden');
+                }
             }
             if (data.stories) {
                 document.getElementById('storyCount').textContent = data.stories.length;
@@ -207,6 +225,45 @@
             }
         });
 
+        client.on('countdown_start', (data) => {
+            resetView();
+            const titleEl = document.getElementById('storyTitle');
+            titleEl.textContent = data.story_title || 'Untitled';
+            titleEl.classList.remove('waiting');
+
+            // Show header timer (reset to 0)
+            const headerTimer = document.getElementById('headerTimer');
+            headerTimer.textContent = '0:00.0';
+            headerTimer.style.display = 'flex';
+
+            // Start countdown
+            const countdown = new Countdown('countdown-container', () => {
+                // Countdown complete — start timer
+                timer = new Timer(
+                    timerDuration,
+                    (elapsed) => {
+                        document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                    },
+                    () => {
+                        if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                    }
+                );
+                timer.startTime = Date.now() / 1000;
+                timer.tick();
+                timer.intervalId = setInterval(() => timer.tick(), 100);
+            });
+            countdown.start();
+        });
+
+        client.on('toggle_audience_qr', (data) => {
+            const overlay = document.getElementById('qr-overlay');
+            if (data.visible) {
+                overlay.classList.remove('hidden');
+            } else {
+                overlay.classList.add('hidden');
+            }
+        });
+
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
             startRound(data);
@@ -226,7 +283,26 @@
 
         client.on('buzzed', (data) => {
             markJudgeBuzzed(data.judge_id);
-            playSound('buzz');
+
+            // Play buzz sound with count progression
+            if (typeof playBuzz === 'function' && client.judgeSounds) {
+                const soundIndex = client.judgeSounds[data.judge_id];
+                if (soundIndex !== undefined) {
+                    playBuzz(soundIndex, data.buzz_count || 1);
+                }
+            }
+
+            // Check if all judges buzzed (final combo)
+            if (client.judgeSounds) {
+                const totalJudges = connectedJudges.length;
+                if (data.buzz_count >= totalJudges && totalJudges > 0) {
+                    setTimeout(() => {
+                        if (typeof playFinalCombo === 'function') {
+                            playFinalCombo(Object.values(client.judgeSounds));
+                        }
+                    }, 500);
+                }
+            }
         });
 
         client.on('round_ended', (data) => {
@@ -350,10 +426,10 @@
             outcomeEl.style.display = 'block';
 
             if (outcome === 'victory') {
-                playSound('victory');
-                // TODO: confetti/fireworks
+                if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
             } else {
-                playSound('defeat');
+                // Defeat: play AHOOGA
+                if (typeof playAhooga === 'function') playAhooga();
                 document.body.classList.add('defeat-flash');
                 setTimeout(() => document.body.classList.remove('defeat-flash'), 500);
             }
@@ -367,6 +443,7 @@
             if (timer) timer.stop();
 
             document.getElementById('outcome').style.display = 'none';
+            document.getElementById('headerTimer').style.display = 'none';
             const titleEl = document.getElementById('storyTitle');
             titleEl.textContent = 'Waiting for story...';
             titleEl.classList.add('waiting');
@@ -377,115 +454,32 @@
             });
         }
 
-        // Simple tone generator for sound effects
-        let audioContext = null;
-
-        function getAudioContext() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            return audioContext;
-        }
-
+        // Audio overlay: initialize sounds.js AudioContext on user interaction
         function enableAudio() {
-            getAudioContext().resume();
+            getAudioContext(); // From sounds.js — initializes and resumes
             document.getElementById('audioOverlay').style.display = 'none';
         }
 
-        function playBuzzSound() {
-            const oscillator = getAudioContext().createOscillator();
-            const gainNode = getAudioContext().createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(getAudioContext().destination);
-
-            oscillator.frequency.value = 200; // Low buzzer tone
-            oscillator.type = 'sawtooth';
-
-            gainNode.gain.setValueAtTime(0.3, getAudioContext().currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + 0.5);
-
-            oscillator.start(getAudioContext().currentTime);
-            oscillator.stop(getAudioContext().currentTime + 0.5);
-        }
-
-        function playVictorySound() {
-            const times = [0, 0.15, 0.3, 0.5];
-            const freqs = [523, 659, 784, 1047]; // C, E, G, C (major chord)
-
-            times.forEach((time, i) => {
-                const oscillator = getAudioContext().createOscillator();
-                const gainNode = getAudioContext().createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(getAudioContext().destination);
-
-                oscillator.frequency.value = freqs[i];
-                oscillator.type = 'square';
-
-                gainNode.gain.setValueAtTime(0.2, getAudioContext().currentTime + time);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + time + 0.3);
-
-                oscillator.start(getAudioContext().currentTime + time);
-                oscillator.stop(getAudioContext().currentTime + time + 0.3);
-            });
-        }
-
-        function playDefeatSound() {
-            const times = [0, 0.2, 0.4];
-            const freqs = [440, 349, 262]; // Descending sad trombone
-
-            times.forEach((time, i) => {
-                const oscillator = getAudioContext().createOscillator();
-                const gainNode = getAudioContext().createGain();
-
-                oscillator.connect(gainNode);
-                gainNode.connect(getAudioContext().destination);
-
-                oscillator.frequency.value = freqs[i];
-                oscillator.type = 'sawtooth';
-
-                gainNode.gain.setValueAtTime(0.3, getAudioContext().currentTime + time);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + time + 0.4);
-
-                oscillator.start(getAudioContext().currentTime + time);
-                oscillator.stop(getAudioContext().currentTime + time + 0.4);
-            });
-        }
-
-        function playTickSound() {
-            const oscillator = getAudioContext().createOscillator();
-            const gainNode = getAudioContext().createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(getAudioContext().destination);
-
-            oscillator.frequency.value = 800;
-            oscillator.type = 'sine';
-
-            gainNode.gain.setValueAtTime(0.1, getAudioContext().currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, getAudioContext().currentTime + 0.05);
-
-            oscillator.start(getAudioContext().currentTime);
-            oscillator.stop(getAudioContext().currentTime + 0.05);
-        }
-
-        function playSound(type) {
-            if (type === 'buzz') playBuzzSound();
-            else if (type === 'victory') playVictorySound();
-            else if (type === 'defeat') playDefeatSound();
-            else if (type === 'tick') playTickSound();
-        }
-
-        // Add tick sound in tension mode
+        // Tension ticks (use simple tone)
         let tickInterval = null;
         function startTensionTicks() {
             if (tickInterval) clearInterval(tickInterval);
-            let tickRate = 1000; // Start at 1 second
-
+            let tickRate = 1000;
             const tick = () => {
-                playTickSound();
-                tickRate = Math.max(100, tickRate * 0.9); // Accelerate
+                const ctx = getAudioContext();
+                if (ctx) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.frequency.value = 800;
+                    osc.type = 'sine';
+                    gain.gain.setValueAtTime(0.1, ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(ctx.currentTime);
+                    osc.stop(ctx.currentTime + 0.05);
+                }
+                tickRate = Math.max(100, tickRate * 0.9);
                 tickInterval = setTimeout(tick, tickRate);
             };
             tick();
