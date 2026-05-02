@@ -115,6 +115,7 @@
             overflow-y: auto;
             min-height: 50vh;
             max-height: 50vh;
+            position: relative;
         }
 
         .story-text-column .story-text {
@@ -278,23 +279,21 @@
             white-space: nowrap;
         }
 
-        .story-actions {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        .story-actions button {
-            background: var(--black);
-            color: var(--neon-red);
-            border-color: var(--neon-red);
+        .story-status {
+            font-family: 'Press Start 2P', cursive;
             font-size: var(--text-caption);
-            padding: 0.5rem 1rem;
+            white-space: nowrap;
+            padding-left: 0.5rem;
         }
 
-        .story-actions button:hover {
-            background: var(--neon-red);
-            color: var(--black);
-            box-shadow: 0 0 20px var(--neon-red);
+        .story-status.victory {
+            color: var(--neon-green);
+            text-shadow: 0 0 5px var(--neon-green);
+        }
+
+        .story-status.defeat {
+            color: var(--neon-red);
+            text-shadow: 0 0 5px var(--neon-red);
         }
 
         /* Empty state styling */
@@ -499,15 +498,15 @@
             margin-top: 0.5rem;
         }
 
-        /* Outcome overlay */
+        /* Outcome overlay — contained in story text column */
         .outcome {
             display: none;
-            position: fixed;
+            position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Press Start 2P', cursive;
-            font-size: calc(var(--text-display) * 2);
+            font-size: calc(var(--text-display) * 1.5);
             z-index: 100;
             text-align: center;
             line-height: 1.2;
@@ -548,7 +547,6 @@
     </header>
 
     <div id="countdown-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1000;"></div>
-    <div class="outcome" id="outcome" role="alert" aria-live="assertive"></div>
 
     <main class="page-content">
     <!-- PRIMARY: Controls + live story text -->
@@ -572,6 +570,7 @@
             <div class="story-text" id="liveStoryText">
                 <span class="empty-text">Story text appears here during round...</span>
             </div>
+            <div class="outcome" id="outcome" role="alert" aria-live="assertive"></div>
         </div>
     </div>
 
@@ -1055,14 +1054,24 @@
                 const isCurrent = i === sessionState.current_round.story_index;
                 const editingClass = i === editingStoryIndex ? 'editing' : '';
                 const disabledClass = roundActive ? 'disabled' : '';
+
+                // Look up outcome from history
+                let statusHtml = '';
+                if (sessionState.history) {
+                    const entry = sessionState.history.find(h => h.title === story.title);
+                    if (entry && entry.outcome === 'victory') {
+                        statusHtml = '<span class="story-status victory">SURVIVOR</span>';
+                    } else if (entry && entry.outcome === 'defeat') {
+                        statusHtml = '<span class="story-status defeat">BUZZED OUT</span>';
+                    }
+                }
+
                 return `
                     <li class="story-item ${isCurrent ? 'current' : ''} ${editingClass} ${disabledClass}" onclick="selectStory(${i})">
                         <div class="story-info">
                             <strong>${escapeHtml(story.title)}</strong>
                         </div>
-                        <div class="story-actions">
-                            <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
-                        </div>
+                        ${statusHtml}
                     </li>
                 `;
             }).join('');
@@ -1214,11 +1223,6 @@
             document.getElementById(id).classList.toggle('collapsed');
         }
 
-        async function removeStory(index) {
-            if (await customConfirm('Remove this story?')) {
-                client.removeStory(index);
-            }
-        }
 
         async function startRound() {
             const btn = document.getElementById('startBtn');
