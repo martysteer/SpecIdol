@@ -119,6 +119,26 @@
             50% { background: #300; }
         }
 
+        @media (max-width: 900px) {
+            .page-content {
+                padding: 0 0.5rem;
+            }
+
+            .story-text-container {
+                padding: 0.5rem;
+            }
+
+            .story-text {
+                font-size: 1.2rem;
+            }
+
+            .outcome {
+                font-size: calc(var(--text-display) * 1.5);
+                width: 90vw;
+                word-break: break-word;
+            }
+        }
+
     </style>
 </head>
 <body class="page-locked">
@@ -230,6 +250,11 @@
             const titleEl = document.getElementById('storyTitle');
             titleEl.textContent = data.story_title || 'Untitled';
             titleEl.classList.remove('waiting');
+
+            // Show first paragraph during countdown
+            if (data.first_line) {
+                appendTextLine(data.first_line);
+            }
 
             // Show header timer (reset to 0)
             const headerTimer = document.getElementById('headerTimer');

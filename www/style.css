@@ -267,8 +267,8 @@ input:focus, textarea:focus, select:focus {
 
 /* Timer in header */
 .header-timer {
-    font-family: 'Courier New', monospace;
-    font-size: 2rem;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.5rem;
     color: var(--neon-green);
     text-shadow: 0 0 10px var(--neon-green);
     padding: 0 1rem;
@@ -311,7 +311,7 @@ input:focus, textarea:focus, select:focus {
     }
 
     .header-timer {
-        font-size: 1.5rem;
+        font-size: 1rem;
         padding: 0 0.5rem;
     }
 

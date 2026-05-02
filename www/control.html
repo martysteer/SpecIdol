@@ -426,14 +426,16 @@
             font-size: var(--text-caption);
         }
 
-        /* De-emphasize pause button */
-        .btn-pause {
+        /* De-emphasize secondary controls */
+        .btn-pause, .btn-reset, .btn-qr-toggle {
             font-size: var(--text-caption);
             padding: 0.4rem 0.8rem;
             opacity: 0.6;
         }
 
-        .btn-pause:hover:not(:disabled) {
+        .btn-pause:hover:not(:disabled),
+        .btn-reset:hover:not(:disabled),
+        .btn-qr-toggle:hover:not(:disabled) {
             opacity: 1;
         }
 
@@ -539,10 +541,13 @@
                 <button onclick="advanceText()" id="advanceBtn" class="btn-advance" disabled>Advance Text</button>
                 <button onclick="togglePause()" id="pauseBtn" class="btn-pause" disabled>Pause</button>
                 <button onclick="closeRound()" id="closeBtn" class="btn-reset">Close Round</button>
-                <button onclick="toggleAudienceQR()" id="toggleQRBtn" class="btn-qr-toggle">Hide Audience QR</button>
+                <button onclick="toggleAudienceQR()" id="toggleQRBtn" class="btn-qr-toggle">Show Audience QR</button>
             </div>
             <div id="textProgress" class="text-progress" role="status" aria-live="polite"></div>
-            <div id="judgeQRContainer" class="judge-qr"></div>
+            <details open class="judge-qr">
+                <summary style="cursor:pointer;font-size:var(--text-caption);margin-bottom:0.5rem;">Judge QR Code</summary>
+                <div id="judgeQRContainer"></div>
+            </details>
         </div>
         <div class="story-text-column">
             <div class="story-text" id="liveStoryText">
@@ -551,19 +556,8 @@
         </div>
     </div>
 
-    <!-- SECONDARY: Story queue (what's next) -->
-    <div class="collapsible" id="storyQueueSection">
-        <h2 onclick="toggleSection('storyQueueSection')">
-            <span class="arrow">▼</span>
-            Story Queue
-        </h2>
-        <div class="section-content">
-            <ul class="story-queue" id="storyQueue"></ul>
-        </div>
-    </div>
-
-    <!-- TERTIARY: Story management (collapsed by default) -->
-    <div class="collapsible story-management collapsed" id="storyManagement">
+    <!-- Story management (expanded by default) -->
+    <div class="collapsible story-management" id="storyManagement">
         <h2 onclick="toggleSection('storyManagement')">
             <span class="arrow">▼</span>
             Story Management
@@ -574,10 +568,17 @@
                 <ul class="story-queue" id="mgmtStoryQueue"></ul>
                 <div class="queue-actions">
                     <button onclick="addNewStory()" class="btn-add-story">+ Add Story</button>
-                    <button onclick="exportSession()">Export JSON</button>
-                    <button onclick="importSession()">Import JSON</button>
                 </div>
-                <textarea id="importExportJson" class="import-textarea" placeholder="Session JSON..."></textarea>
+                <details style="margin-top: 0.5rem;">
+                    <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;">Import / Export</summary>
+                    <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div class="queue-actions">
+                            <button onclick="exportSession()" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;">Export JSON</button>
+                            <button onclick="importSession()" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;">Import JSON</button>
+                        </div>
+                        <textarea id="importExportJson" class="import-textarea" placeholder="Session JSON..."></textarea>
+                    </div>
+                </details>
             </div>
 
             <div class="management-section" id="storyEditPanel" style="display: none;">
@@ -636,7 +637,7 @@
         let sessionState = null;
         let editingStoryIndex = null;
         let currentLineProgress = { position: 0, total: 0 };
-        let audienceQRVisible = true;
+        let audienceQRVisible = false;
         let timer = null;
         let countdown = null;
         let formDirty = false;
@@ -680,6 +681,11 @@
             qrContainer.innerHTML = '';
             qrContainer.appendChild(qrEl);
 
+            // Click QR to open judge page in new tab
+            qrContainer.style.cursor = 'pointer';
+            qrContainer.title = 'Click to open judge page';
+            qrContainer.onclick = () => window.open(judgeURL, '_blank');
+
             // Set audience QR toggle state
             audienceQRVisible = data.audience_qr_visible !== false;
             const toggleBtn = document.getElementById('toggleQRBtn');
@@ -716,6 +722,14 @@
             const timerEl = document.getElementById('headerTimer');
             timerEl.style.display = 'flex';
             timerEl.textContent = '0:00.0';
+
+            // Show first paragraph during countdown
+            if (data.first_line) {
+                const liveText = document.getElementById('liveStoryText');
+                const placeholder = liveText.querySelector('.empty-text');
+                if (placeholder) placeholder.remove();
+                appendStoryLine(data.first_line);
+            }
 
             // Show countdown
             if (countdown) countdown.cancel();
@@ -755,7 +769,6 @@
             // This handler covers stories added by import or future multi-controller.
             if (sessionState && data.index >= sessionState.stories.length) {
                 sessionState.stories.push({title: data.title, text: ''});
-                renderStoryQueue();
                 renderMgmtQueue();
             }
             updateSessionCounts({stories: sessionState.stories});
@@ -764,7 +777,6 @@
         client.on('story_removed', (data) => {
             if (sessionState && data.index < sessionState.stories.length) {
                 sessionState.stories.splice(data.index, 1);
-                renderStoryQueue();
                 renderMgmtQueue();
                 // If we were editing the removed story, close edit panel
                 if (editingStoryIndex === data.index) {
@@ -780,7 +792,6 @@
         client.on('stories_update', (data) => {
             if (sessionState) {
                 sessionState.stories = data.stories;
-                renderStoryQueue();
                 renderMgmtQueue();
                 updateSessionCounts({stories: data.stories});
             }
@@ -806,7 +817,6 @@
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 sessionState.current_round.text_line_count = data.text_line_count || 0;
-                renderStoryQueue();
                 renderMgmtQueue();
             }
             updateSelectedStoryDisplay();
@@ -823,7 +833,6 @@
             if (timer) timer.pause();
             if (sessionState) {
                 sessionState.current_round.status = 'paused';
-                renderStoryQueue();
             }
         });
 
@@ -832,7 +841,6 @@
             if (timer) timer.resume(data.start_time || (Date.now() / 1000));
             if (sessionState) {
                 sessionState.current_round.status = 'running';
-                renderStoryQueue();
             }
         });
 
@@ -849,7 +857,6 @@
                     ...data
                 });
                 renderHistory();
-                renderStoryQueue();
                 renderMgmtQueue();
             }
         });
@@ -865,7 +872,6 @@
                 sessionState.current_round.status = 'waiting';
                 sessionState.current_round.story_index = null;
                 updateSelectedStoryDisplay();
-                renderStoryQueue();
                 renderMgmtQueue();
             }
         });
@@ -889,48 +895,10 @@
             if (!sessionState) return;
 
             document.getElementById('sessionCode').textContent = sessionState.code || '----';
-            renderStoryQueue();
             renderMgmtQueue();
             renderHistory();
             updateStatus(sessionState.current_round.status);
             updateSelectedStoryDisplay();
-        }
-
-        function renderStoryQueue() {
-            const queue = document.getElementById('storyQueue');
-            if (!sessionState || !sessionState.stories || sessionState.stories.length === 0) {
-                queue.innerHTML = `
-                    <li class="empty-state">
-                        No stories yet.
-                        <span class="cta">Add your first story to get started ↓</span>
-                    </li>
-                `;
-
-                // Auto-expand Story Management if queue empty (onboarding)
-                const storyMgmt = document.getElementById('storyManagement');
-                if (storyMgmt && storyMgmt.classList.contains('collapsed')) {
-                    storyMgmt.classList.remove('collapsed');
-                }
-                return;
-            }
-
-            const status = sessionState.current_round.status;
-            const roundActive = status === 'running' || status === 'paused';
-
-            queue.innerHTML = sessionState.stories.map((story, i) => {
-                const isCurrent = i === sessionState.current_round.story_index;
-                const disabledClass = roundActive ? 'disabled' : '';
-                return `
-                    <li class="story-item ${isCurrent ? 'current' : ''} ${disabledClass}" onclick="selectStory(${i})">
-                        <div class="story-info">
-                            <strong>${escapeHtml(story.title)}</strong>
-                        </div>
-                        <div class="story-actions">
-                            <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
-                        </div>
-                    </li>
-                `;
-            }).join('');
         }
 
         function renderHistory() {
@@ -1048,12 +1016,21 @@
                 return;
             }
 
+            const status = sessionState.current_round.status;
+            const roundActive = status === 'running' || status === 'paused';
+
             queue.innerHTML = sessionState.stories.map((story, i) => {
+                const isCurrent = i === sessionState.current_round.story_index;
                 const editingClass = i === editingStoryIndex ? 'editing' : '';
+                const disabledClass = roundActive ? 'disabled' : '';
                 return `
-                    <li class="story-item ${editingClass}" onclick="editStory(${i})">
+                    <li class="story-item ${isCurrent ? 'current' : ''} ${editingClass} ${disabledClass}" onclick="selectStory(${i})">
                         <div class="story-info">
                             <strong>${escapeHtml(story.title)}</strong>
+                        </div>
+                        <div class="story-actions">
+                            <button onclick="event.stopPropagation(); editStory(${i})">Edit</button>
+                            <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
                         </div>
                     </li>
                 `;
@@ -1132,7 +1109,6 @@
                 });
                 // Optimistic local update
                 sessionState.stories[editingStoryIndex] = {title, text};
-                renderStoryQueue();
                 renderMgmtQueue();
             } else {
                 // Add new story
@@ -1140,7 +1116,6 @@
                 client.addStory(title, text);
                 if (sessionState) {
                     sessionState.stories.push({title, text});
-                    renderStoryQueue();
                     renderMgmtQueue();
                     if (wasEmpty) {
                         document.getElementById('storyManagement').classList.add('collapsed');
@@ -1172,7 +1147,6 @@
             }
 
             sessionState.current_round.story_index = index;
-            renderStoryQueue();
             updateSelectedStoryDisplay();
             clearStoryText();
         }
@@ -1283,7 +1257,7 @@
             }
         }
 
-        function exportSession() {
+        async function exportSession() {
             if (!sessionState) return;
 
             const exportData = {
@@ -1291,9 +1265,17 @@
                 config: sessionState.config
             };
 
+            const json = JSON.stringify(exportData, null, 2);
             const textarea = document.getElementById('importExportJson');
             textarea.classList.add('visible');
-            textarea.value = JSON.stringify(exportData, null, 2);
+            textarea.value = json;
+
+            try {
+                await navigator.clipboard.writeText(json);
+                await customAlert('Exported to clipboard');
+            } catch (e) {
+                await customAlert('Export shown below (clipboard unavailable)');
+            }
         }
 
         async function copyHistory() {

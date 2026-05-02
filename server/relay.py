@@ -45,7 +45,7 @@ def create_new_session(code):
         "judge_slots": {},  # {judge_id: {"websocket": ws, "name": str}} - dynamic
         "next_judge_id": 1,
         "judge_sounds": {},  # {judge_id: sound_index (0-4)}
-        "audience_qr_visible": True,
+        "audience_qr_visible": False,
         "buzz_history": []  # [{judge_id, judge_name, time, timestamp}, ...]
     }
 
@@ -273,7 +273,8 @@ async def handle_message(websocket, message_data):
                 "story_index": story_index,
                 "story_title": story["title"],
                 "story_text": story["text"],
-                "text_line_count": len(text_lines)
+                "text_line_count": len(text_lines),
+                "first_line": text_lines[0] if text_lines else ""
             }
         })
 
