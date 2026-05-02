@@ -43,12 +43,16 @@ def create_new_session(code):
         },
         "history": [],
         "judge_slots": {},  # {judge_id: {"websocket": ws, "name": str}} - dynamic
-        "next_judge_id": 1
+        "next_judge_id": 1,
+        "judge_sounds": {},  # {judge_id: sound_index (0-4)}
+        "audience_qr_visible": True,
+        "buzz_history": []  # [{judge_id, judge_name, time, timestamp}, ...]
     }
 
-CONTROLLER_ONLY = {"add_story", "remove_story", "round_start", "speed_change",
-                    "pause", "resume", "reset_round", "text_advance", "import_session",
-                    "eject_judges", "shutdown_audience", "delete_session"}
+CONTROLLER_ONLY = {"add_story", "remove_story", "update_story", "round_start",
+                    "speed_change", "pause", "resume", "reset_round", "text_advance",
+                    "import_session", "eject_judges", "shutdown_audience", "delete_session",
+                    "countdown_start", "toggle_audience_qr"}
 
 def get_connected_judges(session):
     """Return sorted list of {id, name} for connected judges"""
@@ -136,6 +140,9 @@ async def handle_message(websocket, message_data):
             judge_name = judge_name[:20]  # max 20 chars
             session["judge_slots"][judge_id] = {"websocket": websocket, "name": judge_name}
             session["clients"][websocket] = {"role": "judge", "judge_id": judge_id}
+            # Assign random buzz sound if not already assigned (reconnection case)
+            if judge_id not in session["judge_sounds"]:
+                session["judge_sounds"][judge_id] = random.randint(0, 4)
         else:
             session["clients"][websocket] = {"role": role}
 
@@ -151,6 +158,8 @@ async def handle_message(websocket, message_data):
                 "history": session["history"],
                 "client_info": session["clients"][websocket],
                 "connected_judges": connected_judges,
+                "judge_sounds": session["judge_sounds"],
+                "audience_qr_visible": session["audience_qr_visible"],
                 "server_time": time.time()
             }
         }))
@@ -159,7 +168,11 @@ async def handle_message(websocket, message_data):
         if role == "judge":
             await broadcast_to_session(code, {
                 "type": "judge_joined",
-                "data": {"judge_id": judge_id, "connected_judges": connected_judges}
+                "data": {
+                    "judge_id": judge_id,
+                    "connected_judges": connected_judges,
+                    "judge_sounds": session["judge_sounds"]
+                }
             }, exclude=websocket)
         elif role == "audience":
             audience_count = sum(1 for c in session["clients"].values() if c.get("role") == "audience")
@@ -185,6 +198,84 @@ async def handle_message(websocket, message_data):
                 "type": "story_removed",
                 "data": {"index": story_index}
             })
+
+    elif msg_type == "update_story":
+        story_index = data.get("index")
+        if story_index is None or story_index >= len(session["stories"]):
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Invalid story index"}
+            }))
+            return
+        session["stories"][story_index] = {
+            "title": data.get("title", ""),
+            "text": data.get("text", "")
+        }
+        await broadcast_to_session(session_code, {
+            "type": "stories_update",
+            "data": {"stories": session["stories"]}
+        })
+
+    elif msg_type == "countdown_start":
+        story_index = data.get("story_index")
+        if story_index is None or story_index >= len(session["stories"]):
+            await websocket.send(json.dumps({
+                "type": "error",
+                "data": {"message": "Invalid story index"}
+            }))
+            return
+
+        story = session["stories"][story_index]
+
+        # Split text into sentence chunks (reuse round_start logic)
+        import re
+        text = story.get("text", "").strip()
+        if not text:
+            text_lines = ["[Empty story]"]
+        else:
+            sentences = re.split(r'([.!?]+\s+)', text)
+            sentences = [''.join(sentences[i:i+2]).strip() for i in range(0, len(sentences)-1, 2) if sentences[i].strip()]
+            if not sentences:
+                sentences = [text]
+            text_lines = []
+            chunk = []
+            for sent in sentences:
+                chunk.append(sent)
+                if len(chunk) >= 3:
+                    text_lines.append(' '.join(chunk))
+                    chunk = []
+            if chunk:
+                text_lines.append(' '.join(chunk))
+            if not text_lines:
+                text_lines = [text]
+
+        # Reset round state (countdown phase — start_time set later)
+        session["current_round"] = {
+            "story_index": story_index,
+            "title": story["title"],
+            "text": story["text"],
+            "text_lines": text_lines,
+            "text_position": 0,
+            "start_time": None,
+            "speed": 1,
+            "paused": False,
+            "pause_time": None,
+            "elapsed_at_pause": 0,
+            "buzzes": [],
+            "status": "countdown"
+        }
+        # Clear buzz history for new round
+        session["buzz_history"] = []
+
+        await broadcast_to_session(session_code, {
+            "type": "countdown_start",
+            "data": {
+                "story_index": story_index,
+                "story_title": story["title"],
+                "story_text": story["text"],
+                "text_line_count": len(text_lines)
+            }
+        })
 
     elif msg_type == "round_start":
         story_index = data.get("story_index", 0)
@@ -338,11 +429,11 @@ async def handle_message(websocket, message_data):
         if session["current_round"]["status"] != "running":
             return
 
-        judge_id = data.get("judge_id")
         client_info = session["clients"].get(websocket, {})
-
-        # Verify this is actually a judge
-        if client_info.get("role") != "judge" or client_info.get("judge_id") != judge_id:
+        if client_info.get("role") != "judge":
+            return
+        judge_id = client_info.get("judge_id")
+        if not judge_id:
             return
 
         # Check if already buzzed
@@ -350,23 +441,42 @@ async def handle_message(websocket, message_data):
             return
 
         now = time.time()
-        elapsed = now - session["current_round"]["start_time"]
-        buzz_entry = {"judge_id": judge_id, "time": round(elapsed, 1)}
+        start_time = session["current_round"].get("start_time")
+        elapsed = round(now - start_time, 1) if start_time else 0
+
+        buzz_entry = {"judge_id": judge_id, "time": elapsed}
         session["current_round"]["buzzes"].append(buzz_entry)
+        buzz_count = len(session["current_round"]["buzzes"])
+
+        # Record in buzz_history
+        judge_name = session["judge_slots"].get(judge_id, {}).get("name", f"Judge {judge_id}")
+        timestamp = datetime.utcnow().isoformat() + "Z"
+        session["buzz_history"].append({
+            "judge_id": judge_id,
+            "judge_name": judge_name,
+            "time": elapsed,
+            "timestamp": timestamp
+        })
 
         await broadcast_to_session(session_code, {
             "type": "buzzed",
-            "data": buzz_entry
+            "data": {
+                "judge_id": judge_id,
+                "time": elapsed,
+                "buzz_count": buzz_count,
+                "timestamp": timestamp
+            }
         })
 
         # Check if all connected judges have buzzed
         connected_judge_count = sum(1 for slot in session["judge_slots"].values() if slot["websocket"] is not None)
-        if len(session["current_round"]["buzzes"]) >= connected_judge_count:
+        if buzz_count >= connected_judge_count:
             session["current_round"]["status"] = "defeat"
             outcome_data = {
                 "outcome": "defeat",
                 "buzzes": session["current_round"]["buzzes"],
-                "duration": session["current_round"]["buzzes"][-1]["time"]
+                "buzz_history": session["buzz_history"],
+                "duration": elapsed
             }
             session["history"].append({
                 "title": session["current_round"]["title"],
@@ -467,6 +577,24 @@ async def handle_message(websocket, message_data):
             "type": "session_imported",
             "data": {"story_count": len(stories)}
         })
+
+    elif msg_type == "toggle_audience_qr":
+        visible = data.get("visible", True)
+        session["audience_qr_visible"] = visible
+        # Broadcast only to audience clients
+        audience_clients = [
+            ws for ws, info in session["clients"].items()
+            if info.get("role") == "audience" and ws.open
+        ]
+        message = json.dumps({
+            "type": "toggle_audience_qr",
+            "data": {"visible": visible}
+        })
+        if audience_clients:
+            await asyncio.gather(
+                *[ws.send(message) for ws in audience_clients],
+                return_exceptions=True
+            )
 
     elif msg_type == "eject_judges":
         # Close all judge websockets with message
