@@ -200,7 +200,7 @@ async def handle_message(websocket, message_data):
             })
 
     elif msg_type == "update_story":
-        story_index = data.get("index")
+        story_index = data.get("story_index")
         if story_index is None or story_index >= len(session["stories"]):
             await websocket.send(json.dumps({
                 "type": "error",
