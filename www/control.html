@@ -720,15 +720,11 @@
             // Show countdown
             if (countdown) countdown.cancel();
             countdown = new Countdown('countdown-container', () => {
-                // Countdown complete — start timer
-                const duration = (sessionState && sessionState.config) ? sessionState.config.timer_duration : 120;
-                timer = new Timer(duration, (elapsed) => {
-                    timerEl.textContent = formatTime(elapsed);
-                }, () => {
-                    // Timer expired — victory fanfare
-                    playVictoryFanfare();
-                });
-                timer.start(Date.now() / 1000);
+                // Countdown complete — tell server to start the round
+                const storyIdx = data.story_index !== undefined
+                    ? data.story_index
+                    : (sessionState ? sessionState.current_round.story_index : 0);
+                client.startRound(storyIdx);
             });
             countdown.start();
         });
@@ -791,16 +787,30 @@
         });
 
         client.on('round_started', (data) => {
+            if (data.server_time) updateClockOffset(data.server_time);
             updateStatus('running');
             document.getElementById('liveStoryText').innerHTML = '';
+
+            // Start header timer
+            const timerEl = document.getElementById('headerTimer');
+            timerEl.style.display = 'flex';
+            const duration = (sessionState && sessionState.config) ? sessionState.config.timer_duration : 120;
+            if (timer) timer.stop();
+            timer = new Timer(duration, (elapsed) => {
+                timerEl.textContent = formatTime(elapsed);
+            }, () => {
+                playVictoryFanfare();
+            });
+            timer.start(data.start_time || (Date.now() / 1000));
+
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 sessionState.current_round.text_line_count = data.text_line_count || 0;
-                renderStoryQueue(); // Re-render to show disabled state
-                renderMgmtQueue(); // Also update management queue
+                renderStoryQueue();
+                renderMgmtQueue();
             }
             updateSelectedStoryDisplay();
-            updateTextProgress(0, data.text_line_count || 0); // Reset progress
+            updateTextProgress(0, data.text_line_count || 0);
         });
 
         client.on('text_advanced', (data) => {
