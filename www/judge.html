@@ -371,16 +371,11 @@
         client.on('round_ended', (data) => {
             if (timer) timer.stop();
             if (countdown) countdown.cancel();
-            // Reset UI so judge sees clean state before next round
-            buzzed = false;
+            // Disable button but keep buzzed state visible until round_reset
             const button = document.getElementById('buzzButton');
             if (button) {
                 button.disabled = true;
-                button.innerHTML = 'BUZZ';
             }
-            document.querySelectorAll('.judge-cell').forEach(cell => {
-                cell.classList.remove('buzzed');
-            });
         });
 
         client.on('round_reset', () => {
