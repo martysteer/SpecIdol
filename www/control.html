@@ -403,10 +403,14 @@
             color: var(--neon-green);
         }
 
-        /* Story edit panel hidden until story selected or Add clicked */
+        /* Story edit panel */
         #storyEditPanel {
             border-left: 2px solid var(--neon-yellow);
             padding-left: 1rem;
+        }
+
+        #storyEditPanel > *:not(summary) {
+            margin-top: 0.5rem;
         }
 
         label {
@@ -495,15 +499,29 @@
             margin-top: 0.5rem;
         }
 
-        .import-textarea {
+        /* Outcome overlay */
+        .outcome {
             display: none;
-            min-height: 150px;
-            font-size: var(--text-caption);
-            margin-top: 0.5rem;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Press Start 2P', cursive;
+            font-size: calc(var(--text-display) * 2);
+            z-index: 100;
+            text-align: center;
+            line-height: 1.2;
+            pointer-events: none;
         }
 
-        .import-textarea.visible {
-            display: block;
+        .outcome.victory {
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+        }
+
+        .outcome.defeat {
+            color: var(--neon-red);
+            text-shadow: 0 0 20px var(--neon-red);
         }
 
         /* Management queue items (different from main queue - clickable for editing) */
@@ -530,6 +548,7 @@
     </header>
 
     <div id="countdown-container" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 1000;"></div>
+    <div class="outcome" id="outcome" role="alert" aria-live="assertive"></div>
 
     <main class="page-content">
     <!-- PRIMARY: Controls + live story text -->
@@ -572,17 +591,17 @@
                 <details style="margin-top: 0.5rem;">
                     <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;">Import / Export</summary>
                     <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <textarea id="importExportJson" placeholder="Paste JSON here to import..." style="min-height:150px;font-size:var(--text-caption);"></textarea>
                         <div class="queue-actions">
                             <button onclick="exportSession()" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;">Export JSON</button>
-                            <button onclick="importSession()" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;">Import JSON</button>
+                            <button onclick="importSession()" id="importBtn" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;" disabled>Import JSON</button>
                         </div>
-                        <textarea id="importExportJson" class="import-textarea" placeholder="Session JSON..."></textarea>
                     </div>
                 </details>
             </div>
 
-            <div class="management-section" id="storyEditPanel" style="display: none;">
-                <h3 id="storyFormTitle">Edit Story</h3>
+            <details class="management-section" id="storyEditPanel">
+                <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;" id="storyFormTitle">Add / Edit Story</summary>
                 <div class="form-group">
                     <label>Title:</label>
                     <input type="text" id="storyTitle" placeholder="Story title">
@@ -595,7 +614,7 @@
                     <button onclick="saveStory()" id="saveStoryBtn" disabled>Update</button>
                     <button onclick="removeEditingStory()" id="removeStoryBtn" class="btn-reset">Remove</button>
                 </div>
-            </div>
+            </details>
         </div>
     </div>
 
@@ -717,7 +736,8 @@
         });
 
         client.on('countdown_start', (data) => {
-            // Reset timer
+            // Reset timer and outcome
+            hideOutcome();
             if (timer) timer.stop();
             const timerEl = document.getElementById('headerTimer');
             timerEl.style.display = 'flex';
@@ -781,7 +801,7 @@
                 // If we were editing the removed story, close edit panel
                 if (editingStoryIndex === data.index) {
                     editingStoryIndex = null;
-                    document.getElementById('storyEditPanel').style.display = 'none';
+                    document.getElementById('storyEditPanel').open = false;
                 } else if (editingStoryIndex !== null && editingStoryIndex > data.index) {
                     editingStoryIndex--;
                 }
@@ -800,7 +820,6 @@
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
             updateStatus('running');
-            document.getElementById('liveStoryText').innerHTML = '';
 
             // Start header timer
             const timerEl = document.getElementById('headerTimer');
@@ -847,6 +866,7 @@
         client.on('round_ended', (data) => {
             updateStatus('ended');
             if (timer) timer.stop();
+            showOutcome(data.outcome);
             if (data.outcome === 'victory') {
                 playVictoryFanfare();
             }
@@ -863,6 +883,7 @@
 
         client.on('round_reset', () => {
             updateStatus('waiting');
+            hideOutcome();
             clearStoryText();
             currentLineProgress = { position: 0, total: 0 };
             if (timer) timer.stop();
@@ -984,6 +1005,17 @@
             }, 100);
         }
 
+        function showOutcome(outcome) {
+            const el = document.getElementById('outcome');
+            el.textContent = outcome === 'victory' ? 'SURVIVOR!' : 'BUZZED OUT';
+            el.className = `outcome ${outcome}`;
+            el.style.display = 'block';
+        }
+
+        function hideOutcome() {
+            document.getElementById('outcome').style.display = 'none';
+        }
+
         function clearStoryText() {
             const textEl = document.getElementById('liveStoryText');
             const index = sessionState ? sessionState.current_round.story_index : null;
@@ -1029,7 +1061,6 @@
                             <strong>${escapeHtml(story.title)}</strong>
                         </div>
                         <div class="story-actions">
-                            <button onclick="event.stopPropagation(); editStory(${i})">Edit</button>
                             <button onclick="event.stopPropagation(); removeStory(${i})">Remove</button>
                         </div>
                     </li>
@@ -1047,8 +1078,8 @@
             formDirty = false;
 
             const panel = document.getElementById('storyEditPanel');
-            panel.style.display = '';
-            document.getElementById('storyFormTitle').textContent = 'Edit Story';
+            panel.open = true;
+            document.getElementById('storyFormTitle').textContent = 'Edit: ' + story.title;
             document.getElementById('saveStoryBtn').textContent = 'Update';
             document.getElementById('saveStoryBtn').disabled = true;
             document.getElementById('removeStoryBtn').style.display = '';
@@ -1063,7 +1094,7 @@
             document.getElementById('storyText').value = '';
 
             const panel = document.getElementById('storyEditPanel');
-            panel.style.display = '';
+            panel.open = true;
             document.getElementById('storyFormTitle').textContent = 'Add Story';
             document.getElementById('saveStoryBtn').textContent = 'Create';
             document.getElementById('saveStoryBtn').disabled = false;
@@ -1071,6 +1102,9 @@
 
             renderMgmtQueue();
         }
+
+        // Enable import button when textarea has content
+        document.getElementById('importExportJson').addEventListener('input', updateImportBtnState);
 
         // Enable save button on edits
         document.getElementById('storyTitle').addEventListener('input', () => {
@@ -1131,7 +1165,7 @@
             if (editingStoryIndex === null) return;
             if (await customConfirm('Remove this story?')) {
                 client.removeStory(editingStoryIndex);
-                document.getElementById('storyEditPanel').style.display = 'none';
+                document.getElementById('storyEditPanel').open = false;
                 editingStoryIndex = null;
             }
         }
@@ -1149,6 +1183,7 @@
             sessionState.current_round.story_index = index;
             updateSelectedStoryDisplay();
             clearStoryText();
+            editStory(index);
         }
 
         function updateSelectedStoryDisplay() {
@@ -1257,7 +1292,7 @@
             }
         }
 
-        async function exportSession() {
+        function exportSession() {
             if (!sessionState) return;
 
             const exportData = {
@@ -1267,15 +1302,11 @@
 
             const json = JSON.stringify(exportData, null, 2);
             const textarea = document.getElementById('importExportJson');
-            textarea.classList.add('visible');
             textarea.value = json;
+            updateImportBtnState();
 
-            try {
-                await navigator.clipboard.writeText(json);
-                await customAlert('Exported to clipboard');
-            } catch (e) {
-                await customAlert('Export shown below (clipboard unavailable)');
-            }
+            // Silently copy to clipboard if possible
+            try { navigator.clipboard.writeText(json); } catch (e) {}
         }
 
         async function copyHistory() {
@@ -1285,30 +1316,56 @@
             }
 
             const historyJson = JSON.stringify(sessionState.history, null, 2);
-            navigator.clipboard.writeText(historyJson).then(async () => {
+            if (await copyToClipboard(historyJson)) {
                 await customAlert('History copied to clipboard!');
-            }).catch(async err => {
-                console.error('Failed to copy:', err);
-                await customAlert('Failed to copy history');
-            });
+            } else {
+                await customAlert('Copy failed — history logged to console');
+                console.log(historyJson);
+            }
+        }
+
+        async function copyToClipboard(text) {
+            // Try modern API first
+            try {
+                await navigator.clipboard.writeText(text);
+                return true;
+            } catch (e) {}
+            // Fallback: temporary textarea + execCommand
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.left = '-9999px';
+                document.body.appendChild(ta);
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
         }
 
         async function importSession() {
             const textarea = document.getElementById('importExportJson');
-            textarea.classList.add('visible');
-
             const json = textarea.value.trim();
-            if (!json) {
-                await customAlert('Paste JSON into the text area, then click Import again');
-                return;
-            }
+            if (!json) return;
 
             try {
                 const data = JSON.parse(json);
                 client.importSession(data.stories || [], data.config || {});
-                textarea.classList.remove('visible');
+                textarea.value = '';
+                updateImportBtnState();
             } catch (e) {
                 await customAlert('Invalid JSON: ' + e.message);
+            }
+        }
+
+        function updateImportBtnState() {
+            const textarea = document.getElementById('importExportJson');
+            const importBtn = document.getElementById('importBtn');
+            if (importBtn) {
+                importBtn.disabled = !textarea.value.trim();
             }
         }
 

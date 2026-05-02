@@ -152,6 +152,7 @@
         const params = getUrlParams();
         const client = new SpecIdolClient();
         let timer = null;
+        let countdown = null;
         let buzzed = false;
         let timerDuration = 120;
         let myJudgeId = null;
@@ -245,9 +246,10 @@
         });
 
         client.on('countdown_start', (data) => {
-            // Reset judge state (fix: judge interface didn't reset)
+            // Reset judge state fully
             buzzed = false;
             if (timer) timer.stop();
+            if (countdown) countdown.cancel();
 
             document.getElementById('storyTitle').textContent = data.story_title || '';
 
@@ -268,32 +270,54 @@
             headerTimer.style.display = 'flex';
 
             // Start countdown, then activate
-            const countdown = new Countdown('countdown-container', () => {
+            countdown = new Countdown('countdown-container', () => {
                 // Countdown complete — activate buzz button, start timer
+                // (only if round_started hasn't already done so)
                 const button = document.getElementById('buzzButton');
                 if (button && !buzzed) button.disabled = false;
 
-                timer = new Timer(
-                    timerDuration,
-                    (elapsed) => {
-                        document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                    },
-                    () => {
-                        // Timer complete (victory) — fanfare
-                        if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
-                    }
-                );
-                // Start timer from "now" (server will sync via round_start if needed)
-                timer.startTime = Date.now() / 1000;
-                timer.tick();
-                timer.intervalId = setInterval(() => timer.tick(), 100);
+                if (!timer || !timer.intervalId) {
+                    timer = new Timer(
+                        timerDuration,
+                        (elapsed) => {
+                            document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                        },
+                        () => {
+                            if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                        }
+                    );
+                    timer.startTime = Date.now() / 1000;
+                    timer.tick();
+                    timer.intervalId = setInterval(() => timer.tick(), 100);
+                }
             });
             countdown.start();
         });
 
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
-            startRound(data);
+
+            // If buzz button exists (from countdown_start), just sync timer
+            const existingBtn = document.getElementById('buzzButton');
+            if (existingBtn) {
+                // Enable button if not already buzzed
+                if (!buzzed) existingBtn.disabled = false;
+                // Start server-synced timer (supersedes countdown timer)
+                if (timer) timer.stop();
+                timer = new Timer(
+                    timerDuration,
+                    (elapsed) => {
+                        document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                    },
+                    () => {
+                        if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                    }
+                );
+                timer.start(data.start_time || (Date.now() / 1000));
+            } else {
+                // Late join — full setup
+                startRound(data);
+            }
         });
 
         client.on('paused', (data) => {
@@ -346,6 +370,17 @@
 
         client.on('round_ended', (data) => {
             if (timer) timer.stop();
+            if (countdown) countdown.cancel();
+            // Reset UI so judge sees clean state before next round
+            buzzed = false;
+            const button = document.getElementById('buzzButton');
+            if (button) {
+                button.disabled = true;
+                button.innerHTML = 'BUZZ';
+            }
+            document.querySelectorAll('.judge-cell').forEach(cell => {
+                cell.classList.remove('buzzed');
+            });
         });
 
         client.on('round_reset', () => {
@@ -501,6 +536,7 @@
 
         function resetView() {
             if (timer) timer.stop();
+            if (countdown) countdown.cancel();
             buzzed = false;
             document.getElementById('storyTitle').textContent = '';
             document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';

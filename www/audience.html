@@ -80,7 +80,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             font-family: 'Press Start 2P', cursive;
-            font-size: calc(var(--text-display) * 2.5);
+            font-size: calc(var(--text-display) * 3);
             z-index: 100;
             text-align: center;
             line-height: 1.2;
@@ -133,7 +133,7 @@
             }
 
             .outcome {
-                font-size: calc(var(--text-display) * 1.5);
+                font-size: calc(var(--text-display) * 2);
                 width: 90vw;
                 word-break: break-word;
             }
@@ -263,19 +263,21 @@
 
             // Start countdown
             const countdown = new Countdown('countdown-container', () => {
-                // Countdown complete — start timer
-                timer = new Timer(
-                    timerDuration,
-                    (elapsed) => {
-                        document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                    },
-                    () => {
-                        if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
-                    }
-                );
-                timer.startTime = Date.now() / 1000;
-                timer.tick();
-                timer.intervalId = setInterval(() => timer.tick(), 100);
+                // Countdown complete — start timer (only if round_started hasn't already)
+                if (!timer || !timer.intervalId) {
+                    timer = new Timer(
+                        timerDuration,
+                        (elapsed) => {
+                            document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                        },
+                        () => {
+                            if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                        }
+                    );
+                    timer.startTime = Date.now() / 1000;
+                    timer.tick();
+                    timer.intervalId = setInterval(() => timer.tick(), 100);
+                }
             });
             countdown.start();
         });
@@ -291,7 +293,29 @@
 
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
-            startRound(data);
+
+            // Set title if not already set (covers late-joining clients)
+            const titleEl = document.getElementById('storyTitle');
+            if (titleEl.classList.contains('waiting')) {
+                titleEl.textContent = data.title || 'Untitled';
+                titleEl.classList.remove('waiting');
+            }
+
+            // Show and start server-synced timer (supersedes countdown timer)
+            const headerTimer = document.getElementById('headerTimer');
+            headerTimer.style.display = 'flex';
+
+            if (timer) timer.stop();
+            timer = new Timer(
+                timerDuration,
+                (elapsed) => {
+                    document.getElementById('headerTimer').textContent = formatTime(elapsed);
+                },
+                () => {
+                    if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
+                }
+            );
+            timer.start(data.start_time || (Date.now() / 1000));
         });
 
         client.on('paused', (data) => {

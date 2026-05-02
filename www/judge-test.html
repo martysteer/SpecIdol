@@ -203,7 +203,7 @@
                 };
 
                 judge.client.on('session_state', (data) => {
-                    judge.id = data.judge_id;
+                    judge.id = data.client_info ? data.client_info.judge_id : null;
                     if (data.judge_sounds && judge.id !== null) {
                         judge.soundIndex = data.judge_sounds[judge.id];
                     }
@@ -234,6 +234,12 @@
                         }
                     }
                     log(`${judge.name}: Judge #${data.judge_id} buzzed (count: ${data.buzz_count})`);
+                });
+
+                judge.client.on('round_ended', (data) => {
+                    judge.buzzed = false;
+                    log(`${judge.name}: Round ended (${data.outcome})`);
+                    renderJudges();
                 });
 
                 judge.client.on('round_reset', () => {
@@ -267,7 +273,9 @@
 
         function buzzJudge(index) {
             const judge = judges[index];
-            if (!judge || !judge.connected) return;
+            if (!judge || !judge.connected || judge.buzzed) return;
+            judge.buzzed = true;
+            renderJudges();
             judge.client.buzz(judge.id);
             log(`${judge.name}: Buzzing...`);
         }
