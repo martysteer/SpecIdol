@@ -243,6 +243,85 @@ input:focus, textarea:focus, select:focus {
     }
 }
 
+/* Countdown animation */
+@keyframes countdownPulse {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    40% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+    60% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1.0); opacity: 1; }
+}
+
+.countdown-number {
+    font-family: 'Press Start 2P', cursive;
+    font-size: 8rem;
+    color: var(--neon-yellow);
+    text-shadow: 0 0 20px var(--neon-yellow), 0 0 40px var(--neon-yellow);
+    text-align: center;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+/* Timer in header */
+.header-timer {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    color: var(--neon-green);
+    text-shadow: 0 0 10px var(--neon-green);
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+/* QR code overlay */
+.qr-overlay {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid var(--neon-green);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 0 20px var(--neon-green);
+    z-index: 500;
+}
+
+.qr-overlay img {
+    display: block;
+}
+
+.qr-overlay.hidden {
+    display: none;
+}
+
+.qr-fallback {
+    font-family: 'Press Start 2P', cursive;
+    font-size: var(--text-body);
+    color: var(--neon-yellow);
+    padding: 1rem;
+}
+
+@media (max-width: 900px) {
+    .countdown-number {
+        font-size: 4rem;
+    }
+
+    .header-timer {
+        font-size: 1.5rem;
+        padding: 0 0.5rem;
+    }
+
+    .qr-overlay {
+        bottom: 0.5rem;
+        right: 0.5rem;
+        padding: 0.5rem;
+    }
+}
+
 /* Accessibility: Respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
     *,

@@ -87,6 +87,13 @@ class SpecIdolClient {
     }
 
     handleMessage(message) {
+        // Store judge_sounds from session_state and judge_joined
+        if (message.type === 'session_state' || message.type === 'judge_joined') {
+            if (message.data.judge_sounds) {
+                this.judgeSounds = message.data.judge_sounds;
+            }
+        }
+
         const handler = this.messageHandlers[message.type];
         if (handler) {
             handler(message.data);
@@ -358,4 +365,99 @@ function escapeHtml(str) {
     const div = document.createElement('div');
     div.textContent = str;
     return div.innerHTML;
+}
+
+// --- QR Code generation helpers ---
+
+function generateQRCode(text, size) {
+    size = size || 200;
+    try {
+        if (typeof qrcode === 'undefined') {
+            console.error('QR code library not loaded');
+            return null;
+        }
+        var qr = qrcode(0, 'M');
+        qr.addData(text);
+        qr.make();
+        var cellSize = Math.max(1, Math.floor(size / qr.getModuleCount()));
+        return qr.createDataURL(cellSize);
+    } catch (e) {
+        console.error('QR generation failed:', e);
+        return null;
+    }
+}
+
+function createQRElement(url, sessionCode, size) {
+    size = size || 200;
+    var container = document.createElement('div');
+    container.className = 'qr-code';
+
+    var dataURL = generateQRCode(url, size);
+    if (dataURL) {
+        var img = document.createElement('img');
+        img.src = dataURL;
+        img.alt = 'Scan to join session ' + sessionCode;
+        img.width = size;
+        img.height = size;
+        container.appendChild(img);
+    } else {
+        var fallback = document.createElement('div');
+        fallback.className = 'qr-fallback';
+        fallback.textContent = 'Session: ' + sessionCode;
+        container.appendChild(fallback);
+    }
+    return container;
+}
+
+// --- Countdown (3-2-1-GO) ---
+
+class Countdown {
+    constructor(containerId, onComplete) {
+        this.container = document.getElementById(containerId);
+        this.onComplete = onComplete;
+        this.currentNumber = 3;
+        this.prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.cancelled = false;
+    }
+
+    start() {
+        if (!this.container) return;
+        this.cancelled = false;
+        this.showNumber(this.currentNumber);
+    }
+
+    cancel() {
+        this.cancelled = true;
+        if (this.container) this.container.innerHTML = '';
+    }
+
+    showNumber(num) {
+        if (this.cancelled || !this.container) return;
+
+        var display = document.createElement('div');
+        display.className = 'countdown-number';
+        display.textContent = num === 0 ? 'GO!' : num;
+        display.setAttribute('aria-live', 'polite');
+
+        this.container.innerHTML = '';
+        this.container.appendChild(display);
+
+        if (!this.prefersReducedMotion) {
+            display.style.animation = 'countdownPulse 0.9s ease-in-out';
+        }
+
+        var delay = num === 0 ? 300 : 1000;
+        var self = this;
+
+        setTimeout(function() {
+            if (self.cancelled) return;
+            if (num > 0) {
+                self.currentNumber--;
+                self.showNumber(self.currentNumber);
+            } else {
+                self.container.innerHTML = '';
+                if (self.onComplete) self.onComplete();
+            }
+        }, delay);
+    }
 }
