@@ -39,7 +39,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 2rem;
-            margin-bottom: 2rem;
             align-items: start;
         }
 
@@ -73,6 +72,11 @@
 
         .category-label:first-child {
             margin-top: 0;
+        }
+
+        .category-label.combo-label {
+            color: var(--neon-yellow);
+            text-shadow: 0 0 8px var(--neon-yellow);
         }
 
         .preset-grid {
@@ -114,6 +118,20 @@
 
         .preset-btn.stacked.active {
             box-shadow: 0 0 15px var(--neon-magenta), 0 0 15px var(--neon-green);
+        }
+
+        /* Stack preset (combo) buttons */
+        .preset-btn.combo {
+            border-color: var(--neon-yellow);
+            color: var(--neon-yellow);
+        }
+        .preset-btn.combo:hover {
+            background: rgba(255, 255, 0, 0.1);
+            box-shadow: 0 0 10px var(--neon-yellow);
+        }
+        .preset-btn.combo.active {
+            box-shadow: 0 0 15px var(--neon-yellow), inset 0 0 10px rgba(255, 255, 0, 0.15);
+            background: rgba(255, 255, 0, 0.1);
         }
 
         /* Auto-stack toggle */
@@ -188,11 +206,37 @@
             opacity: 0.7;
         }
 
-        /* Right column: play + controls + export stacked */
+        /* Right column: controls + stack */
         .right-col {
             display: flex;
             flex-direction: column;
             gap: 1.5rem;
+        }
+
+        /* Collapsible controls */
+        .controls-header {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            user-select: none;
+            margin-bottom: 1rem;
+        }
+        .controls-header .toggle-arrow {
+            transition: transform 0.2s;
+            font-size: var(--text-body);
+        }
+        .controls-section.collapsed .controls-grid {
+            display: none;
+        }
+        .controls-section.collapsed .controls-header {
+            margin-bottom: 0;
+        }
+        .controls-section.collapsed .toggle-arrow {
+            transform: rotate(0deg);
+        }
+        .controls-section:not(.collapsed) .toggle-arrow {
+            transform: rotate(90deg);
         }
 
         /* Controls */
@@ -241,6 +285,7 @@
             flex-wrap: wrap;
             gap: 1rem;
             align-items: center;
+            margin-top: 1rem;
         }
 
         .btn-play {
@@ -303,46 +348,10 @@
             opacity: 1;
         }
 
-        /* Existing sounds row */
-        .existing-sounds {
-            border: 2px solid var(--neon-green);
-            padding: 1.5rem;
-        }
-
-        .existing-label {
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-caption);
-            color: var(--neon-green);
-            opacity: 0.7;
-            margin-bottom: 0.5rem;
-        }
-
-        .existing-btns {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        .btn-existing {
-            background: var(--black);
-            color: var(--neon-green);
-            border: 1px solid var(--neon-green);
-            padding: 0.4rem 0.75rem;
-            font-family: 'Courier New', monospace;
-            font-size: var(--text-caption);
-            cursor: pointer;
-        }
-
-        .btn-existing:hover {
-            background: rgba(0, 255, 0, 0.1);
-            box-shadow: 0 0 8px var(--neon-green);
-        }
-
         /* Stack section */
         .stack-section {
             border: 2px solid var(--neon-magenta);
             padding: 1.5rem;
-            margin-bottom: 2rem;
         }
 
         .stack-section .section-title {
@@ -355,26 +364,6 @@
             gap: 0.75rem;
             align-items: center;
             margin-bottom: 1rem;
-        }
-
-        .btn-add-layer {
-            background: var(--black);
-            color: var(--neon-magenta);
-            border: 2px solid var(--neon-magenta);
-            padding: 0.5rem 1rem;
-            font-family: 'Press Start 2P', cursive;
-            font-size: var(--text-caption);
-            cursor: pointer;
-        }
-
-        .btn-add-layer:hover {
-            box-shadow: 0 0 15px var(--neon-magenta);
-            background: rgba(255, 0, 255, 0.1);
-        }
-
-        .btn-add-layer:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
         }
 
         .btn-play-stack {
@@ -573,17 +562,13 @@
                 <div class="preset-scroll" id="presetContainer"></div>
             </div>
 
-            <!-- Right: Play + Controls + Export -->
+            <!-- Right: Controls + Stack -->
             <div class="right-col">
-                <div class="section">
-                    <div class="action-bar">
-                        <button class="btn-play" onclick="playCurrentSound()">PLAY</button>
-                        <button class="btn-export" onclick="exportCode()">EXPORT CODE</button>
+                <div class="section controls-section collapsed" id="controlsSection">
+                    <div class="controls-header" onclick="toggleControls()">
+                        <span class="toggle-arrow">&#9654;</span>
+                        <div class="section-title" style="margin-bottom:0">CONTROLS</div>
                     </div>
-                </div>
-
-                <div class="section">
-                    <div class="section-title">CONTROLS</div>
                     <div class="controls-grid">
                         <div class="control-row">
                             <label class="control-label">
@@ -685,34 +670,19 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Sound Stack -->
-        <div class="stack-section">
-            <div class="section-title">SOUND STACK</div>
-            <div class="stack-header">
-                <button class="btn-add-layer" id="btnAddLayer" onclick="addLayer()">+ ADD LAYER</button>
-                <button class="btn-play-stack" id="btnPlayStack" onclick="playStack()" disabled>PLAY STACK</button>
-                <button class="btn-export-stack" id="btnExportStack" onclick="exportStack()" disabled>EXPORT STACK</button>
-                <button class="btn-clear-stack" id="btnClearStack" onclick="clearStack()">CLEAR</button>
-            </div>
-            <div id="stackLayers">
-                <div class="stack-empty">No layers. Set up a sound above, then click + ADD LAYER to stack it.</div>
-            </div>
-        </div>
-
-        <!-- Existing sounds comparison -->
-        <div class="existing-sounds">
-            <div class="existing-label">Existing Sounds (click to load + add to stack):</div>
-            <div class="existing-btns">
-                <button class="btn-existing" onclick="loadExisting('Buzz 0 (Current)')">Buzz 0</button>
-                <button class="btn-existing" onclick="loadExisting('Buzz 1 (Current)')">Buzz 1</button>
-                <button class="btn-existing" onclick="loadExisting('Buzz 2 (Current)')">Buzz 2</button>
-                <button class="btn-existing" onclick="loadExisting('Buzz 3 (Current)')">Buzz 3</button>
-                <button class="btn-existing" onclick="loadExisting('Buzz 4 (Current)')">Buzz 4</button>
-                <button class="btn-existing" onclick="loadExisting('Ahooga')">Ahooga</button>
-                <button class="btn-existing" onclick="loadExisting('Fanfare')">Fanfare</button>
+                <!-- Sound Stack -->
+                <div class="stack-section">
+                    <div class="section-title">SOUND STACK</div>
+                    <div class="stack-header" id="stackHeader">
+                        <button class="btn-play-stack" id="btnPlayStack" onclick="playStack()" disabled>PLAY STACK</button>
+                        <button class="btn-export-stack" id="btnExportStack" onclick="exportStackOrSingle()" disabled>EXPORT</button>
+                        <button class="btn-clear-stack" id="btnClearStack" onclick="clearStack()">CLEAR</button>
+                    </div>
+                    <div id="stackLayers">
+                        <div class="stack-empty">Click a preset to load a sound.</div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -1254,9 +1224,164 @@
             }
         };
 
+        // --- Stack Presets (multi-layer combos) ---
+        var STACK_PRESETS = {
+            'Final Combo': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Buzz 0', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.2, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Buzz 1', params: { osc1Type:'square', osc1Freq:180, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.2, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 50 },
+                    { name: 'Buzz 2', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'square', osc2Freq:200, volume:0.3, duration:0.2, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 100 },
+                    { name: 'Ahooga', params: { osc1Type:'sawtooth', osc1Freq:400, osc2Type:'off', osc2Freq:220, volume:0.5, duration:0.8, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 250 }
+                ]
+            },
+            'Victory Fanfare': {
+                category: 'Combos',
+                layers: [
+                    { name: 'C4', params: { osc1Type:'sawtooth', osc1Freq:262, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.35, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'E4', params: { osc1Type:'sawtooth', osc1Freq:330, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.35, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 350 },
+                    { name: 'G4', params: { osc1Type:'sawtooth', osc1Freq:392, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.35, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 700 },
+                    { name: 'C5', params: { osc1Type:'sawtooth', osc1Freq:523, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.35, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 1050 }
+                ]
+            },
+            'Ahooga Horn': {
+                category: 'Combos',
+                layers: [
+                    { name: 'High', params: { osc1Type:'sawtooth', osc1Freq:400, osc2Type:'off', osc2Freq:220, volume:0.5, duration:0.4, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Low', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'off', osc2Freq:220, volume:0.5, duration:0.4, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 400 }
+                ]
+            },
+            'Chaos Stack': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Foghorn', params: { osc1Type:'sawtooth', osc1Freq:80, osc2Type:'sawtooth', osc2Freq:82, volume:0.4, duration:1.5, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Feedback Screech', params: { osc1Type:'sawtooth', osc1Freq:3500, osc2Type:'off', osc2Freq:220, volume:0.3, duration:1.0, distortion:300, filterFreq:3500, filterQ:40, detune:0 }, delay: 200 },
+                    { name: 'Alarm Clock', params: { osc1Type:'square', osc1Freq:2500, osc2Type:'square', osc2Freq:2510, volume:0.3, duration:1.0, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 400 }
+                ]
+            },
+            'Doom Chord': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Root', params: { osc1Type:'sawtooth', osc1Freq:55, osc2Type:'square', osc2Freq:55, volume:0.4, duration:1.5, distortion:350, filterFreq:200, filterQ:3, detune:0 }, delay: 0 },
+                    { name: 'Fifth', params: { osc1Type:'sawtooth', osc1Freq:82, osc2Type:'square', osc2Freq:82, volume:0.35, duration:1.5, distortion:300, filterFreq:300, filterQ:3, detune:0 }, delay: 50 },
+                    { name: 'Octave', params: { osc1Type:'sawtooth', osc1Freq:110, osc2Type:'sawtooth', osc2Freq:111, volume:0.3, duration:1.5, distortion:250, filterFreq:400, filterQ:2, detune:0 }, delay: 100 }
+                ]
+            },
+            'Wah Wah Wah': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Wah 1', params: { osc1Type:'sawtooth', osc1Freq:350, osc2Type:'off', osc2Freq:220, volume:0.35, duration:0.4, distortion:50, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Wah 2', params: { osc1Type:'sawtooth', osc1Freq:300, osc2Type:'off', osc2Freq:220, volume:0.35, duration:0.4, distortion:50, filterFreq:1000, filterQ:1, detune:0 }, delay: 400 },
+                    { name: 'Waaaah', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'off', osc2Freq:220, volume:0.4, duration:1.0, distortion:80, filterFreq:600, filterQ:3, detune:0 }, delay: 800 }
+                ]
+            },
+            'Police Siren': {
+                category: 'Combos',
+                layers: [
+                    { name: 'High', params: { osc1Type:'sawtooth', osc1Freq:800, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.5, distortion:80, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Low', params: { osc1Type:'sawtooth', osc1Freq:600, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.5, distortion:80, filterFreq:1000, filterQ:1, detune:0 }, delay: 500 },
+                    { name: 'High 2', params: { osc1Type:'sawtooth', osc1Freq:800, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.5, distortion:80, filterFreq:1000, filterQ:1, detune:0 }, delay: 1000 },
+                    { name: 'Low 2', params: { osc1Type:'sawtooth', osc1Freq:600, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.5, distortion:80, filterFreq:1000, filterQ:1, detune:0 }, delay: 1500 }
+                ]
+            },
+            'Game Over': {
+                category: 'Combos',
+                layers: [
+                    { name: 'G4', params: { osc1Type:'square', osc1Freq:392, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.25, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Eb4', params: { osc1Type:'square', osc1Freq:311, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.25, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 250 },
+                    { name: 'C4', params: { osc1Type:'square', osc1Freq:262, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.25, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 500 },
+                    { name: 'Low C', params: { osc1Type:'square', osc1Freq:131, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.8, distortion:100, filterFreq:500, filterQ:2, detune:0 }, delay: 750 }
+                ]
+            },
+            'Dial-Up Handshake': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Carrier', params: { osc1Type:'sine', osc1Freq:1070, osc2Type:'sine', osc2Freq:1270, volume:0.25, duration:0.4, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Screech', params: { osc1Type:'sine', osc1Freq:2250, osc2Type:'sine', osc2Freq:2100, volume:0.2, duration:0.3, distortion:0, filterFreq:3000, filterQ:3, detune:0 }, delay: 400 },
+                    { name: 'Handshake', params: { osc1Type:'square', osc1Freq:1800, osc2Type:'square', osc2Freq:1400, volume:0.15, duration:0.5, distortion:100, filterFreq:2000, filterQ:2, detune:0 }, delay: 700 }
+                ]
+            },
+            'Boxing Bell': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Ding 1', params: { osc1Type:'triangle', osc1Freq:1200, osc2Type:'sine', osc2Freq:2400, volume:0.35, duration:0.4, distortion:0, filterFreq:2400, filterQ:8, detune:0 }, delay: 0 },
+                    { name: 'Ding 2', params: { osc1Type:'triangle', osc1Freq:1200, osc2Type:'sine', osc2Freq:2400, volume:0.35, duration:0.4, distortion:0, filterFreq:2400, filterQ:8, detune:0 }, delay: 500 },
+                    { name: 'Ding 3', params: { osc1Type:'triangle', osc1Freq:1200, osc2Type:'sine', osc2Freq:2400, volume:0.35, duration:0.4, distortion:0, filterFreq:2400, filterQ:8, detune:0 }, delay: 1000 }
+                ]
+            },
+            'Horror Sting': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Screech', params: { osc1Type:'sawtooth', osc1Freq:3000, osc2Type:'sawtooth', osc2Freq:3150, volume:0.3, duration:0.3, distortion:250, filterFreq:3200, filterQ:12, detune:0 }, delay: 0 },
+                    { name: 'Sub Hit', params: { osc1Type:'sawtooth', osc1Freq:40, osc2Type:'square', osc2Freq:41, volume:0.5, duration:1.0, distortion:300, filterFreq:100, filterQ:5, detune:0 }, delay: 50 },
+                    { name: 'Dissonance', params: { osc1Type:'sawtooth', osc1Freq:311, osc2Type:'square', osc2Freq:466, volume:0.25, duration:1.5, distortion:150, filterFreq:800, filterQ:4, detune:0 }, delay: 200 }
+                ]
+            },
+            'Jackpot': {
+                category: 'Combos',
+                layers: [
+                    { name: 'C5', params: { osc1Type:'square', osc1Freq:523, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'E5', params: { osc1Type:'square', osc1Freq:659, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 150 },
+                    { name: 'G5', params: { osc1Type:'square', osc1Freq:784, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 300 },
+                    { name: 'C6', params: { osc1Type:'square', osc1Freq:1047, osc2Type:'off', osc2Freq:220, volume:0.35, duration:0.5, distortion:0, filterFreq:2000, filterQ:2, detune:0 }, delay: 450 }
+                ]
+            },
+            'Air Raid': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Low Siren', params: { osc1Type:'sawtooth', osc1Freq:300, osc2Type:'off', osc2Freq:220, volume:0.35, duration:1.0, distortion:100, filterFreq:800, filterQ:3, detune:0 }, delay: 0 },
+                    { name: 'High Siren', params: { osc1Type:'sawtooth', osc1Freq:600, osc2Type:'off', osc2Freq:220, volume:0.3, duration:1.0, distortion:100, filterFreq:1200, filterQ:3, detune:0 }, delay: 500 },
+                    { name: 'Rumble', params: { osc1Type:'sawtooth', osc1Freq:60, osc2Type:'sawtooth', osc2Freq:63, volume:0.4, duration:2.0, distortion:200, filterFreq:150, filterQ:3, detune:0 }, delay: 0 }
+                ]
+            },
+            'Countdown Beep': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Beep 3', params: { osc1Type:'sine', osc1Freq:880, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Beep 2', params: { osc1Type:'sine', osc1Freq:880, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 500 },
+                    { name: 'Beep 1', params: { osc1Type:'sine', osc1Freq:880, osc2Type:'off', osc2Freq:220, volume:0.3, duration:0.15, distortion:0, filterFreq:1000, filterQ:1, detune:0 }, delay: 1000 },
+                    { name: 'BUZZ', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'square', osc2Freq:220, volume:0.5, duration:0.8, distortion:200, filterFreq:1000, filterQ:1, detune:0 }, delay: 1500 }
+                ]
+            },
+            'Slot Machine': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Spin', params: { osc1Type:'square', osc1Freq:1000, osc2Type:'square', osc2Freq:1200, volume:0.2, duration:0.1, distortion:0, filterFreq:2000, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Spin 2', params: { osc1Type:'square', osc1Freq:1100, osc2Type:'square', osc2Freq:1300, volume:0.2, duration:0.1, distortion:0, filterFreq:2000, filterQ:1, detune:0 }, delay: 100 },
+                    { name: 'Spin 3', params: { osc1Type:'square', osc1Freq:1200, osc2Type:'square', osc2Freq:1400, volume:0.2, duration:0.1, distortion:0, filterFreq:2000, filterQ:1, detune:0 }, delay: 200 },
+                    { name: 'Win!', params: { osc1Type:'sawtooth', osc1Freq:523, osc2Type:'sawtooth', osc2Freq:659, volume:0.4, duration:0.6, distortion:50, filterFreq:2000, filterQ:2, detune:0 }, delay: 400 }
+                ]
+            },
+            'Inception BWAAAH': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:55, osc2Type:'sawtooth', osc2Freq:56, volume:0.5, duration:2.5, distortion:200, filterFreq:150, filterQ:3, detune:0 }, delay: 0 },
+                    { name: 'Low Mid', params: { osc1Type:'sawtooth', osc1Freq:110, osc2Type:'square', osc2Freq:110, volume:0.4, duration:2.5, distortion:150, filterFreq:300, filterQ:2, detune:0 }, delay: 0 },
+                    { name: 'Presence', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'off', osc2Freq:220, volume:0.3, duration:2.5, distortion:100, filterFreq:600, filterQ:2, detune:0 }, delay: 0 }
+                ]
+            },
+            'UFO Abduction': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Beam Low', params: { osc1Type:'sine', osc1Freq:200, osc2Type:'sine', osc2Freq:203, volume:0.3, duration:2.0, distortion:0, filterFreq:500, filterQ:10, detune:0 }, delay: 0 },
+                    { name: 'Beam Mid', params: { osc1Type:'sine', osc1Freq:600, osc2Type:'sine', osc2Freq:605, volume:0.25, duration:2.0, distortion:0, filterFreq:1200, filterQ:10, detune:0 }, delay: 200 },
+                    { name: 'Beam High', params: { osc1Type:'sine', osc1Freq:1800, osc2Type:'sine', osc2Freq:1807, volume:0.2, duration:2.0, distortion:0, filterFreq:3600, filterQ:10, detune:0 }, delay: 400 }
+                ]
+            },
+            'Drum Roll Hit': {
+                category: 'Combos',
+                layers: [
+                    { name: 'Roll', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:201, volume:0.15, duration:1.0, distortion:400, filterFreq:500, filterQ:1, detune:0 }, delay: 0 },
+                    { name: 'Cymbal', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:5500, volume:0.25, duration:1.0, distortion:300, filterFreq:6000, filterQ:2, detune:0 }, delay: 900 },
+                    { name: 'Hit', params: { osc1Type:'sawtooth', osc1Freq:80, osc2Type:'square', osc2Freq:80, volume:0.5, duration:0.5, distortion:200, filterFreq:200, filterQ:3, detune:0 }, delay: 1000 }
+                ]
+            }
+        };
+
         var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Musical', 'Sci-Fi', 'Nature', 'Industrial', 'Current Game'];
 
         var activePreset = null;
+        var activeComboPreset = null;
         var userInteracted = false;
         var autoStackMode = false;
         var editingLayerIdx = -1; // which stack layer is being edited by controls
@@ -1264,10 +1389,49 @@
         // Track first user interaction for autoplay
         document.addEventListener('click', function() { userInteracted = true; }, { once: true });
 
+        // --- Toggle controls collapse ---
+        window.toggleControls = function() {
+            var section = document.getElementById('controlsSection');
+            section.classList.toggle('collapsed');
+        };
+
         window.toggleAutoStack = function() {
             autoStackMode = document.getElementById('autoStackToggle').checked;
+            if (!autoStackMode) {
+                // Switching to single mode: keep only the first layer (or current sound)
+                if (stackLayers.length > 1) {
+                    stackLayers = [stackLayers[0]];
+                    editingLayerIdx = 0;
+                } else if (stackLayers.length === 0) {
+                    // Create single layer from current controls
+                    var params = getCurrentParams();
+                    var name = activePreset || 'Custom';
+                    stackLayers = [{ name: name, params: params, delay: 0 }];
+                    editingLayerIdx = 0;
+                }
+            }
+            activeComboPreset = null;
+            updateStackUI();
+            renderStack();
             updateStackedHighlights();
         };
+
+        // --- Update stack UI visibility based on mode ---
+        function updateStackUI() {
+            var btnClear = document.getElementById('btnClearStack');
+            var btnPlay = document.getElementById('btnPlayStack');
+            var btnExport = document.getElementById('btnExportStack');
+
+            if (autoStackMode) {
+                btnClear.style.display = '';
+                btnPlay.textContent = 'PLAY STACK';
+                btnExport.textContent = 'EXPORT STACK';
+            } else {
+                btnClear.style.display = 'none';
+                btnPlay.textContent = 'PLAY';
+                btnExport.textContent = 'EXPORT';
+            }
+        }
 
         // --- Build preset UI ---
         function buildPresets() {
@@ -1281,6 +1445,7 @@
                 categorized[cat].push(name);
             });
 
+            // Render normal preset categories
             CATEGORY_ORDER.forEach(function(cat) {
                 if (!categorized[cat] || categorized[cat].length === 0) return;
 
@@ -1303,10 +1468,81 @@
 
                 container.appendChild(grid);
             });
+
+            // Render combo (stack) presets
+            var comboNames = Object.keys(STACK_PRESETS);
+            if (comboNames.length > 0) {
+                var comboLabel = document.createElement('div');
+                comboLabel.className = 'category-label combo-label';
+                comboLabel.textContent = 'Combos';
+                container.appendChild(comboLabel);
+
+                var comboGrid = document.createElement('div');
+                comboGrid.className = 'preset-grid';
+
+                comboNames.forEach(function(name) {
+                    var btn = document.createElement('button');
+                    btn.className = 'preset-btn combo';
+                    btn.textContent = name;
+                    btn.setAttribute('data-combo', name);
+                    btn.onclick = function() { handleComboPresetClick(name); };
+                    comboGrid.appendChild(btn);
+                });
+
+                container.appendChild(comboGrid);
+            }
+        }
+
+        // --- Handle combo preset click ---
+        function handleComboPresetClick(name) {
+            var combo = STACK_PRESETS[name];
+            if (!combo) return;
+
+            // Force auto-stack on
+            autoStackMode = true;
+            document.getElementById('autoStackToggle').checked = true;
+            updateStackUI();
+
+            // Load all layers into stack (replacing whatever was there)
+            stackLayers = [];
+            combo.layers.forEach(function(layer) {
+                stackLayers.push({
+                    name: layer.name,
+                    params: JSON.parse(JSON.stringify(layer.params)),
+                    delay: layer.delay
+                });
+            });
+
+            // Load first layer into controls
+            editingLayerIdx = 0;
+            loadParamsIntoControls(stackLayers[0].params, stackLayers[0].name);
+
+            // Highlight combo button
+            activeComboPreset = name;
+            activePreset = stackLayers[0].name;
+            highlightPreset(null);
+            highlightComboPreset(name);
+
+            renderStack();
+            updateStackedHighlights();
+
+            // Auto-play the whole stack
+            if (userInteracted) playStack();
+        }
+
+        function highlightComboPreset(name) {
+            var comboBtns = document.querySelectorAll('.preset-btn.combo');
+            comboBtns.forEach(function(btn) {
+                var cName = btn.getAttribute('data-combo');
+                btn.classList.toggle('active', cName === name);
+            });
         }
 
         // --- Handle preset click (normal or auto-stack mode) ---
         function handlePresetClick(name) {
+            activeComboPreset = null;
+            highlightComboPreset(null);
+
             if (autoStackMode) {
                 // Toggle: if already in stack, remove it; else add it
                 var existingIdx = findStackLayerByPreset(name);
@@ -1333,7 +1569,12 @@
                 loadPresetIntoControls(name);
                 if (userInteracted) playCurrentSound();
             } else {
+                // Single mode: replace the single layer and auto-play
                 loadPresetIntoControls(name);
+                var params = getCurrentParams();
+                stackLayers = [{ name: name, params: params, delay: 0 }];
+                editingLayerIdx = 0;
+                renderStack();
                 if (userInteracted) playCurrentSound();
             }
             updateStackedHighlights();
@@ -1368,24 +1609,27 @@
             highlightPreset(name);
         }
 
-        // --- Load existing sound into controls + add to stack ---
-        window.loadExisting = function(name) {
-            var p = PRESETS[name];
-            if (!p) return;
-            loadPresetIntoControls(name);
-            // Add to stack
-            if (stackLayers.length < MAX_LAYERS) {
-                var params = getCurrentParams();
-                stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
-                editingLayerIdx = stackLayers.length - 1;
-                renderStack();
-                updateStackedHighlights();
-            }
-            if (userInteracted) playCurrentSound();
-        };
+        // --- Load params object into controls (for combo layers) ---
+        function loadParamsIntoControls(p, name) {
+            activePreset = name || null;
+
+            document.getElementById('ctrl-osc1Type').value = p.osc1Type;
+            document.getElementById('ctrl-osc1Freq').value = freqToSlider(p.osc1Freq, 40, 8000);
+            document.getElementById('ctrl-osc2Type').value = p.osc2Type;
+            document.getElementById('ctrl-osc2Freq').value = freqToSlider(p.osc2Freq, 40, 8000);
+            document.getElementById('ctrl-volume').value = Math.round(p.volume * 100);
+            document.getElementById('ctrl-duration').value = Math.round(p.duration * 10);
+            document.getElementById('ctrl-distortion').value = p.distortion;
+            document.getElementById('ctrl-filterFreq').value = freqToSlider(p.filterFreq, 100, 10000);
+            document.getElementById('ctrl-filterQ').value = Math.round(p.filterQ * 10);
+            document.getElementById('ctrl-detune').value = Math.round(p.detune * 10);
+
+            updateAllDisplays();
+            highlightPreset(name);
+        }
 
         function highlightPreset(name) {
-            var btns = document.querySelectorAll('.preset-btn');
+            var btns = document.querySelectorAll('.preset-btn:not(.combo)');
             btns.forEach(function(btn) {
                 var pName = btn.getAttribute('data-preset');
                 btn.classList.toggle('active', pName === name);
@@ -1395,7 +1639,7 @@
         function updateStackedHighlights() {
             var stackedNames = {};
             stackLayers.forEach(function(l) { stackedNames[l.name] = true; });
-            var btns = document.querySelectorAll('.preset-btn');
+            var btns = document.querySelectorAll('.preset-btn:not(.combo)');
             btns.forEach(function(btn) {
                 var pName = btn.getAttribute('data-preset');
                 btn.classList.toggle('stacked', !!stackedNames[pName]);
@@ -1566,20 +1810,17 @@
         var MAX_LAYERS = 5;
         var stackLayers = []; // [{name, params, delay}]
 
-        window.addLayer = function() {
-            if (stackLayers.length >= MAX_LAYERS) return;
-            var params = getCurrentParams();
-            var name = activePreset || 'Custom';
-            stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
-            editingLayerIdx = stackLayers.length - 1;
-            renderStack();
-            updateStackedHighlights();
-        };
-
         window.removeLayer = function(idx) {
             stackLayers.splice(idx, 1);
             if (editingLayerIdx === idx) editingLayerIdx = -1;
             else if (editingLayerIdx > idx) editingLayerIdx--;
+            // In single mode, if we removed the only layer, re-add from current controls
+            if (!autoStackMode && stackLayers.length === 0) {
+                var params = getCurrentParams();
+                var name = activePreset || 'Custom';
+                stackLayers = [{ name: name, params: params, delay: 0 }];
+                editingLayerIdx = 0;
+            }
             renderStack();
             updateStackedHighlights();
         };
@@ -1593,12 +1834,19 @@
         window.clearStack = function() {
             stackLayers = [];
             editingLayerIdx = -1;
+            activeComboPreset = null;
+            highlightComboPreset(null);
             renderStack();
             updateStackedHighlights();
         };
 
         window.playStack = function() {
             if (stackLayers.length === 0) return;
+            if (!autoStackMode && stackLayers.length === 1) {
+                // Single mode: just play the current sound
+                playSynthSound(stackLayers[0].params);
+                return;
+            }
             stackLayers.forEach(function(layer) {
                 setTimeout(function() {
                     playSynthSound(layer.params);
@@ -1606,18 +1854,25 @@
             });
         };
 
+        // --- Export: single or stacked depending on mode ---
+        window.exportStackOrSingle = function() {
+            if (!autoStackMode || stackLayers.length <= 1) {
+                exportCode();
+            } else {
+                exportStack();
+            }
+        };
+
         function renderStack() {
             var container = document.getElementById('stackLayers');
-            var btnAdd = document.getElementById('btnAddLayer');
             var btnPlay = document.getElementById('btnPlayStack');
             var btnExport = document.getElementById('btnExportStack');
 
-            btnAdd.disabled = stackLayers.length >= MAX_LAYERS;
             btnPlay.disabled = stackLayers.length === 0;
             btnExport.disabled = stackLayers.length === 0;
 
             if (stackLayers.length === 0) {
-                container.innerHTML = '<div class="stack-empty">No layers. Set up a sound above, then click + ADD LAYER to stack it.</div>';
+                container.innerHTML = '<div class="stack-empty">Click a preset to load a sound.</div>';
                 return;
             }
 
@@ -1683,20 +1938,7 @@
             var layer = stackLayers[idx];
             if (!layer) return;
             // Load this layer's params into controls
-            var p = layer.params;
-            activePreset = layer.name;
-            document.getElementById('ctrl-osc1Type').value = p.osc1Type;
-            document.getElementById('ctrl-osc1Freq').value = freqToSlider(p.osc1Freq, 40, 8000);
-            document.getElementById('ctrl-osc2Type').value = p.osc2Type;
-            document.getElementById('ctrl-osc2Freq').value = freqToSlider(p.osc2Freq, 40, 8000);
-            document.getElementById('ctrl-volume').value = Math.round(p.volume * 100);
-            document.getElementById('ctrl-duration').value = Math.round(p.duration * 10);
-            document.getElementById('ctrl-distortion').value = p.distortion;
-            document.getElementById('ctrl-filterFreq').value = freqToSlider(p.filterFreq, 100, 10000);
-            document.getElementById('ctrl-filterQ').value = Math.round(p.filterQ * 10);
-            document.getElementById('ctrl-detune').value = Math.round(p.detune * 10);
-            updateAllDisplays();
-            highlightPreset(layer.name);
+            loadParamsIntoControls(layer.params, layer.name);
             renderStack();
         }
 
@@ -1705,6 +1947,12 @@
             if (editingLayerIdx >= 0 && editingLayerIdx < stackLayers.length) {
                 stackLayers[editingLayerIdx].params = getCurrentParams();
                 stackLayers[editingLayerIdx].name = activePreset || 'Custom';
+                renderStack();
+                updateStackedHighlights();
+            } else if (!autoStackMode && stackLayers.length === 1) {
+                // Single mode: always sync the single layer
+                stackLayers[0].params = getCurrentParams();
+                stackLayers[0].name = activePreset || 'Custom';
                 renderStack();
                 updateStackedHighlights();
             }
@@ -1939,7 +2187,13 @@
         buildPresets();
         setupListeners();
         updateAllDisplays();
+        updateStackUI();
         loadPresetIntoControls('Classic Buzzer');
+        // Initialize single layer in single mode
+        var initParams = getCurrentParams();
+        stackLayers = [{ name: 'Classic Buzzer', params: initParams, delay: 0 }];
+        editingLayerIdx = 0;
+        renderStack();
     })();
     </script>
 </body>
