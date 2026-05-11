@@ -34,9 +34,17 @@
             margin-bottom: 2rem;
         }
 
+        /* Two-column layout */
+        .top-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+            align-items: start;
+        }
+
         /* Sections */
         .section {
-            margin-bottom: 2rem;
             border: 2px solid var(--neon-green);
             padding: 1.5rem;
         }
@@ -49,6 +57,11 @@
         }
 
         /* Preset grid */
+        .preset-scroll {
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
         .category-label {
             font-family: 'Press Start 2P', cursive;
             font-size: var(--text-caption);
@@ -64,8 +77,8 @@
 
         .preset-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 0.5rem;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 0.4rem;
             margin-bottom: 0.75rem;
         }
 
@@ -73,7 +86,7 @@
             background: var(--black);
             color: var(--neon-green);
             border: 2px solid var(--neon-green);
-            padding: 0.5rem 0.75rem;
+            padding: 0.4rem 0.6rem;
             font-family: 'Courier New', monospace;
             font-size: var(--text-caption);
             cursor: pointer;
@@ -92,17 +105,24 @@
             background: rgba(0, 255, 0, 0.1);
         }
 
+        /* Right column: play + controls + export stacked */
+        .right-col {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
         /* Controls */
         .controls-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 1rem 2rem;
+            gap: 0.75rem 1.5rem;
         }
 
         .control-row {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
+            gap: 0.2rem;
         }
 
         .control-label {
@@ -202,9 +222,8 @@
 
         /* Existing sounds row */
         .existing-sounds {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid rgba(0, 255, 0, 0.3);
+            border: 2px solid var(--neon-green);
+            padding: 1.5rem;
         }
 
         .existing-label {
@@ -261,11 +280,17 @@
             body {
                 padding: 1rem;
             }
+            .top-row {
+                grid-template-columns: 1fr;
+            }
             .controls-grid {
                 grid-template-columns: 1fr;
             }
             .preset-grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            .preset-scroll {
+                max-height: none;
             }
             .btn-play {
                 width: 100%;
@@ -287,135 +312,140 @@
         <h1 class="page-title">BUZZ TESTER</h1>
         <div class="page-subtitle">Sound Design Sandbox</div>
 
-        <!-- Presets -->
-        <div class="section">
-            <div class="section-title">PRESETS</div>
-            <div id="presetContainer"></div>
-        </div>
+        <div class="top-row">
+            <!-- Left: Presets -->
+            <div class="section">
+                <div class="section-title">PRESETS</div>
+                <div class="preset-scroll" id="presetContainer"></div>
+            </div>
 
-        <!-- Controls -->
-        <div class="section">
-            <div class="section-title">CONTROLS</div>
-            <div class="controls-grid">
-                <div class="control-row">
-                    <label class="control-label">
-                        Waveform 1
-                        <span class="control-value" id="val-osc1Type"></span>
-                    </label>
-                    <select id="ctrl-osc1Type" aria-label="Waveform 1">
-                        <option value="sine">sine</option>
-                        <option value="square">square</option>
-                        <option value="sawtooth" selected>sawtooth</option>
-                        <option value="triangle">triangle</option>
-                    </select>
+            <!-- Right: Play + Controls + Export -->
+            <div class="right-col">
+                <div class="section">
+                    <div class="action-bar">
+                        <button class="btn-play" onclick="playCurrentSound()">PLAY</button>
+                        <button class="btn-export" onclick="exportCode()">EXPORT CODE</button>
+                    </div>
                 </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Frequency 1
-                        <span class="control-value" id="val-osc1Freq"></span>
-                    </label>
-                    <input type="range" id="ctrl-osc1Freq" min="0" max="1000" value="500"
-                           aria-label="Frequency 1" aria-valuemin="40" aria-valuemax="8000">
-                </div>
+                <div class="section">
+                    <div class="section-title">CONTROLS</div>
+                    <div class="controls-grid">
+                        <div class="control-row">
+                            <label class="control-label">
+                                Waveform 1
+                                <span class="control-value" id="val-osc1Type"></span>
+                            </label>
+                            <select id="ctrl-osc1Type" aria-label="Waveform 1">
+                                <option value="sine">sine</option>
+                                <option value="square">square</option>
+                                <option value="sawtooth" selected>sawtooth</option>
+                                <option value="triangle">triangle</option>
+                            </select>
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Waveform 2
-                        <span class="control-value" id="val-osc2Type"></span>
-                    </label>
-                    <select id="ctrl-osc2Type" aria-label="Waveform 2">
-                        <option value="off" selected>off</option>
-                        <option value="sine">sine</option>
-                        <option value="square">square</option>
-                        <option value="sawtooth">sawtooth</option>
-                        <option value="triangle">triangle</option>
-                    </select>
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Frequency 1
+                                <span class="control-value" id="val-osc1Freq"></span>
+                            </label>
+                            <input type="range" id="ctrl-osc1Freq" min="0" max="1000" value="500"
+                                   aria-label="Frequency 1" aria-valuemin="40" aria-valuemax="8000">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Frequency 2
-                        <span class="control-value" id="val-osc2Freq"></span>
-                    </label>
-                    <input type="range" id="ctrl-osc2Freq" min="0" max="1000" value="500"
-                           aria-label="Frequency 2" aria-valuemin="40" aria-valuemax="8000">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Waveform 2
+                                <span class="control-value" id="val-osc2Type"></span>
+                            </label>
+                            <select id="ctrl-osc2Type" aria-label="Waveform 2">
+                                <option value="off" selected>off</option>
+                                <option value="sine">sine</option>
+                                <option value="square">square</option>
+                                <option value="sawtooth">sawtooth</option>
+                                <option value="triangle">triangle</option>
+                            </select>
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Volume
-                        <span class="control-value" id="val-volume"></span>
-                    </label>
-                    <input type="range" id="ctrl-volume" min="0" max="100" value="30"
-                           aria-label="Volume">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Frequency 2
+                                <span class="control-value" id="val-osc2Freq"></span>
+                            </label>
+                            <input type="range" id="ctrl-osc2Freq" min="0" max="1000" value="500"
+                                   aria-label="Frequency 2" aria-valuemin="40" aria-valuemax="8000">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Duration
-                        <span class="control-value" id="val-duration"></span>
-                    </label>
-                    <input type="range" id="ctrl-duration" min="1" max="30" value="5"
-                           aria-label="Duration">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Volume
+                                <span class="control-value" id="val-volume"></span>
+                            </label>
+                            <input type="range" id="ctrl-volume" min="0" max="100" value="30"
+                                   aria-label="Volume">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Distortion
-                        <span class="control-value" id="val-distortion"></span>
-                    </label>
-                    <input type="range" id="ctrl-distortion" min="0" max="600" value="0"
-                           aria-label="Distortion">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Duration
+                                <span class="control-value" id="val-duration"></span>
+                            </label>
+                            <input type="range" id="ctrl-duration" min="1" max="30" value="5"
+                                   aria-label="Duration">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Filter Freq
-                        <span class="control-value" id="val-filterFreq"></span>
-                    </label>
-                    <input type="range" id="ctrl-filterFreq" min="0" max="1000" value="500"
-                           aria-label="Filter Frequency" aria-valuemin="100" aria-valuemax="10000">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Distortion
+                                <span class="control-value" id="val-distortion"></span>
+                            </label>
+                            <input type="range" id="ctrl-distortion" min="0" max="600" value="0"
+                                   aria-label="Distortion">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Filter Q
-                        <span class="control-value" id="val-filterQ"></span>
-                    </label>
-                    <input type="range" id="ctrl-filterQ" min="1" max="500" value="10"
-                           aria-label="Filter Q">
-                </div>
+                        <div class="control-row">
+                            <label class="control-label">
+                                Filter Freq
+                                <span class="control-value" id="val-filterFreq"></span>
+                            </label>
+                            <input type="range" id="ctrl-filterFreq" min="0" max="1000" value="500"
+                                   aria-label="Filter Frequency" aria-valuemin="100" aria-valuemax="10000">
+                        </div>
 
-                <div class="control-row">
-                    <label class="control-label">
-                        Detune
-                        <span class="control-value" id="val-detune"></span>
-                    </label>
-                    <input type="range" id="ctrl-detune" min="-500" max="500" value="0"
-                           aria-label="Detune">
+                        <div class="control-row">
+                            <label class="control-label">
+                                Filter Q
+                                <span class="control-value" id="val-filterQ"></span>
+                            </label>
+                            <input type="range" id="ctrl-filterQ" min="1" max="500" value="10"
+                                   aria-label="Filter Q">
+                        </div>
+
+                        <div class="control-row">
+                            <label class="control-label">
+                                Detune
+                                <span class="control-value" id="val-detune"></span>
+                            </label>
+                            <input type="range" id="ctrl-detune" min="-500" max="500" value="0"
+                                   aria-label="Detune">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Action bar -->
-        <div class="section">
-            <div class="action-bar">
-                <button class="btn-play" onclick="playCurrentSound()">PLAY</button>
-                <button class="btn-export" onclick="exportCode()">EXPORT CODE</button>
-            </div>
-            <div class="existing-sounds">
-                <div class="existing-label">Existing Sounds (A/B comparison):</div>
-                <div class="existing-btns">
-                    <button class="btn-existing" onclick="playBuzz(0)">Buzz 0</button>
-                    <button class="btn-existing" onclick="playBuzz(1)">Buzz 1</button>
-                    <button class="btn-existing" onclick="playBuzz(2)">Buzz 2</button>
-                    <button class="btn-existing" onclick="playBuzz(3)">Buzz 3</button>
-                    <button class="btn-existing" onclick="playBuzz(4)">Buzz 4</button>
-                    <button class="btn-existing" onclick="playAhooga()">Ahooga</button>
-                    <button class="btn-existing" onclick="playVictoryFanfare()">Fanfare</button>
-                    <button class="btn-existing" onclick="playFinalCombo([0,1,2])">Final Combo</button>
-                </div>
+        <!-- Existing sounds comparison -->
+        <div class="existing-sounds">
+            <div class="existing-label">Existing Sounds (A/B comparison):</div>
+            <div class="existing-btns">
+                <button class="btn-existing" onclick="playBuzz(0)">Buzz 0</button>
+                <button class="btn-existing" onclick="playBuzz(1)">Buzz 1</button>
+                <button class="btn-existing" onclick="playBuzz(2)">Buzz 2</button>
+                <button class="btn-existing" onclick="playBuzz(3)">Buzz 3</button>
+                <button class="btn-existing" onclick="playBuzz(4)">Buzz 4</button>
+                <button class="btn-existing" onclick="playAhooga()">Ahooga</button>
+                <button class="btn-existing" onclick="playVictoryFanfare()">Fanfare</button>
+                <button class="btn-existing" onclick="playFinalCombo([0,1,2])">Final Combo</button>
             </div>
         </div>
     </div>
@@ -428,7 +458,6 @@
         'use strict';
 
         // --- Log-scale helpers ---
-        // Slider 0-1000 maps to log scale between min and max Hz
         function sliderToFreq(sliderVal, minHz, maxHz) {
             var t = sliderVal / 1000;
             return minHz * Math.pow(maxHz / minHz, t);
@@ -440,6 +469,7 @@
 
         // --- Preset definitions ---
         var PRESETS = {
+            // Game Show
             'Classic Buzzer': {
                 category: 'Game Show',
                 osc1Type: 'sawtooth', osc1Freq: 220,
@@ -468,6 +498,29 @@
                 volume: 0.5, duration: 1.0,
                 distortion: 100, filterFreq: 1000, filterQ: 1, detune: 10
             },
+            'Price Is Wrong': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 200,
+                osc2Type: 'sawtooth', osc2Freq: 150,
+                volume: 0.35, duration: 0.8,
+                distortion: 100, filterFreq: 800, filterQ: 3, detune: 0
+            },
+            'Double Dare': {
+                category: 'Game Show',
+                osc1Type: 'square', osc1Freq: 330,
+                osc2Type: 'square', osc2Freq: 440,
+                volume: 0.3, duration: 0.4,
+                distortion: 80, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Jeopardy Fail': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 280,
+                osc2Type: 'triangle', osc2Freq: 140,
+                volume: 0.35, duration: 0.7,
+                distortion: 120, filterFreq: 600, filterQ: 2, detune: 0
+            },
+
+            // Emergency/Alarm
             'EAS Alert': {
                 category: 'Emergency/Alarm',
                 osc1Type: 'sine', osc1Freq: 853,
@@ -496,6 +549,29 @@
                 volume: 0.3, duration: 1.0,
                 distortion: 300, filterFreq: 3500, filterQ: 40, detune: 0
             },
+            'Nuclear Meltdown': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sawtooth', osc1Freq: 440,
+                osc2Type: 'square', osc2Freq: 443,
+                volume: 0.4, duration: 2.0,
+                distortion: 250, filterFreq: 500, filterQ: 5, detune: 3
+            },
+            'Submarine Dive': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sine', osc1Freq: 600,
+                osc2Type: 'sine', osc2Freq: 602,
+                volume: 0.35, duration: 1.5,
+                distortion: 0, filterFreq: 800, filterQ: 8, detune: 0
+            },
+            'Fire Station': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sawtooth', osc1Freq: 700,
+                osc2Type: 'sawtooth', osc2Freq: 900,
+                volume: 0.3, duration: 1.0,
+                distortion: 80, filterFreq: 1200, filterQ: 3, detune: 0
+            },
+
+            // Retro Tech
             'Dial-Up Modem': {
                 category: 'Retro Tech',
                 osc1Type: 'sine', osc1Freq: 1070,
@@ -517,6 +593,43 @@
                 volume: 0.3, duration: 0.5,
                 distortion: 500, filterFreq: 1000, filterQ: 1, detune: 0
             },
+            'CRT Whine': {
+                category: 'Retro Tech',
+                osc1Type: 'sine', osc1Freq: 7800,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.15, duration: 1.0,
+                distortion: 0, filterFreq: 8000, filterQ: 12, detune: 0
+            },
+            '8-Bit Death': {
+                category: 'Retro Tech',
+                osc1Type: 'square', osc1Freq: 440,
+                osc2Type: 'square', osc2Freq: 415,
+                volume: 0.25, duration: 0.4,
+                distortion: 300, filterFreq: 2000, filterQ: 1, detune: -25
+            },
+            'ZX Spectrum Load': {
+                category: 'Retro Tech',
+                osc1Type: 'square', osc1Freq: 1500,
+                osc2Type: 'square', osc2Freq: 2400,
+                volume: 0.2, duration: 0.6,
+                distortion: 100, filterFreq: 3000, filterQ: 2, detune: 0
+            },
+            'Dot Matrix': {
+                category: 'Retro Tech',
+                osc1Type: 'sawtooth', osc1Freq: 120,
+                osc2Type: 'square', osc2Freq: 360,
+                volume: 0.2, duration: 0.3,
+                distortion: 200, filterFreq: 500, filterQ: 4, detune: 0
+            },
+            'Atari Crash': {
+                category: 'Retro Tech',
+                osc1Type: 'square', osc1Freq: 800,
+                osc2Type: 'sawtooth', osc2Freq: 50,
+                volume: 0.3, duration: 0.5,
+                distortion: 400, filterFreq: 1500, filterQ: 1, detune: 0
+            },
+
+            // Extreme
             'Max Irritation': {
                 category: 'Extreme',
                 osc1Type: 'sawtooth', osc1Freq: 3500,
@@ -545,6 +658,50 @@
                 volume: 0.3, duration: 0.5,
                 distortion: 0, filterFreq: 8000, filterQ: 5, detune: 0
             },
+            'Nail on Glass': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 5000,
+                osc2Type: 'sine', osc2Freq: 5003,
+                volume: 0.25, duration: 0.8,
+                distortion: 350, filterFreq: 5000, filterQ: 25, detune: 0
+            },
+            'Tinnitus': {
+                category: 'Extreme',
+                osc1Type: 'sine', osc1Freq: 6000,
+                osc2Type: 'sine', osc2Freq: 6002,
+                volume: 0.2, duration: 2.0,
+                distortion: 0, filterFreq: 6000, filterQ: 30, detune: 0
+            },
+            'Angle Grinder': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 2800,
+                osc2Type: 'sawtooth', osc2Freq: 2850,
+                volume: 0.3, duration: 1.0,
+                distortion: 500, filterFreq: 3000, filterQ: 8, detune: 0
+            },
+            'Brown Note': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 40,
+                osc2Type: 'square', osc2Freq: 41,
+                volume: 0.6, duration: 2.0,
+                distortion: 400, filterFreq: 100, filterQ: 5, detune: 0
+            },
+            'Skull Splitter': {
+                category: 'Extreme',
+                osc1Type: 'square', osc1Freq: 4500,
+                osc2Type: 'sawtooth', osc2Freq: 4507,
+                volume: 0.3, duration: 0.6,
+                distortion: 600, filterFreq: 4500, filterQ: 30, detune: 0
+            },
+            'Psycho Shower': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 3000,
+                osc2Type: 'sawtooth', osc2Freq: 3150,
+                volume: 0.3, duration: 0.4,
+                distortion: 250, filterFreq: 3200, filterQ: 12, detune: 0
+            },
+
+            // Horns/Bells
             'Foghorn': {
                 category: 'Horns/Bells',
                 osc1Type: 'sawtooth', osc1Freq: 80,
@@ -573,6 +730,80 @@
                 volume: 0.3, duration: 0.3,
                 distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
             },
+            'Train Horn': {
+                category: 'Horns/Bells',
+                osc1Type: 'sawtooth', osc1Freq: 277,
+                osc2Type: 'sawtooth', osc2Freq: 349,
+                volume: 0.5, duration: 1.5,
+                distortion: 50, filterFreq: 600, filterQ: 3, detune: 0
+            },
+            'Tugboat': {
+                category: 'Horns/Bells',
+                osc1Type: 'sawtooth', osc1Freq: 110,
+                osc2Type: 'triangle', osc2Freq: 112,
+                volume: 0.4, duration: 1.2,
+                distortion: 30, filterFreq: 300, filterQ: 4, detune: 0
+            },
+            'Church Bell': {
+                category: 'Horns/Bells',
+                osc1Type: 'triangle', osc1Freq: 800,
+                osc2Type: 'sine', osc2Freq: 1200,
+                volume: 0.3, duration: 1.5,
+                distortion: 0, filterFreq: 2000, filterQ: 6, detune: 0
+            },
+            'Clown Horn': {
+                category: 'Horns/Bells',
+                osc1Type: 'sine', osc1Freq: 400,
+                osc2Type: 'sine', osc2Freq: 504,
+                volume: 0.35, duration: 0.25,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+
+            // Musical/Tonal
+            'Power Chord': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 110,
+                osc2Type: 'sawtooth', osc2Freq: 165,
+                volume: 0.35, duration: 0.8,
+                distortion: 300, filterFreq: 800, filterQ: 2, detune: 0
+            },
+            'Doom Bass': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 55,
+                osc2Type: 'square', osc2Freq: 55,
+                volume: 0.5, duration: 1.0,
+                distortion: 350, filterFreq: 200, filterQ: 3, detune: 0
+            },
+            'Synth Brass': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 440,
+                osc2Type: 'sawtooth', osc2Freq: 441,
+                volume: 0.3, duration: 0.6,
+                distortion: 50, filterFreq: 2000, filterQ: 2, detune: 0
+            },
+            'Reese Bass': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 60,
+                osc2Type: 'sawtooth', osc2Freq: 61,
+                volume: 0.4, duration: 1.5,
+                distortion: 150, filterFreq: 400, filterQ: 5, detune: 0
+            },
+            'Horror Stab': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 800,
+                osc2Type: 'square', osc2Freq: 1131,
+                volume: 0.35, duration: 0.3,
+                distortion: 200, filterFreq: 2000, filterQ: 5, detune: 0
+            },
+            'Wobble Bass': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 80,
+                osc2Type: 'square', osc2Freq: 80,
+                volume: 0.4, duration: 1.0,
+                distortion: 200, filterFreq: 300, filterQ: 12, detune: 0
+            },
+
+            // Current Game Sounds
             'Buzz 0 (Current)': {
                 category: 'Current Game',
                 osc1Type: 'sawtooth', osc1Freq: 220,
@@ -610,9 +841,13 @@
             }
         };
 
-        var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Current Game'];
+        var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Musical', 'Current Game'];
 
         var activePreset = null;
+        var userInteracted = false;
+
+        // Track first user interaction for autoplay
+        document.addEventListener('click', function() { userInteracted = true; }, { once: true });
 
         // --- Build preset UI ---
         function buildPresets() {
@@ -642,7 +877,7 @@
                     btn.className = 'preset-btn';
                     btn.textContent = name;
                     btn.setAttribute('data-preset', name);
-                    btn.onclick = function() { loadPreset(name); };
+                    btn.onclick = function() { loadPreset(name, true); };
                     grid.appendChild(btn);
                 });
 
@@ -651,7 +886,7 @@
         }
 
         // --- Load preset into controls ---
-        function loadPreset(name) {
+        function loadPreset(name, autoplay) {
             var p = PRESETS[name];
             if (!p) return;
 
@@ -670,6 +905,10 @@
 
             updateAllDisplays();
             highlightPreset(name);
+
+            if (autoplay && userInteracted) {
+                playCurrentSound();
+            }
         }
 
         function highlightPreset(name) {
@@ -830,6 +1069,15 @@
             playSynthSound(getCurrentParams());
         };
 
+        // --- Debounced autoplay for slider changes ---
+        var autoplayTimer = null;
+        function scheduleAutoplay() {
+            clearTimeout(autoplayTimer);
+            autoplayTimer = setTimeout(function() {
+                if (userInteracted) playCurrentSound();
+            }, 80);
+        }
+
         // --- Export ---
         window.exportCode = function() {
             var p = getCurrentParams();
@@ -951,7 +1199,17 @@
                     updateDisplay(ctrl.id);
                     activePreset = null;
                     highlightPreset(null);
+                    scheduleAutoplay();
                 });
+                // Also fire on select change (for waveform dropdowns)
+                if (ctrl.tagName === 'SELECT') {
+                    ctrl.addEventListener('change', function() {
+                        updateDisplay(ctrl.id);
+                        activePreset = null;
+                        highlightPreset(null);
+                        scheduleAutoplay();
+                    });
+                }
             });
         }
 
@@ -959,7 +1217,7 @@
         buildPresets();
         setupListeners();
         updateAllDisplays();
-        loadPreset('Classic Buzzer');
+        loadPreset('Classic Buzzer', false);
     })();
     </script>
 </body>
