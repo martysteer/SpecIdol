@@ -255,6 +255,170 @@
             box-shadow: 0 0 8px var(--neon-green);
         }
 
+        /* Stack section */
+        .stack-section {
+            border: 2px solid var(--neon-magenta);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stack-section .section-title {
+            color: var(--neon-magenta);
+        }
+
+        .stack-header {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .btn-add-layer {
+            background: var(--black);
+            color: var(--neon-magenta);
+            border: 2px solid var(--neon-magenta);
+            padding: 0.5rem 1rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-add-layer:hover {
+            box-shadow: 0 0 15px var(--neon-magenta);
+            background: rgba(255, 0, 255, 0.1);
+        }
+
+        .btn-add-layer:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-play-stack {
+            background: var(--neon-magenta);
+            color: var(--black);
+            border: 2px solid var(--neon-magenta);
+            padding: 0.5rem 1.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-play-stack:hover {
+            background: var(--black);
+            color: var(--neon-magenta);
+            box-shadow: 0 0 20px var(--neon-magenta);
+        }
+
+        .btn-play-stack:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-export-stack {
+            background: var(--black);
+            color: var(--neon-yellow);
+            border: 2px solid var(--neon-yellow);
+            padding: 0.5rem 1rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-export-stack:hover {
+            box-shadow: 0 0 15px var(--neon-yellow);
+            background: rgba(255, 255, 0, 0.1);
+        }
+
+        .btn-export-stack:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-clear-stack {
+            background: var(--black);
+            color: var(--neon-red);
+            border: 1px solid var(--neon-red);
+            padding: 0.4rem 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-clear-stack:hover {
+            box-shadow: 0 0 10px var(--neon-red);
+        }
+
+        .stack-empty {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            opacity: 0.5;
+            padding: 1rem 0;
+        }
+
+        .stack-layers {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .stack-layer {
+            border: 1px solid var(--neon-magenta);
+            padding: 0.6rem 0.75rem;
+            display: grid;
+            grid-template-columns: auto 1fr auto auto;
+            gap: 0.75rem;
+            align-items: center;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+        }
+
+        .layer-num {
+            color: var(--neon-magenta);
+            font-weight: bold;
+        }
+
+        .layer-name {
+            color: var(--neon-green);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .layer-delay {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            color: var(--neon-yellow);
+            white-space: nowrap;
+        }
+
+        .layer-delay input[type="range"] {
+            width: 80px;
+            accent-color: var(--neon-magenta);
+        }
+
+        .layer-delay-val {
+            min-width: 4ch;
+            text-align: right;
+        }
+
+        .btn-remove-layer {
+            background: none;
+            color: var(--neon-red);
+            border: 1px solid var(--neon-red);
+            padding: 0.2rem 0.5rem;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .btn-remove-layer:hover {
+            background: var(--neon-red);
+            color: var(--black);
+        }
+
         /* Reduced motion notice */
         .reduced-motion-notice {
             display: none;
@@ -431,6 +595,20 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Sound Stack -->
+        <div class="stack-section">
+            <div class="section-title">SOUND STACK</div>
+            <div class="stack-header">
+                <button class="btn-add-layer" id="btnAddLayer" onclick="addLayer()">+ ADD LAYER</button>
+                <button class="btn-play-stack" id="btnPlayStack" onclick="playStack()" disabled>PLAY STACK</button>
+                <button class="btn-export-stack" id="btnExportStack" onclick="exportStack()" disabled>EXPORT STACK</button>
+                <button class="btn-clear-stack" id="btnClearStack" onclick="clearStack()">CLEAR</button>
+            </div>
+            <div id="stackLayers">
+                <div class="stack-empty">No layers. Set up a sound above, then click + ADD LAYER to stack it.</div>
             </div>
         </div>
 
@@ -802,6 +980,138 @@
                 volume: 0.4, duration: 1.0,
                 distortion: 200, filterFreq: 300, filterQ: 12, detune: 0
             },
+            'Organ Stab': {
+                category: 'Musical',
+                osc1Type: 'sine', osc1Freq: 440,
+                osc2Type: 'sine', osc2Freq: 880,
+                volume: 0.3, duration: 0.3,
+                distortion: 50, filterFreq: 2000, filterQ: 1, detune: 0
+            },
+            'Fifth Drop': {
+                category: 'Musical',
+                osc1Type: 'sawtooth', osc1Freq: 150,
+                osc2Type: 'sawtooth', osc2Freq: 100,
+                volume: 0.4, duration: 0.6,
+                distortion: 250, filterFreq: 400, filterQ: 3, detune: 0
+            },
+
+            // Sci-Fi
+            'Phaser Blast': {
+                category: 'Sci-Fi',
+                osc1Type: 'sawtooth', osc1Freq: 1500,
+                osc2Type: 'sine', osc2Freq: 1800,
+                volume: 0.3, duration: 0.3,
+                distortion: 100, filterFreq: 3000, filterQ: 8, detune: 0
+            },
+            'Warp Drive': {
+                category: 'Sci-Fi',
+                osc1Type: 'sawtooth', osc1Freq: 100,
+                osc2Type: 'sawtooth', osc2Freq: 103,
+                volume: 0.35, duration: 2.0,
+                distortion: 150, filterFreq: 500, filterQ: 10, detune: 0
+            },
+            'Robot Voice': {
+                category: 'Sci-Fi',
+                osc1Type: 'square', osc1Freq: 200,
+                osc2Type: 'square', osc2Freq: 303,
+                volume: 0.25, duration: 0.5,
+                distortion: 300, filterFreq: 800, filterQ: 15, detune: 0
+            },
+            'Laser Zap': {
+                category: 'Sci-Fi',
+                osc1Type: 'sawtooth', osc1Freq: 3000,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.25, duration: 0.15,
+                distortion: 200, filterFreq: 4000, filterQ: 5, detune: 0
+            },
+            'UFO Landing': {
+                category: 'Sci-Fi',
+                osc1Type: 'sine', osc1Freq: 600,
+                osc2Type: 'sine', osc2Freq: 603,
+                volume: 0.3, duration: 2.0,
+                distortion: 0, filterFreq: 1200, filterQ: 15, detune: 0
+            },
+            'Holodeck Error': {
+                category: 'Sci-Fi',
+                osc1Type: 'square', osc1Freq: 1200,
+                osc2Type: 'triangle', osc2Freq: 1800,
+                volume: 0.25, duration: 0.4,
+                distortion: 100, filterFreq: 2500, filterQ: 5, detune: 0
+            },
+
+            // Nature/Animal
+            'Angry Wasp': {
+                category: 'Nature',
+                osc1Type: 'sawtooth', osc1Freq: 180,
+                osc2Type: 'sawtooth', osc2Freq: 183,
+                volume: 0.25, duration: 1.0,
+                distortion: 100, filterFreq: 500, filterQ: 8, detune: 0
+            },
+            'Rattlesnake': {
+                category: 'Nature',
+                osc1Type: 'sawtooth', osc1Freq: 4000,
+                osc2Type: 'sawtooth', osc2Freq: 4100,
+                volume: 0.2, duration: 0.8,
+                distortion: 400, filterFreq: 5000, filterQ: 3, detune: 0
+            },
+            'Thunder Crack': {
+                category: 'Nature',
+                osc1Type: 'sawtooth', osc1Freq: 60,
+                osc2Type: 'sawtooth', osc2Freq: 65,
+                volume: 0.5, duration: 1.5,
+                distortion: 500, filterFreq: 200, filterQ: 2, detune: 0
+            },
+            'Cicada Swarm': {
+                category: 'Nature',
+                osc1Type: 'sine', osc1Freq: 5500,
+                osc2Type: 'sine', osc2Freq: 5504,
+                volume: 0.2, duration: 2.0,
+                distortion: 50, filterFreq: 6000, filterQ: 10, detune: 0
+            },
+
+            // Industrial
+            'Jackhammer': {
+                category: 'Industrial',
+                osc1Type: 'square', osc1Freq: 100,
+                osc2Type: 'sawtooth', osc2Freq: 102,
+                volume: 0.4, duration: 0.8,
+                distortion: 500, filterFreq: 300, filterQ: 3, detune: 0
+            },
+            'Arc Welder': {
+                category: 'Industrial',
+                osc1Type: 'sawtooth', osc1Freq: 3200,
+                osc2Type: 'square', osc2Freq: 3205,
+                volume: 0.25, duration: 0.6,
+                distortion: 450, filterFreq: 3500, filterQ: 12, detune: 0
+            },
+            'Hydraulic Press': {
+                category: 'Industrial',
+                osc1Type: 'sawtooth', osc1Freq: 50,
+                osc2Type: 'triangle', osc2Freq: 52,
+                volume: 0.5, duration: 2.0,
+                distortion: 300, filterFreq: 150, filterQ: 5, detune: 0
+            },
+            'Metal Screech': {
+                category: 'Industrial',
+                osc1Type: 'sawtooth', osc1Freq: 2200,
+                osc2Type: 'sawtooth', osc2Freq: 2207,
+                volume: 0.3, duration: 1.0,
+                distortion: 550, filterFreq: 2500, filterQ: 20, detune: 0
+            },
+            'Steam Vent': {
+                category: 'Industrial',
+                osc1Type: 'sawtooth', osc1Freq: 6000,
+                osc2Type: 'sawtooth', osc2Freq: 6500,
+                volume: 0.2, duration: 0.5,
+                distortion: 100, filterFreq: 7000, filterQ: 2, detune: 0
+            },
+            'Pile Driver': {
+                category: 'Industrial',
+                osc1Type: 'square', osc1Freq: 70,
+                osc2Type: 'sawtooth', osc2Freq: 140,
+                volume: 0.5, duration: 0.3,
+                distortion: 600, filterFreq: 200, filterQ: 4, detune: 0
+            },
 
             // Current Game Sounds
             'Buzz 0 (Current)': {
@@ -841,7 +1151,7 @@
             }
         };
 
-        var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Musical', 'Current Game'];
+        var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Musical', 'Sci-Fi', 'Nature', 'Industrial', 'Current Game'];
 
         var activePreset = null;
         var userInteracted = false;
@@ -1078,7 +1388,197 @@
             }, 80);
         }
 
-        // --- Export ---
+        // --- Sound Stack ---
+        var MAX_LAYERS = 5;
+        var stackLayers = []; // [{name, params, delay}]
+
+        window.addLayer = function() {
+            if (stackLayers.length >= MAX_LAYERS) return;
+            var params = getCurrentParams();
+            var name = activePreset || 'Custom';
+            stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
+            renderStack();
+        };
+
+        window.removeLayer = function(idx) {
+            stackLayers.splice(idx, 1);
+            renderStack();
+        };
+
+        window.updateLayerDelay = function(idx, val) {
+            stackLayers[idx].delay = parseInt(val);
+            var label = document.getElementById('delay-val-' + idx);
+            if (label) label.textContent = val + 'ms';
+        };
+
+        window.clearStack = function() {
+            stackLayers = [];
+            renderStack();
+        };
+
+        window.playStack = function() {
+            if (stackLayers.length === 0) return;
+            stackLayers.forEach(function(layer) {
+                setTimeout(function() {
+                    playSynthSound(layer.params);
+                }, layer.delay);
+            });
+        };
+
+        function renderStack() {
+            var container = document.getElementById('stackLayers');
+            var btnAdd = document.getElementById('btnAddLayer');
+            var btnPlay = document.getElementById('btnPlayStack');
+            var btnExport = document.getElementById('btnExportStack');
+
+            btnAdd.disabled = stackLayers.length >= MAX_LAYERS;
+            btnPlay.disabled = stackLayers.length === 0;
+            btnExport.disabled = stackLayers.length === 0;
+
+            if (stackLayers.length === 0) {
+                container.innerHTML = '<div class="stack-empty">No layers. Set up a sound above, then click + ADD LAYER to stack it.</div>';
+                return;
+            }
+
+            container.innerHTML = '';
+            stackLayers.forEach(function(layer, idx) {
+                var div = document.createElement('div');
+                div.className = 'stack-layer';
+
+                var numSpan = document.createElement('span');
+                numSpan.className = 'layer-num';
+                numSpan.textContent = (idx + 1);
+
+                var nameSpan = document.createElement('span');
+                nameSpan.className = 'layer-name';
+                var summary = layer.name + ' (' + layer.params.osc1Type + ' ' + layer.params.osc1Freq + 'Hz';
+                if (layer.params.osc2Type !== 'off') summary += ' + ' + layer.params.osc2Type + ' ' + layer.params.osc2Freq + 'Hz';
+                summary += ', ' + layer.params.duration + 's)';
+                nameSpan.textContent = summary;
+                nameSpan.title = summary;
+
+                var delayDiv = document.createElement('div');
+                delayDiv.className = 'layer-delay';
+                var delaySlider = document.createElement('input');
+                delaySlider.type = 'range';
+                delaySlider.min = '0';
+                delaySlider.max = '1000';
+                delaySlider.value = layer.delay;
+                delaySlider.setAttribute('aria-label', 'Delay for layer ' + (idx + 1));
+                delaySlider.oninput = (function(i) {
+                    return function() { updateLayerDelay(i, this.value); };
+                })(idx);
+                var delayLabel = document.createElement('span');
+                delayLabel.className = 'layer-delay-val';
+                delayLabel.id = 'delay-val-' + idx;
+                delayLabel.textContent = layer.delay + 'ms';
+                delayDiv.appendChild(delaySlider);
+                delayDiv.appendChild(delayLabel);
+
+                var removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-remove-layer';
+                removeBtn.textContent = 'X';
+                removeBtn.onclick = (function(i) {
+                    return function() { removeLayer(i); };
+                })(idx);
+
+                div.appendChild(numSpan);
+                div.appendChild(nameSpan);
+                div.appendChild(delayDiv);
+                div.appendChild(removeBtn);
+                container.appendChild(div);
+            });
+        }
+
+        // --- Export Stack ---
+        window.exportStack = function() {
+            if (stackLayers.length === 0) return;
+            var needsDistortion = stackLayers.some(function(l) { return l.params.distortion > 0; });
+
+            var lines = ['// Generated by Buzz Tester — Stacked Sound (' + stackLayers.length + ' layers)'];
+            lines.push('function playBuzzStacked(ctx) {');
+            lines.push('    var t = ctx.currentTime;');
+            lines.push('');
+
+            stackLayers.forEach(function(layer, idx) {
+                var p = layer.params;
+                var delayS = (layer.delay / 1000).toFixed(3);
+                var prefix = '    // Layer ' + (idx + 1) + ': ' + layer.name;
+                lines.push(prefix);
+                lines.push('    (function() {');
+                lines.push('        var startTime = t + ' + delayS + ';');
+                lines.push('        var duration = ' + p.duration + ';');
+                lines.push('        var gain = ctx.createGain();');
+                lines.push('        gain.gain.setValueAtTime(0.001, startTime);');
+                lines.push('        gain.gain.exponentialRampToValueAtTime(' + p.volume + ', startTime + 0.005);');
+                lines.push('        gain.gain.setValueAtTime(' + p.volume + ', startTime + duration * 0.8);');
+                lines.push('        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);');
+                lines.push('        gain.connect(ctx.destination);');
+
+                var connectTo = 'gain';
+                if (p.filterQ > 0.5) {
+                    lines.push('        var filter = ctx.createBiquadFilter();');
+                    lines.push('        filter.type = \'bandpass\';');
+                    lines.push('        filter.frequency.value = ' + p.filterFreq + ';');
+                    lines.push('        filter.Q.value = ' + p.filterQ + ';');
+                    lines.push('        filter.connect(gain);');
+                    connectTo = 'filter';
+                }
+                if (p.distortion > 0) {
+                    lines.push('        var ws = ctx.createWaveShaper();');
+                    lines.push('        ws.curve = makeDistortionCurve(' + p.distortion + ');');
+                    lines.push('        ws.oversample = \'4x\';');
+                    lines.push('        ws.connect(' + connectTo + ');');
+                    connectTo = 'ws';
+                }
+
+                lines.push('        var osc1 = ctx.createOscillator();');
+                lines.push('        osc1.type = \'' + p.osc1Type + '\';');
+                lines.push('        osc1.frequency.value = ' + p.osc1Freq + ';');
+                lines.push('        osc1.connect(' + connectTo + ');');
+                lines.push('        osc1.start(startTime);');
+                lines.push('        osc1.stop(startTime + duration);');
+
+                if (p.osc2Type !== 'off') {
+                    lines.push('        var osc2 = ctx.createOscillator();');
+                    lines.push('        osc2.type = \'' + p.osc2Type + '\';');
+                    lines.push('        osc2.frequency.value = ' + (p.osc2Freq + p.detune) + ';');
+                    lines.push('        osc2.connect(' + connectTo + ');');
+                    lines.push('        osc2.start(startTime);');
+                    lines.push('        osc2.stop(startTime + duration);');
+                }
+
+                lines.push('    })();');
+                lines.push('');
+            });
+
+            lines.push('}');
+
+            if (needsDistortion) {
+                lines.push('');
+                lines.push('function makeDistortionCurve(amount) {');
+                lines.push('    var samples = 44100;');
+                lines.push('    var curve = new Float32Array(samples);');
+                lines.push('    var deg = Math.PI / 180;');
+                lines.push('    for (var i = 0; i < samples; i++) {');
+                lines.push('        var x = (i * 2) / samples - 1;');
+                lines.push('        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));');
+                lines.push('    }');
+                lines.push('    return curve;');
+                lines.push('}');
+            }
+
+            var code = lines.join('\n');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(showToast).catch(function() {
+                    fallbackCopy(code);
+                });
+            } else {
+                fallbackCopy(code);
+            }
+        };
+
+        // --- Export Single ---
         window.exportCode = function() {
             var p = getCurrentParams();
             var lines = [
