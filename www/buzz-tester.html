@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buzz Tester - SPECULATIVE IDOL</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet"></noscript>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .page-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-display);
+            color: var(--neon-green);
+            text-shadow: 0 0 20px var(--neon-green);
+            text-align: center;
+            margin-bottom: 0.25rem;
+        }
+
+        .page-subtitle {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-body);
+            color: var(--neon-green);
+            text-align: center;
+            opacity: 0.7;
+            margin-bottom: 2rem;
+        }
+
+        /* Sections */
+        .section {
+            margin-bottom: 2rem;
+            border: 2px solid var(--neon-green);
+            padding: 1.5rem;
+        }
+
+        .section-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-heading);
+            color: var(--neon-green);
+            margin-bottom: 1rem;
+        }
+
+        /* Preset grid */
+        .category-label {
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            color: var(--neon-magenta);
+            text-shadow: 0 0 8px var(--neon-magenta);
+            margin-top: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .category-label:first-child {
+            margin-top: 0;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .preset-btn {
+            background: var(--black);
+            color: var(--neon-green);
+            border: 2px solid var(--neon-green);
+            padding: 0.5rem 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.15s;
+        }
+
+        .preset-btn:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 10px var(--neon-green);
+        }
+
+        .preset-btn.active {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 15px var(--neon-green), inset 0 0 10px rgba(0, 255, 0, 0.15);
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        /* Controls */
+        .controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem 2rem;
+        }
+
+        .control-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .control-label {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            color: var(--neon-green);
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .control-value {
+            color: var(--neon-yellow);
+            font-weight: bold;
+            min-width: 5ch;
+            text-align: right;
+        }
+
+        .control-row select {
+            padding: 0.4rem;
+            font-size: var(--text-caption);
+        }
+
+        .control-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--neon-green);
+            cursor: pointer;
+        }
+
+        /* Action bar */
+        .action-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-play {
+            background: var(--neon-green);
+            color: var(--black);
+            border: 3px solid var(--neon-green);
+            padding: 1rem 2.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-heading);
+            cursor: pointer;
+            animation: playPulse 2s ease-in-out infinite;
+        }
+
+        .btn-play:hover {
+            background: var(--black);
+            color: var(--neon-green);
+            box-shadow: 0 0 30px var(--neon-green);
+        }
+
+        .btn-play:active {
+            transform: scale(0.96);
+        }
+
+        @keyframes playPulse {
+            0%, 100% { box-shadow: 0 0 5px var(--neon-green); }
+            50% { box-shadow: 0 0 20px var(--neon-green), 0 0 40px rgba(0, 255, 0, 0.3); }
+        }
+
+        .btn-export {
+            background: var(--black);
+            color: var(--neon-yellow);
+            border: 2px solid var(--neon-yellow);
+            padding: 0.75rem 1.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-export:hover {
+            box-shadow: 0 0 15px var(--neon-yellow);
+            background: rgba(255, 255, 0, 0.1);
+        }
+
+        .toast {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            background: var(--neon-green);
+            color: var(--black);
+            padding: 0.75rem 1.5rem;
+            font-family: 'Press Start 2P', cursive;
+            font-size: var(--text-caption);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.2s;
+            pointer-events: none;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+
+        /* Existing sounds row */
+        .existing-sounds {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0, 255, 0, 0.3);
+        }
+
+        .existing-label {
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            color: var(--neon-green);
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+        }
+
+        .existing-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .btn-existing {
+            background: var(--black);
+            color: var(--neon-green);
+            border: 1px solid var(--neon-green);
+            padding: 0.4rem 0.75rem;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            cursor: pointer;
+        }
+
+        .btn-existing:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 8px var(--neon-green);
+        }
+
+        /* Reduced motion notice */
+        .reduced-motion-notice {
+            display: none;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .reduced-motion-notice {
+                display: block;
+                text-align: center;
+                padding: 4rem 2rem;
+                font-family: 'Press Start 2P', cursive;
+                font-size: var(--text-body);
+                color: var(--neon-yellow);
+                line-height: 2;
+            }
+            .main-content {
+                display: none;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            body {
+                padding: 1rem;
+            }
+            .controls-grid {
+                grid-template-columns: 1fr;
+            }
+            .preset-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            }
+            .btn-play {
+                width: 100%;
+            }
+            .action-bar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="reduced-motion-notice">
+        Sound tester requires motion/audio.<br>
+        Not available in reduced motion mode.
+    </div>
+
+    <div class="main-content">
+        <h1 class="page-title">BUZZ TESTER</h1>
+        <div class="page-subtitle">Sound Design Sandbox</div>
+
+        <!-- Presets -->
+        <div class="section">
+            <div class="section-title">PRESETS</div>
+            <div id="presetContainer"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="section">
+            <div class="section-title">CONTROLS</div>
+            <div class="controls-grid">
+                <div class="control-row">
+                    <label class="control-label">
+                        Waveform 1
+                        <span class="control-value" id="val-osc1Type"></span>
+                    </label>
+                    <select id="ctrl-osc1Type" aria-label="Waveform 1">
+                        <option value="sine">sine</option>
+                        <option value="square">square</option>
+                        <option value="sawtooth" selected>sawtooth</option>
+                        <option value="triangle">triangle</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Frequency 1
+                        <span class="control-value" id="val-osc1Freq"></span>
+                    </label>
+                    <input type="range" id="ctrl-osc1Freq" min="0" max="1000" value="500"
+                           aria-label="Frequency 1" aria-valuemin="40" aria-valuemax="8000">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Waveform 2
+                        <span class="control-value" id="val-osc2Type"></span>
+                    </label>
+                    <select id="ctrl-osc2Type" aria-label="Waveform 2">
+                        <option value="off" selected>off</option>
+                        <option value="sine">sine</option>
+                        <option value="square">square</option>
+                        <option value="sawtooth">sawtooth</option>
+                        <option value="triangle">triangle</option>
+                    </select>
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Frequency 2
+                        <span class="control-value" id="val-osc2Freq"></span>
+                    </label>
+                    <input type="range" id="ctrl-osc2Freq" min="0" max="1000" value="500"
+                           aria-label="Frequency 2" aria-valuemin="40" aria-valuemax="8000">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Volume
+                        <span class="control-value" id="val-volume"></span>
+                    </label>
+                    <input type="range" id="ctrl-volume" min="0" max="100" value="30"
+                           aria-label="Volume">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Duration
+                        <span class="control-value" id="val-duration"></span>
+                    </label>
+                    <input type="range" id="ctrl-duration" min="1" max="30" value="5"
+                           aria-label="Duration">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Distortion
+                        <span class="control-value" id="val-distortion"></span>
+                    </label>
+                    <input type="range" id="ctrl-distortion" min="0" max="600" value="0"
+                           aria-label="Distortion">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Filter Freq
+                        <span class="control-value" id="val-filterFreq"></span>
+                    </label>
+                    <input type="range" id="ctrl-filterFreq" min="0" max="1000" value="500"
+                           aria-label="Filter Frequency" aria-valuemin="100" aria-valuemax="10000">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Filter Q
+                        <span class="control-value" id="val-filterQ"></span>
+                    </label>
+                    <input type="range" id="ctrl-filterQ" min="1" max="500" value="10"
+                           aria-label="Filter Q">
+                </div>
+
+                <div class="control-row">
+                    <label class="control-label">
+                        Detune
+                        <span class="control-value" id="val-detune"></span>
+                    </label>
+                    <input type="range" id="ctrl-detune" min="-500" max="500" value="0"
+                           aria-label="Detune">
+                </div>
+            </div>
+        </div>
+
+        <!-- Action bar -->
+        <div class="section">
+            <div class="action-bar">
+                <button class="btn-play" onclick="playCurrentSound()">PLAY</button>
+                <button class="btn-export" onclick="exportCode()">EXPORT CODE</button>
+            </div>
+            <div class="existing-sounds">
+                <div class="existing-label">Existing Sounds (A/B comparison):</div>
+                <div class="existing-btns">
+                    <button class="btn-existing" onclick="playBuzz(0)">Buzz 0</button>
+                    <button class="btn-existing" onclick="playBuzz(1)">Buzz 1</button>
+                    <button class="btn-existing" onclick="playBuzz(2)">Buzz 2</button>
+                    <button class="btn-existing" onclick="playBuzz(3)">Buzz 3</button>
+                    <button class="btn-existing" onclick="playBuzz(4)">Buzz 4</button>
+                    <button class="btn-existing" onclick="playAhooga()">Ahooga</button>
+                    <button class="btn-existing" onclick="playVictoryFanfare()">Fanfare</button>
+                    <button class="btn-existing" onclick="playFinalCombo([0,1,2])">Final Combo</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast" id="toast">Copied!</div>
+
+    <script src="sounds.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        // --- Log-scale helpers ---
+        // Slider 0-1000 maps to log scale between min and max Hz
+        function sliderToFreq(sliderVal, minHz, maxHz) {
+            var t = sliderVal / 1000;
+            return minHz * Math.pow(maxHz / minHz, t);
+        }
+
+        function freqToSlider(freq, minHz, maxHz) {
+            return 1000 * Math.log(freq / minHz) / Math.log(maxHz / minHz);
+        }
+
+        // --- Preset definitions ---
+        var PRESETS = {
+            'Classic Buzzer': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 220,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.3,
+                distortion: 200, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Tritone Doom': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 300,
+                osc2Type: 'square', osc2Freq: 424,
+                volume: 0.3, duration: 0.6,
+                distortion: 200, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Wrong Answer': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 250,
+                osc2Type: 'square', osc2Freq: 354,
+                volume: 0.3, duration: 0.5,
+                distortion: 150, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Air Horn': {
+                category: 'Game Show',
+                osc1Type: 'sawtooth', osc1Freq: 500,
+                osc2Type: 'sawtooth', osc2Freq: 510,
+                volume: 0.5, duration: 1.0,
+                distortion: 100, filterFreq: 1000, filterQ: 1, detune: 10
+            },
+            'EAS Alert': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sine', osc1Freq: 853,
+                osc2Type: 'sine', osc2Freq: 960,
+                volume: 0.3, duration: 2.0,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Siren Wail': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sawtooth', osc1Freq: 800,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 2.0,
+                distortion: 100, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Alarm Clock': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'square', osc1Freq: 2500,
+                osc2Type: 'square', osc2Freq: 2510,
+                volume: 0.3, duration: 1.0,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Feedback Screech': {
+                category: 'Emergency/Alarm',
+                osc1Type: 'sawtooth', osc1Freq: 3500,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 1.0,
+                distortion: 300, filterFreq: 3500, filterQ: 40, detune: 0
+            },
+            'Dial-Up Modem': {
+                category: 'Retro Tech',
+                osc1Type: 'sine', osc1Freq: 1070,
+                osc2Type: 'sine', osc2Freq: 1270,
+                volume: 0.3, duration: 0.5,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Fax Screech': {
+                category: 'Retro Tech',
+                osc1Type: 'sine', osc1Freq: 1100,
+                osc2Type: 'sine', osc2Freq: 2100,
+                volume: 0.3, duration: 1.0,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Bitcrushed Buzz': {
+                category: 'Retro Tech',
+                osc1Type: 'square', osc1Freq: 250,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.5,
+                distortion: 500, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Max Irritation': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 3500,
+                osc2Type: 'sawtooth', osc2Freq: 3503,
+                volume: 0.3, duration: 0.5,
+                distortion: 400, filterFreq: 3500, filterQ: 15, detune: 0
+            },
+            'The Exorcist': {
+                category: 'Extreme',
+                osc1Type: 'sawtooth', osc1Freq: 3500,
+                osc2Type: 'square', osc2Freq: 3507,
+                volume: 0.3, duration: 1.0,
+                distortion: 600, filterFreq: 3500, filterQ: 20, detune: 0
+            },
+            'Dental Drill': {
+                category: 'Extreme',
+                osc1Type: 'sine', osc1Freq: 4000,
+                osc2Type: 'sine', osc2Freq: 4200,
+                volume: 0.3, duration: 1.5,
+                distortion: 200, filterFreq: 4000, filterQ: 10, detune: 0
+            },
+            'Mosquito Pulse': {
+                category: 'Extreme',
+                osc1Type: 'sine', osc1Freq: 8000,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.5,
+                distortion: 0, filterFreq: 8000, filterQ: 5, detune: 0
+            },
+            'Foghorn': {
+                category: 'Horns/Bells',
+                osc1Type: 'sawtooth', osc1Freq: 80,
+                osc2Type: 'sawtooth', osc2Freq: 82,
+                volume: 0.4, duration: 1.5,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Ship Bell': {
+                category: 'Horns/Bells',
+                osc1Type: 'triangle', osc1Freq: 1200,
+                osc2Type: 'triangle', osc2Freq: 1205,
+                volume: 0.3, duration: 0.8,
+                distortion: 0, filterFreq: 2400, filterQ: 8, detune: 0
+            },
+            'Klaxon': {
+                category: 'Horns/Bells',
+                osc1Type: 'sawtooth', osc1Freq: 400,
+                osc2Type: 'square', osc2Freq: 400,
+                volume: 0.3, duration: 0.8,
+                distortion: 150, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Bicycle Horn': {
+                category: 'Horns/Bells',
+                osc1Type: 'sine', osc1Freq: 500,
+                osc2Type: 'sine', osc2Freq: 630,
+                volume: 0.3, duration: 0.3,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Buzz 0 (Current)': {
+                category: 'Current Game',
+                osc1Type: 'sawtooth', osc1Freq: 220,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.2,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Buzz 1 (Current)': {
+                category: 'Current Game',
+                osc1Type: 'square', osc1Freq: 180,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.2,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Buzz 2 (Current)': {
+                category: 'Current Game',
+                osc1Type: 'sawtooth', osc1Freq: 200,
+                osc2Type: 'square', osc2Freq: 200,
+                volume: 0.3, duration: 0.2,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Buzz 3 (Current)': {
+                category: 'Current Game',
+                osc1Type: 'triangle', osc1Freq: 240,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.2,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Buzz 4 (Current)': {
+                category: 'Current Game',
+                osc1Type: 'square', osc1Freq: 190,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.3, duration: 0.2,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: -40
+            }
+        };
+
+        var CATEGORY_ORDER = ['Game Show', 'Emergency/Alarm', 'Retro Tech', 'Extreme', 'Horns/Bells', 'Current Game'];
+
+        var activePreset = null;
+
+        // --- Build preset UI ---
+        function buildPresets() {
+            var container = document.getElementById('presetContainer');
+            var categorized = {};
+            CATEGORY_ORDER.forEach(function(cat) { categorized[cat] = []; });
+
+            Object.keys(PRESETS).forEach(function(name) {
+                var cat = PRESETS[name].category;
+                if (!categorized[cat]) categorized[cat] = [];
+                categorized[cat].push(name);
+            });
+
+            CATEGORY_ORDER.forEach(function(cat) {
+                if (!categorized[cat] || categorized[cat].length === 0) return;
+
+                var label = document.createElement('div');
+                label.className = 'category-label';
+                label.textContent = cat;
+                container.appendChild(label);
+
+                var grid = document.createElement('div');
+                grid.className = 'preset-grid';
+
+                categorized[cat].forEach(function(name) {
+                    var btn = document.createElement('button');
+                    btn.className = 'preset-btn';
+                    btn.textContent = name;
+                    btn.setAttribute('data-preset', name);
+                    btn.onclick = function() { loadPreset(name); };
+                    grid.appendChild(btn);
+                });
+
+                container.appendChild(grid);
+            });
+        }
+
+        // --- Load preset into controls ---
+        function loadPreset(name) {
+            var p = PRESETS[name];
+            if (!p) return;
+
+            activePreset = name;
+
+            document.getElementById('ctrl-osc1Type').value = p.osc1Type;
+            document.getElementById('ctrl-osc1Freq').value = freqToSlider(p.osc1Freq, 40, 8000);
+            document.getElementById('ctrl-osc2Type').value = p.osc2Type;
+            document.getElementById('ctrl-osc2Freq').value = freqToSlider(p.osc2Freq, 40, 8000);
+            document.getElementById('ctrl-volume').value = Math.round(p.volume * 100);
+            document.getElementById('ctrl-duration').value = Math.round(p.duration * 10);
+            document.getElementById('ctrl-distortion').value = p.distortion;
+            document.getElementById('ctrl-filterFreq').value = freqToSlider(p.filterFreq, 100, 10000);
+            document.getElementById('ctrl-filterQ').value = Math.round(p.filterQ * 10);
+            document.getElementById('ctrl-detune').value = Math.round(p.detune * 10);
+
+            updateAllDisplays();
+            highlightPreset(name);
+        }
+
+        function highlightPreset(name) {
+            var btns = document.querySelectorAll('.preset-btn');
+            btns.forEach(function(btn) {
+                btn.classList.toggle('active', btn.getAttribute('data-preset') === name);
+            });
+        }
+
+        // --- Read current control values ---
+        function getCurrentParams() {
+            return {
+                osc1Type: document.getElementById('ctrl-osc1Type').value,
+                osc1Freq: Math.round(sliderToFreq(document.getElementById('ctrl-osc1Freq').value, 40, 8000)),
+                osc2Type: document.getElementById('ctrl-osc2Type').value,
+                osc2Freq: Math.round(sliderToFreq(document.getElementById('ctrl-osc2Freq').value, 40, 8000)),
+                volume: document.getElementById('ctrl-volume').value / 100,
+                duration: document.getElementById('ctrl-duration').value / 10,
+                distortion: parseInt(document.getElementById('ctrl-distortion').value),
+                filterFreq: Math.round(sliderToFreq(document.getElementById('ctrl-filterFreq').value, 100, 10000)),
+                filterQ: document.getElementById('ctrl-filterQ').value / 10,
+                detune: document.getElementById('ctrl-detune').value / 10
+            };
+        }
+
+        // --- Display updates ---
+        function updateDisplay(ctrlId) {
+            var el, val;
+            switch (ctrlId) {
+                case 'ctrl-osc1Type':
+                    el = document.getElementById('val-osc1Type');
+                    el.textContent = document.getElementById(ctrlId).value;
+                    break;
+                case 'ctrl-osc1Freq':
+                    el = document.getElementById('val-osc1Freq');
+                    val = Math.round(sliderToFreq(document.getElementById(ctrlId).value, 40, 8000));
+                    el.textContent = val + ' Hz';
+                    document.getElementById(ctrlId).setAttribute('aria-valuenow', val);
+                    break;
+                case 'ctrl-osc2Type':
+                    el = document.getElementById('val-osc2Type');
+                    el.textContent = document.getElementById(ctrlId).value;
+                    break;
+                case 'ctrl-osc2Freq':
+                    el = document.getElementById('val-osc2Freq');
+                    val = Math.round(sliderToFreq(document.getElementById(ctrlId).value, 40, 8000));
+                    el.textContent = val + ' Hz';
+                    document.getElementById(ctrlId).setAttribute('aria-valuenow', val);
+                    break;
+                case 'ctrl-volume':
+                    el = document.getElementById('val-volume');
+                    val = (document.getElementById(ctrlId).value / 100).toFixed(2);
+                    el.textContent = val;
+                    break;
+                case 'ctrl-duration':
+                    el = document.getElementById('val-duration');
+                    val = (document.getElementById(ctrlId).value / 10).toFixed(1);
+                    el.textContent = val + 's';
+                    break;
+                case 'ctrl-distortion':
+                    el = document.getElementById('val-distortion');
+                    el.textContent = document.getElementById(ctrlId).value;
+                    break;
+                case 'ctrl-filterFreq':
+                    el = document.getElementById('val-filterFreq');
+                    val = Math.round(sliderToFreq(document.getElementById(ctrlId).value, 100, 10000));
+                    el.textContent = val + ' Hz';
+                    document.getElementById(ctrlId).setAttribute('aria-valuenow', val);
+                    break;
+                case 'ctrl-filterQ':
+                    el = document.getElementById('val-filterQ');
+                    val = (document.getElementById(ctrlId).value / 10).toFixed(1);
+                    el.textContent = val;
+                    break;
+                case 'ctrl-detune':
+                    el = document.getElementById('val-detune');
+                    val = (document.getElementById(ctrlId).value / 10).toFixed(1);
+                    el.textContent = val + ' Hz';
+                    break;
+            }
+        }
+
+        function updateAllDisplays() {
+            ['ctrl-osc1Type', 'ctrl-osc1Freq', 'ctrl-osc2Type', 'ctrl-osc2Freq',
+             'ctrl-volume', 'ctrl-duration', 'ctrl-distortion',
+             'ctrl-filterFreq', 'ctrl-filterQ', 'ctrl-detune'].forEach(updateDisplay);
+        }
+
+        // --- Distortion curve ---
+        function makeDistortionCurve(amount) {
+            var samples = 44100;
+            var curve = new Float32Array(samples);
+            var deg = Math.PI / 180;
+            for (var i = 0; i < samples; i++) {
+                var x = (i * 2) / samples - 1;
+                curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));
+            }
+            return curve;
+        }
+
+        // --- Synth engine ---
+        window.playSynthSound = function(params) {
+            var ctx = getAudioContext();
+            if (!ctx) return;
+
+            var startTime = ctx.currentTime;
+            var dur = params.duration;
+
+            // Build chain endpoint
+            var masterGain = ctx.createGain();
+            masterGain.gain.setValueAtTime(0.001, startTime);
+            masterGain.gain.exponentialRampToValueAtTime(params.volume, startTime + 0.005);
+            masterGain.gain.setValueAtTime(params.volume, startTime + dur * 0.8);
+            masterGain.gain.exponentialRampToValueAtTime(0.001, startTime + dur);
+            masterGain.connect(ctx.destination);
+
+            // Optional filter
+            var outputNode = masterGain;
+            if (params.filterQ > 0.5) {
+                var filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = params.filterFreq;
+                filter.Q.value = params.filterQ;
+                filter.connect(masterGain);
+                outputNode = filter;
+            }
+
+            // Optional distortion
+            var distortionNode = outputNode;
+            if (params.distortion > 0) {
+                var waveshaper = ctx.createWaveShaper();
+                waveshaper.curve = makeDistortionCurve(params.distortion);
+                waveshaper.oversample = '4x';
+                waveshaper.connect(outputNode);
+                distortionNode = waveshaper;
+            }
+
+            // Oscillator 1
+            var osc1 = ctx.createOscillator();
+            osc1.type = params.osc1Type;
+            osc1.frequency.value = params.osc1Freq;
+            osc1.connect(distortionNode);
+            osc1.start(startTime);
+            osc1.stop(startTime + dur);
+
+            // Oscillator 2
+            if (params.osc2Type !== 'off') {
+                var osc2 = ctx.createOscillator();
+                osc2.type = params.osc2Type;
+                osc2.frequency.value = params.osc2Freq + params.detune;
+                osc2.connect(distortionNode);
+                osc2.start(startTime);
+                osc2.stop(startTime + dur);
+            }
+        };
+
+        window.playCurrentSound = function() {
+            playSynthSound(getCurrentParams());
+        };
+
+        // --- Export ---
+        window.exportCode = function() {
+            var p = getCurrentParams();
+            var lines = [
+                '// Generated by Buzz Tester',
+                'function playBuzzCustom(ctx, startTime, duration) {',
+                '    duration = duration || ' + p.duration + ';'
+            ];
+
+            // Gain
+            lines.push('    var gain = ctx.createGain();');
+            lines.push('    gain.gain.setValueAtTime(0.001, startTime);');
+            lines.push('    gain.gain.exponentialRampToValueAtTime(' + p.volume + ', startTime + 0.005);');
+            lines.push('    gain.gain.setValueAtTime(' + p.volume + ', startTime + duration * 0.8);');
+            lines.push('    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);');
+
+            var connectTo = 'gain';
+
+            // Filter
+            if (p.filterQ > 0.5) {
+                lines.push('    var filter = ctx.createBiquadFilter();');
+                lines.push('    filter.type = \'bandpass\';');
+                lines.push('    filter.frequency.value = ' + p.filterFreq + ';');
+                lines.push('    filter.Q.value = ' + p.filterQ + ';');
+                lines.push('    filter.connect(gain);');
+                connectTo = 'filter';
+            } else {
+                lines.push('    gain.connect(ctx.destination);');
+            }
+
+            // Distortion
+            if (p.distortion > 0) {
+                lines.push('    var waveshaper = ctx.createWaveShaper();');
+                lines.push('    waveshaper.curve = makeDistortionCurve(' + p.distortion + ');');
+                lines.push('    waveshaper.oversample = \'4x\';');
+                lines.push('    waveshaper.connect(' + connectTo + ');');
+                connectTo = 'waveshaper';
+            }
+
+            // Connect gain to destination (if filter present)
+            if (p.filterQ > 0.5) {
+                lines.push('    gain.connect(ctx.destination);');
+            }
+
+            // Osc1
+            lines.push('    var osc1 = ctx.createOscillator();');
+            lines.push('    osc1.type = \'' + p.osc1Type + '\';');
+            lines.push('    osc1.frequency.value = ' + p.osc1Freq + ';');
+            lines.push('    osc1.connect(' + connectTo + ');');
+            lines.push('    osc1.start(startTime);');
+            lines.push('    osc1.stop(startTime + duration);');
+
+            // Osc2
+            if (p.osc2Type !== 'off') {
+                lines.push('    var osc2 = ctx.createOscillator();');
+                lines.push('    osc2.type = \'' + p.osc2Type + '\';');
+                lines.push('    osc2.frequency.value = ' + (p.osc2Freq + p.detune) + ';');
+                lines.push('    osc2.connect(' + connectTo + ');');
+                lines.push('    osc2.start(startTime);');
+                lines.push('    osc2.stop(startTime + duration);');
+            }
+
+            lines.push('}');
+
+            // Add distortion curve helper if needed
+            if (p.distortion > 0) {
+                lines.push('');
+                lines.push('function makeDistortionCurve(amount) {');
+                lines.push('    var samples = 44100;');
+                lines.push('    var curve = new Float32Array(samples);');
+                lines.push('    var deg = Math.PI / 180;');
+                lines.push('    for (var i = 0; i < samples; i++) {');
+                lines.push('        var x = (i * 2) / samples - 1;');
+                lines.push('        curve[i] = ((3 + amount) * x * 20 * deg) / (Math.PI + amount * Math.abs(x));');
+                lines.push('    }');
+                lines.push('    return curve;');
+                lines.push('}');
+            }
+
+            var code = lines.join('\n');
+
+            // Copy to clipboard
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(code).then(showToast).catch(function() {
+                    fallbackCopy(code);
+                });
+            } else {
+                fallbackCopy(code);
+            }
+        };
+
+        function fallbackCopy(text) {
+            var ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                showToast();
+            } catch (e) {
+                alert('Copy failed. Code:\n\n' + text);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function showToast() {
+            var toast = document.getElementById('toast');
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 1500);
+        }
+
+        // --- Event listeners ---
+        function setupListeners() {
+            var controls = document.querySelectorAll('.controls-grid select, .controls-grid input[type="range"]');
+            controls.forEach(function(ctrl) {
+                ctrl.addEventListener('input', function() {
+                    updateDisplay(ctrl.id);
+                    activePreset = null;
+                    highlightPreset(null);
+                });
+            });
+        }
+
+        // --- Init ---
+        buildPresets();
+        setupListeners();
+        updateAllDisplays();
+        loadPreset('Classic Buzzer');
+    })();
+    </script>
+</body>
+</html>
