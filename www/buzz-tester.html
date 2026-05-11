@@ -105,6 +105,89 @@
             background: rgba(0, 255, 0, 0.1);
         }
 
+        .preset-btn.stacked {
+            border-color: var(--neon-magenta);
+            box-shadow: 0 0 10px var(--neon-magenta), inset 0 0 8px rgba(255, 0, 255, 0.15);
+            background: rgba(255, 0, 255, 0.1);
+            color: var(--neon-magenta);
+        }
+
+        .preset-btn.stacked.active {
+            box-shadow: 0 0 15px var(--neon-magenta), 0 0 15px var(--neon-green);
+        }
+
+        /* Auto-stack toggle */
+        .preset-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .auto-stack-toggle {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            font-family: 'Courier New', monospace;
+            font-size: var(--text-caption);
+            color: var(--neon-green);
+            user-select: none;
+        }
+
+        .auto-stack-toggle input[type="checkbox"] {
+            display: none;
+        }
+
+        .toggle-switch {
+            width: 36px;
+            height: 18px;
+            border: 2px solid var(--neon-green);
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: 2px;
+            left: 2px;
+            background: var(--neon-green);
+            transition: all 0.2s;
+        }
+
+        .auto-stack-toggle input:checked ~ .toggle-switch {
+            border-color: var(--neon-magenta);
+        }
+
+        .auto-stack-toggle input:checked ~ .toggle-switch::after {
+            left: 20px;
+            background: var(--neon-magenta);
+        }
+
+        .auto-stack-toggle input:checked ~ .toggle-label {
+            color: var(--neon-magenta);
+        }
+
+        .toggle-label {
+            transition: color 0.2s;
+        }
+
+        /* Editing indicator on stack layer */
+        .stack-layer.editing {
+            border-color: var(--neon-green);
+            box-shadow: 0 0 8px var(--neon-green);
+        }
+
+        .layer-edit-indicator {
+            color: var(--neon-green);
+            font-size: var(--text-caption);
+            font-family: 'Courier New', monospace;
+            opacity: 0.7;
+        }
+
         /* Right column: play + controls + export stacked */
         .right-col {
             display: flex;
@@ -479,7 +562,14 @@
         <div class="top-row">
             <!-- Left: Presets -->
             <div class="section">
-                <div class="section-title">PRESETS</div>
+                <div class="preset-header">
+                    <div class="section-title" style="margin-bottom:0">PRESETS</div>
+                    <label class="auto-stack-toggle">
+                        <input type="checkbox" id="autoStackToggle" onchange="toggleAutoStack()">
+                        <span class="toggle-switch"></span>
+                        <span class="toggle-label">AUTO-STACK</span>
+                    </label>
+                </div>
                 <div class="preset-scroll" id="presetContainer"></div>
             </div>
 
@@ -614,16 +704,15 @@
 
         <!-- Existing sounds comparison -->
         <div class="existing-sounds">
-            <div class="existing-label">Existing Sounds (A/B comparison):</div>
+            <div class="existing-label">Existing Sounds (click to load + add to stack):</div>
             <div class="existing-btns">
-                <button class="btn-existing" onclick="playBuzz(0)">Buzz 0</button>
-                <button class="btn-existing" onclick="playBuzz(1)">Buzz 1</button>
-                <button class="btn-existing" onclick="playBuzz(2)">Buzz 2</button>
-                <button class="btn-existing" onclick="playBuzz(3)">Buzz 3</button>
-                <button class="btn-existing" onclick="playBuzz(4)">Buzz 4</button>
-                <button class="btn-existing" onclick="playAhooga()">Ahooga</button>
-                <button class="btn-existing" onclick="playVictoryFanfare()">Fanfare</button>
-                <button class="btn-existing" onclick="playFinalCombo([0,1,2])">Final Combo</button>
+                <button class="btn-existing" onclick="loadExisting('Buzz 0 (Current)')">Buzz 0</button>
+                <button class="btn-existing" onclick="loadExisting('Buzz 1 (Current)')">Buzz 1</button>
+                <button class="btn-existing" onclick="loadExisting('Buzz 2 (Current)')">Buzz 2</button>
+                <button class="btn-existing" onclick="loadExisting('Buzz 3 (Current)')">Buzz 3</button>
+                <button class="btn-existing" onclick="loadExisting('Buzz 4 (Current)')">Buzz 4</button>
+                <button class="btn-existing" onclick="loadExisting('Ahooga')">Ahooga</button>
+                <button class="btn-existing" onclick="loadExisting('Fanfare')">Fanfare</button>
             </div>
         </div>
     </div>
@@ -1114,6 +1203,20 @@
             },
 
             // Current Game Sounds
+            'Ahooga': {
+                category: 'Current Game',
+                osc1Type: 'sawtooth', osc1Freq: 400,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.5, duration: 0.8,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
+            'Fanfare': {
+                category: 'Current Game',
+                osc1Type: 'sawtooth', osc1Freq: 523,
+                osc2Type: 'off', osc2Freq: 220,
+                volume: 0.4, duration: 0.35,
+                distortion: 0, filterFreq: 1000, filterQ: 1, detune: 0
+            },
             'Buzz 0 (Current)': {
                 category: 'Current Game',
                 osc1Type: 'sawtooth', osc1Freq: 220,
@@ -1155,9 +1258,16 @@
 
         var activePreset = null;
         var userInteracted = false;
+        var autoStackMode = false;
+        var editingLayerIdx = -1; // which stack layer is being edited by controls
 
         // Track first user interaction for autoplay
         document.addEventListener('click', function() { userInteracted = true; }, { once: true });
+
+        window.toggleAutoStack = function() {
+            autoStackMode = document.getElementById('autoStackToggle').checked;
+            updateStackedHighlights();
+        };
 
         // --- Build preset UI ---
         function buildPresets() {
@@ -1187,7 +1297,7 @@
                     btn.className = 'preset-btn';
                     btn.textContent = name;
                     btn.setAttribute('data-preset', name);
-                    btn.onclick = function() { loadPreset(name, true); };
+                    btn.onclick = function() { handlePresetClick(name); };
                     grid.appendChild(btn);
                 });
 
@@ -1195,8 +1305,49 @@
             });
         }
 
+        // --- Handle preset click (normal or auto-stack mode) ---
+        function handlePresetClick(name) {
+            if (autoStackMode) {
+                // Toggle: if already in stack, remove it; else add it
+                var existingIdx = findStackLayerByPreset(name);
+                if (existingIdx >= 0) {
+                    stackLayers.splice(existingIdx, 1);
+                    if (editingLayerIdx === existingIdx) editingLayerIdx = -1;
+                    else if (editingLayerIdx > existingIdx) editingLayerIdx--;
+                    renderStack();
+                } else if (stackLayers.length < MAX_LAYERS) {
+                    var p = PRESETS[name];
+                    if (!p) return;
+                    var params = {
+                        osc1Type: p.osc1Type, osc1Freq: p.osc1Freq,
+                        osc2Type: p.osc2Type, osc2Freq: p.osc2Freq,
+                        volume: p.volume, duration: p.duration,
+                        distortion: p.distortion, filterFreq: p.filterFreq,
+                        filterQ: p.filterQ, detune: p.detune
+                    };
+                    stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
+                    editingLayerIdx = stackLayers.length - 1;
+                    renderStack();
+                }
+                // Always load controls to last clicked
+                loadPresetIntoControls(name);
+                if (userInteracted) playCurrentSound();
+            } else {
+                loadPresetIntoControls(name);
+                if (userInteracted) playCurrentSound();
+            }
+            updateStackedHighlights();
+        }
+
+        function findStackLayerByPreset(name) {
+            for (var i = 0; i < stackLayers.length; i++) {
+                if (stackLayers[i].name === name) return i;
+            }
+            return -1;
+        }
+
         // --- Load preset into controls ---
-        function loadPreset(name, autoplay) {
+        function loadPresetIntoControls(name) {
             var p = PRESETS[name];
             if (!p) return;
 
@@ -1215,16 +1366,39 @@
 
             updateAllDisplays();
             highlightPreset(name);
-
-            if (autoplay && userInteracted) {
-                playCurrentSound();
-            }
         }
+
+        // --- Load existing sound into controls + add to stack ---
+        window.loadExisting = function(name) {
+            var p = PRESETS[name];
+            if (!p) return;
+            loadPresetIntoControls(name);
+            // Add to stack
+            if (stackLayers.length < MAX_LAYERS) {
+                var params = getCurrentParams();
+                stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
+                editingLayerIdx = stackLayers.length - 1;
+                renderStack();
+                updateStackedHighlights();
+            }
+            if (userInteracted) playCurrentSound();
+        };
 
         function highlightPreset(name) {
             var btns = document.querySelectorAll('.preset-btn');
             btns.forEach(function(btn) {
-                btn.classList.toggle('active', btn.getAttribute('data-preset') === name);
+                var pName = btn.getAttribute('data-preset');
+                btn.classList.toggle('active', pName === name);
+            });
+        }
+
+        function updateStackedHighlights() {
+            var stackedNames = {};
+            stackLayers.forEach(function(l) { stackedNames[l.name] = true; });
+            var btns = document.querySelectorAll('.preset-btn');
+            btns.forEach(function(btn) {
+                var pName = btn.getAttribute('data-preset');
+                btn.classList.toggle('stacked', !!stackedNames[pName]);
             });
         }
 
@@ -1397,12 +1571,17 @@
             var params = getCurrentParams();
             var name = activePreset || 'Custom';
             stackLayers.push({ name: name, params: params, delay: stackLayers.length === 0 ? 0 : 100 });
+            editingLayerIdx = stackLayers.length - 1;
             renderStack();
+            updateStackedHighlights();
         };
 
         window.removeLayer = function(idx) {
             stackLayers.splice(idx, 1);
+            if (editingLayerIdx === idx) editingLayerIdx = -1;
+            else if (editingLayerIdx > idx) editingLayerIdx--;
             renderStack();
+            updateStackedHighlights();
         };
 
         window.updateLayerDelay = function(idx, val) {
@@ -1413,7 +1592,9 @@
 
         window.clearStack = function() {
             stackLayers = [];
+            editingLayerIdx = -1;
             renderStack();
+            updateStackedHighlights();
         };
 
         window.playStack = function() {
@@ -1444,18 +1625,24 @@
             stackLayers.forEach(function(layer, idx) {
                 var div = document.createElement('div');
                 div.className = 'stack-layer';
+                if (idx === editingLayerIdx) div.classList.add('editing');
 
                 var numSpan = document.createElement('span');
                 numSpan.className = 'layer-num';
                 numSpan.textContent = (idx + 1);
+                if (idx === editingLayerIdx) numSpan.textContent += '*';
 
                 var nameSpan = document.createElement('span');
                 nameSpan.className = 'layer-name';
+                nameSpan.style.cursor = 'pointer';
                 var summary = layer.name + ' (' + layer.params.osc1Type + ' ' + layer.params.osc1Freq + 'Hz';
                 if (layer.params.osc2Type !== 'off') summary += ' + ' + layer.params.osc2Type + ' ' + layer.params.osc2Freq + 'Hz';
                 summary += ', ' + layer.params.duration + 's)';
                 nameSpan.textContent = summary;
-                nameSpan.title = summary;
+                nameSpan.title = 'Click to edit this layer';
+                nameSpan.onclick = (function(i) {
+                    return function() { selectLayerForEditing(i); };
+                })(idx);
 
                 var delayDiv = document.createElement('div');
                 delayDiv.className = 'layer-delay';
@@ -1488,6 +1675,39 @@
                 div.appendChild(removeBtn);
                 container.appendChild(div);
             });
+        }
+
+        // --- Select layer for editing ---
+        function selectLayerForEditing(idx) {
+            editingLayerIdx = idx;
+            var layer = stackLayers[idx];
+            if (!layer) return;
+            // Load this layer's params into controls
+            var p = layer.params;
+            activePreset = layer.name;
+            document.getElementById('ctrl-osc1Type').value = p.osc1Type;
+            document.getElementById('ctrl-osc1Freq').value = freqToSlider(p.osc1Freq, 40, 8000);
+            document.getElementById('ctrl-osc2Type').value = p.osc2Type;
+            document.getElementById('ctrl-osc2Freq').value = freqToSlider(p.osc2Freq, 40, 8000);
+            document.getElementById('ctrl-volume').value = Math.round(p.volume * 100);
+            document.getElementById('ctrl-duration').value = Math.round(p.duration * 10);
+            document.getElementById('ctrl-distortion').value = p.distortion;
+            document.getElementById('ctrl-filterFreq').value = freqToSlider(p.filterFreq, 100, 10000);
+            document.getElementById('ctrl-filterQ').value = Math.round(p.filterQ * 10);
+            document.getElementById('ctrl-detune').value = Math.round(p.detune * 10);
+            updateAllDisplays();
+            highlightPreset(layer.name);
+            renderStack();
+        }
+
+        // --- Update editing layer when controls change ---
+        function syncEditingLayer() {
+            if (editingLayerIdx >= 0 && editingLayerIdx < stackLayers.length) {
+                stackLayers[editingLayerIdx].params = getCurrentParams();
+                stackLayers[editingLayerIdx].name = activePreset || 'Custom';
+                renderStack();
+                updateStackedHighlights();
+            }
         }
 
         // --- Export Stack ---
@@ -1699,6 +1919,7 @@
                     updateDisplay(ctrl.id);
                     activePreset = null;
                     highlightPreset(null);
+                    syncEditingLayer();
                     scheduleAutoplay();
                 });
                 // Also fire on select change (for waveform dropdowns)
@@ -1707,6 +1928,7 @@
                         updateDisplay(ctrl.id);
                         activePreset = null;
                         highlightPreset(null);
+                        syncEditingLayer();
                         scheduleAutoplay();
                     });
                 }
@@ -1717,7 +1939,7 @@
         buildPresets();
         setupListeners();
         updateAllDisplays();
-        loadPreset('Classic Buzzer', false);
+        loadPresetIntoControls('Classic Buzzer');
     })();
     </script>
 </body>
