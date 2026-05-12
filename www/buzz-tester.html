@@ -1804,6 +1804,183 @@
                 { name: 'Glass', params: { osc1Type:'sine', osc1Freq:6000, osc2Type:'sine', osc2Freq:7500, volume:0.08, duration:0.2, distortion:500, filterFreq:7000, filterQ:5, detune:0 }, delay: 1800 },
                 { name: 'Flatbed', params: { osc1Type:'sawtooth', osc1Freq:150, osc2Type:'square', osc2Freq:155, volume:0.3, duration:2.5, distortion:600, filterFreq:300, filterQ:15, detune:0 }, delay: 0 },
                 { name: 'Final Crush', params: { osc1Type:'sawtooth', osc1Freq:40, osc2Type:'square', osc2Freq:6000, volume:0.5, duration:0.3, distortion:600, filterFreq:3000, filterQ:1, detune:0 }, delay: 2000 }
+            ]},
+
+            // ===== 15-STACK VOICES =====
+            // Formant synthesis: sawtooth glottal source + sine/filtered resonances at F1/F2/F3
+            // Vowel formants (Hz): /ʌ/=640,1200,2400  /ɒ/=600,1000,2400  /u:/=300,870,2250
+            // /ɛ/=530,1850,2500  /i:/=270,2300,3000  /ɑ:/=800,1200,2500  /oʊ/=500,800,2500
+            // Consonants approximated with noise bursts and transients
+
+            'V: BUZZ': { layers: [
+                { name: 'B Burst', params: { osc1Type:'square', osc1Freq:80, osc2Type:'sawtooth', osc2Freq:160, volume:0.4, duration:0.04, distortion:600, filterFreq:200, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:130, osc2Type:'sawtooth', osc2Freq:131, volume:0.3, duration:0.5, distortion:400, filterFreq:300, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:260, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.5, distortion:400, filterFreq:500, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'F1 /ʌ/', params: { osc1Type:'sine', osc1Freq:640, osc2Type:'sine', osc2Freq:645, volume:0.25, duration:0.4, distortion:200, filterFreq:640, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F2 /ʌ/', params: { osc1Type:'sine', osc1Freq:1200, osc2Type:'sine', osc2Freq:1207, volume:0.2, duration:0.4, distortion:200, filterFreq:1200, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F3 /ʌ/', params: { osc1Type:'sine', osc1Freq:2400, osc2Type:'off', osc2Freq:220, volume:0.12, duration:0.4, distortion:200, filterFreq:2400, filterQ:20, detune:0 }, delay: 30 },
+                { name: 'Z Noise', params: { osc1Type:'sawtooth', osc1Freq:4000, osc2Type:'sawtooth', osc2Freq:4500, volume:0.1, duration:0.4, distortion:600, filterFreq:4500, filterQ:5, detune:0 }, delay: 250 },
+                { name: 'Z Buzz', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:207, volume:0.15, duration:0.35, distortion:600, filterFreq:400, filterQ:15, detune:0 }, delay: 250 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:65, osc2Type:'sawtooth', osc2Freq:66, volume:0.35, duration:0.6, distortion:500, filterFreq:100, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit Lo', params: { osc1Type:'square', osc1Freq:130, osc2Type:'square', osc2Freq:137, volume:0.15, duration:0.5, distortion:600, filterFreq:250, filterQ:10, detune:0 }, delay: 30 },
+                { name: 'Grit Mid', params: { osc1Type:'sawtooth', osc1Freq:900, osc2Type:'sawtooth', osc2Freq:913, volume:0.1, duration:0.4, distortion:600, filterFreq:900, filterQ:20, detune:0 }, delay: 30 },
+                { name: 'Nasal', params: { osc1Type:'sine', osc1Freq:390, osc2Type:'sine', osc2Freq:395, volume:0.12, duration:0.4, distortion:300, filterFreq:400, filterQ:20, detune:0 }, delay: 30 },
+                { name: 'Overtone', params: { osc1Type:'sine', osc1Freq:1800, osc2Type:'off', osc2Freq:220, volume:0.08, duration:0.35, distortion:300, filterFreq:1800, filterQ:15, detune:0 }, delay: 50 },
+                { name: 'Air', params: { osc1Type:'sawtooth', osc1Freq:6000, osc2Type:'sawtooth', osc2Freq:7000, volume:0.04, duration:0.5, distortion:600, filterFreq:6500, filterQ:2, detune:0 }, delay: 0 },
+                { name: 'Z Tail', params: { osc1Type:'sawtooth', osc1Freq:3000, osc2Type:'sawtooth', osc2Freq:3500, volume:0.08, duration:0.3, distortion:600, filterFreq:3500, filterQ:8, detune:0 }, delay: 400 }
+            ]},
+            'V: WRONG': { layers: [
+                { name: 'R Onset', params: { osc1Type:'sawtooth', osc1Freq:300, osc2Type:'sawtooth', osc2Freq:320, volume:0.2, duration:0.1, distortion:500, filterFreq:500, filterQ:10, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:110, osc2Type:'sawtooth', osc2Freq:111, volume:0.3, duration:0.6, distortion:500, filterFreq:250, filterQ:3, detune:0 }, delay: 50 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:220, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.6, distortion:500, filterFreq:400, filterQ:3, detune:0 }, delay: 50 },
+                { name: 'F1 /ɒ/', params: { osc1Type:'sine', osc1Freq:600, osc2Type:'sine', osc2Freq:605, volume:0.25, duration:0.5, distortion:300, filterFreq:600, filterQ:25, detune:0 }, delay: 80 },
+                { name: 'F2 /ɒ/', params: { osc1Type:'sine', osc1Freq:1000, osc2Type:'sine', osc2Freq:1007, volume:0.2, duration:0.5, distortion:300, filterFreq:1000, filterQ:25, detune:0 }, delay: 80 },
+                { name: 'F3 /ɒ/', params: { osc1Type:'sine', osc1Freq:2400, osc2Type:'off', osc2Freq:220, volume:0.12, duration:0.5, distortion:200, filterFreq:2400, filterQ:20, detune:0 }, delay: 80 },
+                { name: 'NG Nasal', params: { osc1Type:'sine', osc1Freq:280, osc2Type:'sine', osc2Freq:285, volume:0.2, duration:0.4, distortion:300, filterFreq:300, filterQ:30, detune:0 }, delay: 350 },
+                { name: 'NG Res', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.08, duration:0.3, distortion:200, filterFreq:2500, filterQ:25, detune:0 }, delay: 350 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:55, osc2Type:'sawtooth', osc2Freq:56, volume:0.35, duration:0.8, distortion:600, filterFreq:90, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:110, osc2Type:'square', osc2Freq:117, volume:0.15, duration:0.6, distortion:600, filterFreq:220, filterQ:10, detune:0 }, delay: 50 },
+                { name: 'Dark Mid', params: { osc1Type:'sawtooth', osc1Freq:800, osc2Type:'sawtooth', osc2Freq:811, volume:0.1, duration:0.5, distortion:600, filterFreq:800, filterQ:20, detune:0 }, delay: 80 },
+                { name: 'Growl', params: { osc1Type:'sawtooth', osc1Freq:150, osc2Type:'sawtooth', osc2Freq:155, volume:0.2, duration:0.6, distortion:600, filterFreq:300, filterQ:15, detune:0 }, delay: 50 },
+                { name: 'Descend', params: { osc1Type:'sawtooth', osc1Freq:400, osc2Type:'off', osc2Freq:220, volume:0.12, duration:0.4, distortion:400, filterFreq:600, filterQ:10, detune:0 }, delay: 400 },
+                { name: 'Air', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:6000, volume:0.04, duration:0.6, distortion:600, filterFreq:5500, filterQ:2, detune:0 }, delay: 0 },
+                { name: 'Doom', params: { osc1Type:'sawtooth', osc1Freq:55, osc2Type:'square', osc2Freq:110, volume:0.3, duration:0.5, distortion:600, filterFreq:100, filterQ:8, detune:0 }, delay: 500 }
+            ]},
+            'V: OUT': { layers: [
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:140, osc2Type:'sawtooth', osc2Freq:141, volume:0.3, duration:0.5, distortion:400, filterFreq:300, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:280, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.5, distortion:400, filterFreq:500, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'F1 /aʊ/ A', params: { osc1Type:'sine', osc1Freq:800, osc2Type:'sine', osc2Freq:805, volume:0.25, duration:0.25, distortion:200, filterFreq:800, filterQ:25, detune:0 }, delay: 0 },
+                { name: 'F2 /aʊ/ A', params: { osc1Type:'sine', osc1Freq:1200, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.25, distortion:200, filterFreq:1200, filterQ:25, detune:0 }, delay: 0 },
+                { name: 'F1 /aʊ/ U', params: { osc1Type:'sine', osc1Freq:350, osc2Type:'sine', osc2Freq:355, volume:0.25, duration:0.25, distortion:200, filterFreq:350, filterQ:25, detune:0 }, delay: 200 },
+                { name: 'F2 /aʊ/ U', params: { osc1Type:'sine', osc1Freq:870, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.25, distortion:200, filterFreq:870, filterQ:25, detune:0 }, delay: 200 },
+                { name: 'F3', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.12, duration:0.45, distortion:200, filterFreq:2500, filterQ:20, detune:0 }, delay: 0 },
+                { name: 'T Burst', params: { osc1Type:'square', osc1Freq:3000, osc2Type:'sawtooth', osc2Freq:5000, volume:0.2, duration:0.03, distortion:600, filterFreq:4000, filterQ:3, detune:0 }, delay: 420 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:70, osc2Type:'sawtooth', osc2Freq:71, volume:0.35, duration:0.5, distortion:500, filterFreq:120, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:140, osc2Type:'square', osc2Freq:147, volume:0.15, duration:0.5, distortion:600, filterFreq:280, filterQ:10, detune:0 }, delay: 0 },
+                { name: 'Nasal', params: { osc1Type:'sine', osc1Freq:400, osc2Type:'sine', osc2Freq:405, volume:0.1, duration:0.4, distortion:300, filterFreq:400, filterQ:20, detune:0 }, delay: 0 },
+                { name: 'Bite', params: { osc1Type:'sawtooth', osc1Freq:1800, osc2Type:'sawtooth', osc2Freq:1813, volume:0.08, duration:0.3, distortion:500, filterFreq:1800, filterQ:20, detune:0 }, delay: 0 },
+                { name: 'Crunch', params: { osc1Type:'square', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:3000, volume:0.15, duration:0.05, distortion:600, filterFreq:1500, filterQ:1, detune:0 }, delay: 420 },
+                { name: 'Air', params: { osc1Type:'sawtooth', osc1Freq:5500, osc2Type:'sawtooth', osc2Freq:6500, volume:0.04, duration:0.15, distortion:600, filterFreq:6000, filterQ:2, detune:0 }, delay: 420 },
+                { name: 'Weight', params: { osc1Type:'sawtooth', osc1Freq:50, osc2Type:'square', osc2Freq:100, volume:0.3, duration:0.3, distortion:600, filterFreq:80, filterQ:5, detune:0 }, delay: 300 }
+            ]},
+            'V: BOO': { layers: [
+                { name: 'B Burst', params: { osc1Type:'square', osc1Freq:70, osc2Type:'sawtooth', osc2Freq:140, volume:0.4, duration:0.04, distortion:600, filterFreq:180, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:120, osc2Type:'sawtooth', osc2Freq:121, volume:0.3, duration:0.8, distortion:400, filterFreq:280, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:240, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.8, distortion:400, filterFreq:450, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'F1 /u:/', params: { osc1Type:'sine', osc1Freq:300, osc2Type:'sine', osc2Freq:303, volume:0.3, duration:0.7, distortion:200, filterFreq:300, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F2 /u:/', params: { osc1Type:'sine', osc1Freq:870, osc2Type:'sine', osc2Freq:875, volume:0.2, duration:0.7, distortion:200, filterFreq:870, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F3 /u:/', params: { osc1Type:'sine', osc1Freq:2250, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.7, distortion:200, filterFreq:2250, filterQ:20, detune:0 }, delay: 30 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:60, osc2Type:'sawtooth', osc2Freq:61, volume:0.4, duration:0.9, distortion:500, filterFreq:100, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Chest', params: { osc1Type:'sawtooth', osc1Freq:180, osc2Type:'sawtooth', osc2Freq:183, volume:0.15, duration:0.7, distortion:500, filterFreq:350, filterQ:10, detune:0 }, delay: 30 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:120, osc2Type:'square', osc2Freq:127, volume:0.15, duration:0.7, distortion:600, filterFreq:240, filterQ:10, detune:0 }, delay: 30 },
+                { name: 'Round', params: { osc1Type:'sine', osc1Freq:600, osc2Type:'sine', osc2Freq:605, volume:0.1, duration:0.6, distortion:300, filterFreq:600, filterQ:20, detune:0 }, delay: 50 },
+                { name: 'Dark', params: { osc1Type:'sawtooth', osc1Freq:90, osc2Type:'square', osc2Freq:90, volume:0.2, duration:0.8, distortion:600, filterFreq:180, filterQ:8, detune:0 }, delay: 0 },
+                { name: 'Crowd 1', params: { osc1Type:'sawtooth', osc1Freq:140, osc2Type:'sawtooth', osc2Freq:143, volume:0.12, duration:0.6, distortion:500, filterFreq:280, filterQ:10, detune:0 }, delay: 100 },
+                { name: 'Crowd 2', params: { osc1Type:'sawtooth', osc1Freq:100, osc2Type:'sawtooth', osc2Freq:104, volume:0.12, duration:0.6, distortion:500, filterFreq:200, filterQ:10, detune:0 }, delay: 150 },
+                { name: 'Rumble', params: { osc1Type:'sawtooth', osc1Freq:45, osc2Type:'sawtooth', osc2Freq:47, volume:0.3, duration:0.9, distortion:600, filterFreq:70, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Menace', params: { osc1Type:'sawtooth', osc1Freq:1500, osc2Type:'sawtooth', osc2Freq:1507, volume:0.06, duration:0.8, distortion:600, filterFreq:1500, filterQ:30, detune:0 }, delay: 100 }
+            ]},
+            'V: YEAH': { layers: [
+                { name: 'Y Glide', params: { osc1Type:'sine', osc1Freq:270, osc2Type:'sine', osc2Freq:2300, volume:0.15, duration:0.08, distortion:200, filterFreq:1500, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:150, osc2Type:'sawtooth', osc2Freq:151, volume:0.3, duration:0.6, distortion:400, filterFreq:350, filterQ:3, detune:0 }, delay: 40 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:300, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.6, distortion:400, filterFreq:600, filterQ:3, detune:0 }, delay: 40 },
+                { name: 'F1 /ɛ/', params: { osc1Type:'sine', osc1Freq:530, osc2Type:'sine', osc2Freq:535, volume:0.25, duration:0.3, distortion:200, filterFreq:530, filterQ:25, detune:0 }, delay: 40 },
+                { name: 'F2 /ɛ/', params: { osc1Type:'sine', osc1Freq:1850, osc2Type:'sine', osc2Freq:1857, volume:0.2, duration:0.3, distortion:200, filterFreq:1850, filterQ:25, detune:0 }, delay: 40 },
+                { name: 'F1 /æ/', params: { osc1Type:'sine', osc1Freq:660, osc2Type:'sine', osc2Freq:665, volume:0.25, duration:0.3, distortion:200, filterFreq:660, filterQ:25, detune:0 }, delay: 250 },
+                { name: 'F2 /æ/', params: { osc1Type:'sine', osc1Freq:1700, osc2Type:'sine', osc2Freq:1707, volume:0.2, duration:0.3, distortion:200, filterFreq:1700, filterQ:25, detune:0 }, delay: 250 },
+                { name: 'F3', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.5, distortion:200, filterFreq:2500, filterQ:20, detune:0 }, delay: 40 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:75, osc2Type:'sawtooth', osc2Freq:76, volume:0.3, duration:0.6, distortion:500, filterFreq:120, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:150, osc2Type:'square', osc2Freq:157, volume:0.15, duration:0.5, distortion:600, filterFreq:300, filterQ:10, detune:0 }, delay: 40 },
+                { name: 'Bright', params: { osc1Type:'sawtooth', osc1Freq:1200, osc2Type:'sawtooth', osc2Freq:1213, volume:0.08, duration:0.4, distortion:500, filterFreq:1200, filterQ:15, detune:0 }, delay: 60 },
+                { name: 'Punch', params: { osc1Type:'square', osc1Freq:200, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.1, distortion:600, filterFreq:400, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Rise', params: { osc1Type:'sawtooth', osc1Freq:400, osc2Type:'sawtooth', osc2Freq:800, volume:0.1, duration:0.4, distortion:400, filterFreq:600, filterQ:8, detune:0 }, delay: 100 },
+                { name: 'Shimmer', params: { osc1Type:'sine', osc1Freq:3000, osc2Type:'sine', osc2Freq:3005, volume:0.06, duration:0.5, distortion:300, filterFreq:3000, filterQ:25, detune:0 }, delay: 100 },
+                { name: 'Breath', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:6000, volume:0.04, duration:0.3, distortion:600, filterFreq:5500, filterQ:2, detune:0 }, delay: 300 }
+            ]},
+            'V: NO': { layers: [
+                { name: 'N Nasal', params: { osc1Type:'sine', osc1Freq:250, osc2Type:'sine', osc2Freq:255, volume:0.2, duration:0.12, distortion:300, filterFreq:270, filterQ:30, detune:0 }, delay: 0 },
+                { name: 'N Res', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.08, duration:0.1, distortion:200, filterFreq:2500, filterQ:20, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:120, osc2Type:'sawtooth', osc2Freq:121, volume:0.3, duration:0.6, distortion:400, filterFreq:280, filterQ:3, detune:0 }, delay: 60 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:240, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.6, distortion:400, filterFreq:450, filterQ:3, detune:0 }, delay: 60 },
+                { name: 'F1 /oʊ/', params: { osc1Type:'sine', osc1Freq:500, osc2Type:'sine', osc2Freq:505, volume:0.25, duration:0.3, distortion:200, filterFreq:500, filterQ:25, detune:0 }, delay: 80 },
+                { name: 'F2 /oʊ/', params: { osc1Type:'sine', osc1Freq:800, osc2Type:'sine', osc2Freq:805, volume:0.2, duration:0.3, distortion:200, filterFreq:800, filterQ:25, detune:0 }, delay: 80 },
+                { name: 'F1 Close', params: { osc1Type:'sine', osc1Freq:350, osc2Type:'sine', osc2Freq:355, volume:0.22, duration:0.3, distortion:200, filterFreq:350, filterQ:25, detune:0 }, delay: 300 },
+                { name: 'F3', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.55, distortion:200, filterFreq:2500, filterQ:20, detune:0 }, delay: 80 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:60, osc2Type:'sawtooth', osc2Freq:61, volume:0.35, duration:0.7, distortion:500, filterFreq:100, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:120, osc2Type:'square', osc2Freq:127, volume:0.15, duration:0.6, distortion:600, filterFreq:240, filterQ:10, detune:0 }, delay: 60 },
+                { name: 'Body', params: { osc1Type:'sawtooth', osc1Freq:180, osc2Type:'sawtooth', osc2Freq:185, volume:0.12, duration:0.5, distortion:500, filterFreq:350, filterQ:10, detune:0 }, delay: 60 },
+                { name: 'Dark', params: { osc1Type:'sawtooth', osc1Freq:80, osc2Type:'square', osc2Freq:80, volume:0.2, duration:0.6, distortion:600, filterFreq:160, filterQ:8, detune:0 }, delay: 0 },
+                { name: 'Round', params: { osc1Type:'sine', osc1Freq:650, osc2Type:'sine', osc2Freq:655, volume:0.08, duration:0.5, distortion:300, filterFreq:650, filterQ:20, detune:0 }, delay: 80 },
+                { name: 'Stern', params: { osc1Type:'sawtooth', osc1Freq:1000, osc2Type:'sawtooth', osc2Freq:1007, volume:0.06, duration:0.4, distortion:500, filterFreq:1000, filterQ:20, detune:0 }, delay: 100 },
+                { name: 'Finality', params: { osc1Type:'sawtooth', osc1Freq:45, osc2Type:'square', osc2Freq:90, volume:0.3, duration:0.5, distortion:600, filterFreq:70, filterQ:5, detune:0 }, delay: 350 }
+            ]},
+            'V: GO': { layers: [
+                { name: 'G Burst', params: { osc1Type:'square', osc1Freq:100, osc2Type:'sawtooth', osc2Freq:250, volume:0.35, duration:0.04, distortion:600, filterFreq:300, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:160, osc2Type:'sawtooth', osc2Freq:161, volume:0.3, duration:0.5, distortion:400, filterFreq:350, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:320, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.5, distortion:400, filterFreq:600, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'F1 /oʊ/', params: { osc1Type:'sine', osc1Freq:500, osc2Type:'sine', osc2Freq:505, volume:0.25, duration:0.25, distortion:200, filterFreq:500, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F2 /oʊ/', params: { osc1Type:'sine', osc1Freq:800, osc2Type:'sine', osc2Freq:805, volume:0.2, duration:0.25, distortion:200, filterFreq:800, filterQ:25, detune:0 }, delay: 30 },
+                { name: 'F1 Close', params: { osc1Type:'sine', osc1Freq:350, osc2Type:'sine', osc2Freq:355, volume:0.25, duration:0.25, distortion:200, filterFreq:350, filterQ:25, detune:0 }, delay: 200 },
+                { name: 'F3', params: { osc1Type:'sine', osc1Freq:2500, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.45, distortion:200, filterFreq:2500, filterQ:20, detune:0 }, delay: 30 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:80, osc2Type:'sawtooth', osc2Freq:81, volume:0.35, duration:0.5, distortion:500, filterFreq:130, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:160, osc2Type:'square', osc2Freq:167, volume:0.15, duration:0.4, distortion:600, filterFreq:320, filterQ:10, detune:0 }, delay: 30 },
+                { name: 'Power', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:400, volume:0.15, duration:0.4, distortion:500, filterFreq:400, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Attack', params: { osc1Type:'sawtooth', osc1Freq:1000, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.15, distortion:500, filterFreq:1200, filterQ:10, detune:0 }, delay: 0 },
+                { name: 'Bright', params: { osc1Type:'sine', osc1Freq:1500, osc2Type:'sine', osc2Freq:1507, volume:0.08, duration:0.3, distortion:400, filterFreq:1500, filterQ:15, detune:0 }, delay: 50 },
+                { name: 'Urgency', params: { osc1Type:'sawtooth', osc1Freq:600, osc2Type:'sawtooth', osc2Freq:607, volume:0.1, duration:0.3, distortion:500, filterFreq:600, filterQ:15, detune:0 }, delay: 80 },
+                { name: 'Thump', params: { osc1Type:'sine', osc1Freq:50, osc2Type:'off', osc2Freq:220, volume:0.4, duration:0.08, distortion:300, filterFreq:80, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Air', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:6000, volume:0.04, duration:0.3, distortion:600, filterFreq:5500, filterQ:2, detune:0 }, delay: 0 }
+            ]},
+            'V: OOF': { layers: [
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:100, osc2Type:'sawtooth', osc2Freq:101, volume:0.3, duration:0.5, distortion:500, filterFreq:230, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'off', osc2Freq:220, volume:0.2, duration:0.5, distortion:500, filterFreq:400, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'F1 /u:/', params: { osc1Type:'sine', osc1Freq:300, osc2Type:'sine', osc2Freq:304, volume:0.3, duration:0.3, distortion:200, filterFreq:300, filterQ:25, detune:0 }, delay: 0 },
+                { name: 'F2 /u:/', params: { osc1Type:'sine', osc1Freq:870, osc2Type:'sine', osc2Freq:875, volume:0.2, duration:0.3, distortion:200, filterFreq:870, filterQ:25, detune:0 }, delay: 0 },
+                { name: 'F3 /u:/', params: { osc1Type:'sine', osc1Freq:2250, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.3, distortion:200, filterFreq:2250, filterQ:20, detune:0 }, delay: 0 },
+                { name: 'F Noise', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:6000, volume:0.12, duration:0.25, distortion:600, filterFreq:5500, filterQ:3, detune:0 }, delay: 280 },
+                { name: 'F Noise 2', params: { osc1Type:'sawtooth', osc1Freq:4000, osc2Type:'sawtooth', osc2Freq:5500, volume:0.1, duration:0.2, distortion:600, filterFreq:5000, filterQ:3, detune:0 }, delay: 300 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:50, osc2Type:'sawtooth', osc2Freq:51, volume:0.4, duration:0.6, distortion:600, filterFreq:80, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Gut Punch', params: { osc1Type:'sine', osc1Freq:60, osc2Type:'off', osc2Freq:220, volume:0.45, duration:0.1, distortion:400, filterFreq:100, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:100, osc2Type:'square', osc2Freq:107, volume:0.15, duration:0.4, distortion:600, filterFreq:200, filterQ:10, detune:0 }, delay: 0 },
+                { name: 'Wheeze', params: { osc1Type:'sawtooth', osc1Freq:600, osc2Type:'sawtooth', osc2Freq:607, volume:0.1, duration:0.3, distortion:500, filterFreq:600, filterQ:20, detune:0 }, delay: 200 },
+                { name: 'Deflate', params: { osc1Type:'sawtooth', osc1Freq:400, osc2Type:'off', osc2Freq:220, volume:0.12, duration:0.3, distortion:400, filterFreq:500, filterQ:10, detune:0 }, delay: 300 },
+                { name: 'Pain', params: { osc1Type:'sawtooth', osc1Freq:150, osc2Type:'sawtooth', osc2Freq:155, volume:0.2, duration:0.5, distortion:600, filterFreq:300, filterQ:15, detune:0 }, delay: 0 },
+                { name: 'Crumple', params: { osc1Type:'square', osc1Freq:80, osc2Type:'sawtooth', osc2Freq:2000, volume:0.15, duration:0.15, distortion:600, filterFreq:500, filterQ:1, detune:0 }, delay: 350 },
+                { name: 'Drop', params: { osc1Type:'sawtooth', osc1Freq:40, osc2Type:'square', osc2Freq:80, volume:0.35, duration:0.4, distortion:600, filterFreq:60, filterQ:5, detune:0 }, delay: 250 }
+            ]},
+            'V: WOMP WOMP': { layers: [
+                { name: 'W1 Glide', params: { osc1Type:'sine', osc1Freq:300, osc2Type:'sine', osc2Freq:870, volume:0.15, duration:0.06, distortion:200, filterFreq:600, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Glottal 1', params: { osc1Type:'sawtooth', osc1Freq:130, osc2Type:'sawtooth', osc2Freq:131, volume:0.3, duration:0.35, distortion:400, filterFreq:300, filterQ:3, detune:0 }, delay: 30 },
+                { name: 'F1 /ɒ/ 1', params: { osc1Type:'sine', osc1Freq:600, osc2Type:'sine', osc2Freq:605, volume:0.25, duration:0.3, distortion:200, filterFreq:600, filterQ:25, detune:0 }, delay: 40 },
+                { name: 'F2 /ɒ/ 1', params: { osc1Type:'sine', osc1Freq:1000, osc2Type:'sine', osc2Freq:1005, volume:0.2, duration:0.3, distortion:200, filterFreq:1000, filterQ:25, detune:0 }, delay: 40 },
+                { name: 'M Nasal 1', params: { osc1Type:'sine', osc1Freq:280, osc2Type:'sine', osc2Freq:285, volume:0.2, duration:0.15, distortion:300, filterFreq:300, filterQ:30, detune:0 }, delay: 250 },
+                { name: 'P Burst 1', params: { osc1Type:'square', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:3000, volume:0.2, duration:0.03, distortion:600, filterFreq:1000, filterQ:1, detune:0 }, delay: 380 },
+                { name: 'W2 Glide', params: { osc1Type:'sine', osc1Freq:300, osc2Type:'sine', osc2Freq:870, volume:0.15, duration:0.06, distortion:200, filterFreq:600, filterQ:5, detune:0 }, delay: 450 },
+                { name: 'Glottal 2', params: { osc1Type:'sawtooth', osc1Freq:110, osc2Type:'sawtooth', osc2Freq:111, volume:0.3, duration:0.4, distortion:400, filterFreq:250, filterQ:3, detune:0 }, delay: 480 },
+                { name: 'F1 /ɒ/ 2', params: { osc1Type:'sine', osc1Freq:600, osc2Type:'sine', osc2Freq:605, volume:0.25, duration:0.35, distortion:200, filterFreq:600, filterQ:25, detune:0 }, delay: 490 },
+                { name: 'F2 /ɒ/ 2', params: { osc1Type:'sine', osc1Freq:1000, osc2Type:'sine', osc2Freq:1005, volume:0.2, duration:0.35, distortion:200, filterFreq:1000, filterQ:25, detune:0 }, delay: 490 },
+                { name: 'M Nasal 2', params: { osc1Type:'sine', osc1Freq:250, osc2Type:'sine', osc2Freq:255, volume:0.2, duration:0.2, distortion:300, filterFreq:270, filterQ:30, detune:0 }, delay: 680 },
+                { name: 'P Burst 2', params: { osc1Type:'square', osc1Freq:180, osc2Type:'sawtooth', osc2Freq:2500, volume:0.2, duration:0.03, distortion:600, filterFreq:800, filterQ:1, detune:0 }, delay: 830 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:55, osc2Type:'sawtooth', osc2Freq:56, volume:0.35, duration:1.0, distortion:500, filterFreq:90, filterQ:5, detune:0 }, delay: 0 },
+                { name: 'Grit', params: { osc1Type:'square', osc1Freq:130, osc2Type:'square', osc2Freq:137, volume:0.12, duration:0.9, distortion:600, filterFreq:260, filterQ:10, detune:0 }, delay: 30 },
+                { name: 'Sadness', params: { osc1Type:'sawtooth', osc1Freq:45, osc2Type:'square', osc2Freq:90, volume:0.3, duration:0.5, distortion:600, filterFreq:70, filterQ:5, detune:0 }, delay: 600 }
+            ]},
+            'V: SPLAT': { layers: [
+                { name: 'S Noise', params: { osc1Type:'sawtooth', osc1Freq:5000, osc2Type:'sawtooth', osc2Freq:6000, volume:0.12, duration:0.12, distortion:600, filterFreq:5500, filterQ:3, detune:0 }, delay: 0 },
+                { name: 'P Burst', params: { osc1Type:'square', osc1Freq:100, osc2Type:'sawtooth', osc2Freq:300, volume:0.35, duration:0.03, distortion:600, filterFreq:250, filterQ:3, detune:0 }, delay: 100 },
+                { name: 'L Liquid', params: { osc1Type:'sine', osc1Freq:400, osc2Type:'sine', osc2Freq:410, volume:0.15, duration:0.08, distortion:300, filterFreq:500, filterQ:15, detune:0 }, delay: 120 },
+                { name: 'Glottal', params: { osc1Type:'sawtooth', osc1Freq:140, osc2Type:'sawtooth', osc2Freq:141, volume:0.3, duration:0.3, distortion:500, filterFreq:300, filterQ:3, detune:0 }, delay: 130 },
+                { name: 'F1 /æ/', params: { osc1Type:'sine', osc1Freq:660, osc2Type:'sine', osc2Freq:665, volume:0.25, duration:0.2, distortion:200, filterFreq:660, filterQ:25, detune:0 }, delay: 140 },
+                { name: 'F2 /æ/', params: { osc1Type:'sine', osc1Freq:1700, osc2Type:'sine', osc2Freq:1707, volume:0.2, duration:0.2, distortion:200, filterFreq:1700, filterQ:25, detune:0 }, delay: 140 },
+                { name: 'F3 /æ/', params: { osc1Type:'sine', osc1Freq:2400, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.2, distortion:200, filterFreq:2400, filterQ:20, detune:0 }, delay: 140 },
+                { name: 'T Burst', params: { osc1Type:'square', osc1Freq:3000, osc2Type:'sawtooth', osc2Freq:5000, volume:0.2, duration:0.03, distortion:600, filterFreq:4000, filterQ:3, detune:0 }, delay: 330 },
+                { name: 'Impact', params: { osc1Type:'sawtooth', osc1Freq:50, osc2Type:'square', osc2Freq:4000, volume:0.45, duration:0.1, distortion:600, filterFreq:2000, filterQ:1, detune:0 }, delay: 130 },
+                { name: 'Splatter', params: { osc1Type:'sawtooth', osc1Freq:200, osc2Type:'sawtooth', osc2Freq:213, volume:0.3, duration:0.3, distortion:600, filterFreq:400, filterQ:25, detune:0 }, delay: 150 },
+                { name: 'Goo', params: { osc1Type:'sawtooth', osc1Freq:100, osc2Type:'sawtooth', osc2Freq:108, volume:0.25, duration:0.4, distortion:600, filterFreq:200, filterQ:20, detune:0 }, delay: 180 },
+                { name: 'Drip 1', params: { osc1Type:'sine', osc1Freq:2000, osc2Type:'off', osc2Freq:220, volume:0.1, duration:0.04, distortion:0, filterFreq:2500, filterQ:10, detune:0 }, delay: 400 },
+                { name: 'Drip 2', params: { osc1Type:'sine', osc1Freq:2200, osc2Type:'off', osc2Freq:220, volume:0.08, duration:0.04, distortion:0, filterFreq:2700, filterQ:10, detune:0 }, delay: 500 },
+                { name: 'Sub', params: { osc1Type:'sawtooth', osc1Freq:45, osc2Type:'sawtooth', osc2Freq:47, volume:0.4, duration:0.5, distortion:600, filterFreq:70, filterQ:5, detune:0 }, delay: 100 },
+                { name: 'Mess', params: { osc1Type:'square', osc1Freq:80, osc2Type:'sawtooth', osc2Freq:3000, volume:0.2, duration:0.2, distortion:600, filterFreq:1500, filterQ:1, detune:0 }, delay: 200 }
             ]}
         };
 
@@ -1905,7 +2082,8 @@
                     { label: '2-Stack Combos', counts: [2] },
                     { label: '3-Stack Combos', counts: [3] },
                     { label: '5-Stack Combos', counts: [4, 5] },
-                    { label: '10-Stack Combos', counts: [6, 7, 8, 9, 10] }
+                    { label: '10-Stack Combos', counts: [6, 7, 8, 9, 10] },
+                    { label: '15-Stack Voices', counts: [11, 12, 13, 14, 15] }
                 ];
 
                 tiers.forEach(function(tier) {
@@ -2250,7 +2428,7 @@
         }
 
         // --- Sound Stack ---
-        var MAX_LAYERS = 10;
+        var MAX_LAYERS = 15;
         var stackLayers = []; // [{name, params, delay}]
 
         window.removeLayer = function(idx) {
