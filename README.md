@@ -55,7 +55,7 @@ The landing page handles session creation and joining. These pages aren't linked
 
 ## License
 
-[Anti-Capitalist Software License v1.4](LICENSE) — https://anticapitalist.software/
+[Anti-Capitalist Software License v1.4](https://anticapitalist.software/)
 
 ## Credits
 
