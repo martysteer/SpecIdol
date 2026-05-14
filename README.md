@@ -4,147 +4,58 @@ A live "Pop Idol for writers" web application for speculative fiction convention
 
 ## Features
 
-- **Multiple concurrent sessions** - run many games simultaneously
-- **Auto-assign judge IDs** - judges join, get sequential numbers (1, 2, 3...)
-- **Session list interface** - click to select session, no typing codes
-- **Real-time WebSocket coordination** between multiple clients
-- **Auto-scrolling story text** synchronized across all views
-- **Judge buzzer system** with big red buttons (mobile-optimized)
-- **Audience projector view** with CRT effects, judge panels, animations, sound
-- **Controller interface** with story queue, round controls, import/export
-- **Synthesized sound effects** - countdown beeps, judge buzzes, victory fanfare, ahooga horn (Web Audio API, no audio files)
-- **Countdown system** with visual and audio sync (3-2-1-GO!)
-- **Retro/campy aesthetic** with pixel fonts, neon colors, game show vibe
-- **No build step, no framework** - pure HTML/CSS/JS + Python WebSocket server
+Four browser views connect over WebSockets to a Python relay server — no database, no build step, no framework. Everything is ephemeral and runs from static HTML/JS/CSS.
+
+The **controller** manages the session: queueing stories, starting rounds, controlling scroll speed, and importing/exporting session data as JSON. The **judge view** is a mobile-optimized big red buzzer button — judges join a session and get auto-assigned IDs. The **audience view** is a projector-friendly display with CRT effects, animated judge panels, and a retro game show aesthetic (pixel fonts, neon colours, scanlines).
+
+Sound is fully synthesized via Web Audio API — no audio files. A 3-2-1-GO countdown plays beeps synced to the visual countdown. Judge buzzes are EAS-style tones that escalate (1 beep, 2, 3) as each judge buzzes in sequence. Victory gets an ascending major arpeggio with shimmer; defeat gets an ahooga horn. Multiple sessions can run concurrently.
 
 ## Quick Start
 
-### Option 1: Docker (Recommended)
-
-```bash
-make docker   # Build Docker image
-make servers  # Run container
+```
+make help
 ```
 
-**Production ports:**
-- Web interface: `http://localhost` (port 80)
-- WebSocket relay: `ws://localhost:8765`
+```
+SpecIdol Makefile commands:
 
-To stop: `make stop`
+Docker commands:
+  make docker      Build Docker image
+  make servers     Run Docker container (port 80 + 8765)
+  make stop        Stop and remove Docker container
+  make restart     Stop, rebuild, and restart container
+  make clean       Stop container, remove container and image
 
-### Option 2: Local Development (No Docker)
+Local development commands:
+  make dev         Run without Docker (port 80 + 8765, needs sudo)
+  make dev-stop    Stop local dev servers
 
-```bash
-# Install dependencies
-cd server
-pip3 install -r requirements.txt
-cd ..
-
-# Start servers
-make dev
+Quick start:
+  make docker && make servers
+  Then visit http://localhost
 ```
 
-**Development ports:**
-- Web interface: `http://localhost:8000` (port 8000 - no sudo needed)
-- WebSocket relay: `ws://localhost:8765`
+For deployment details, see [docs/docker-deployment-plan.md](docs/docker-deployment-plan.md).
 
-To stop: `make dev-stop`
+## Using the App
 
-**Note:** Dev mode uses port 8000 to avoid requiring sudo. Docker/production uses standard port 80.
-
-### Using the App
-
-**1. Create a Session**
-1. Open `http://localhost` in a browser
-2. Click **"Create Session"** → redirects to controller
-3. Note the 4-letter session code displayed
-
-**2. Join as Judge**
-1. Open `http://localhost` on mobile devices (or browser tabs)
-2. Select the session from the list
-3. Click **"Join as Judge"**
-4. Auto-assigned sequential ID (1, 2, 3...)
-
-**3. Join as Audience**
-1. Open `http://localhost` on projector laptop
-2. Select the session from the list
-3. Click **"Join as Audience"**
-
-**4. Run the Event**
-In the Controller view:
-1. Add stories (title + text)
-2. Click story row to select
-3. Click **"Start Round"**
-4. Speed controls: 1x/2x/3x, play/pause
-5. Judges buzz when done
-6. All judges buzz → "BUZZED OUT"
-7. Timer reaches limit → "SURVIVOR!"
+Create a session from the landing page — this opens the controller. Judges and audience join by selecting the session from the list on their own devices. Load stories into the queue (or import a JSON bundle), select one, and start the round. The countdown plays, text begins scrolling, and judges can buzz at any time. If all judges buzz, the reader is out. If the timer runs out, they survive.
 
 ## Architecture
 
-- **Server**: Python WebSocket relay (`server/relay.py`) holds session state in memory
-- **Clients**: Static HTML/CSS/JS (`www/`) connect via WebSocket, compute timer/scroll locally
-- **No database**: Session lost on server restart (ephemeral event app)
+The server (`server/relay.py`) is a stateless WebSocket relay that holds session state in memory. Clients (`www/`) are static files served by nginx (Docker) or Python's http.server (dev). Timer and scroll are computed client-side; the server coordinates events.
 
-## Import/Export Sessions
+### Behind the Scenes
 
-In the Controller, use the **Import/Export** panel to:
-- **Export**: Copy session JSON (stories + config) to clipboard
-- **Import**: Paste session JSON to pre-load stories
+The landing page handles session creation and joining. These pages aren't linked from the UI and need to be navigated to manually:
 
-Example JSON:
-```json
-{
-  "stories": [
-    {"title": "Story One", "text": "Once upon a time..."},
-    {"title": "Story Two", "text": "In a galaxy far away..."}
-  ],
-  "config": {
-    "timer_duration": 120,
-    "judge_count": 3
-  }
-}
-```
-
-## Configuration
-
-Edit `server/relay.py` to change defaults:
-- `timer_duration`: seconds (default 120 = 2:00)
-
-Judge count is unlimited - as many judges as connect will participate.
-
-## Deployment
-
-See [docs/docker-deployment-plan.md](docs/docker-deployment-plan.md) for complete deployment guide.
-
-### Quick Deploy to DigitalOcean
-
-1. **Create Droplet** (Ubuntu 22.04, $4-6/mo)
-2. **Install Docker** and clone repo
-3. **Configure firewall** (ports 22, 80, 8765)
-4. **Build and run**: `docker build -t specidol . && docker run -d --name specidol --restart unless-stopped -p 80:80 -p 8765:8765 specidol`
-5. **Setup GitHub Actions** (optional): Add secrets, deploy with one click
-
-Access at `http://YOUR_DROPLET_IP`
-
-### Local Network Deployment
-
-Run Docker on laptop connected to venue WiFi. Devices on same network access via laptop's IP.
-
-## Browser Compatibility
-
-- **Chrome/Edge**: Full support
-- **Firefox**: Full support
-- **Safari**: Full support (Web Audio API works)
-- **Mobile Safari/Chrome**: Optimized for portrait (judge view)
+- **`/control.html`** — controller/host interface (if you close the tab after creating a session, navigate back here and rejoin)
+- **`/judge-test.html`** — multi-judge testing scaffold, simulates multiple judges in one browser
+- **`/buzz-tester.html`** — synthesizer workbench for designing and auditioning all the game sounds (71 single presets, combo stacks up to 15 layers, formant voice synthesis)
 
 ## License
 
-Anti-Capitalist Software License v1.4
-
-See [LICENSE](LICENSE) file for full text.
-
-https://anticapitalist.software/
+[Anti-Capitalist Software License v1.4](LICENSE) — https://anticapitalist.software/
 
 ## Credits
 
