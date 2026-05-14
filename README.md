@@ -12,6 +12,8 @@ A live "Pop Idol for writers" web application for speculative fiction convention
 - **Judge buzzer system** with big red buttons (mobile-optimized)
 - **Audience projector view** with CRT effects, judge panels, animations, sound
 - **Controller interface** with story queue, round controls, import/export
+- **Synthesized sound effects** - countdown beeps, judge buzzes, victory fanfare, ahooga horn (Web Audio API, no audio files)
+- **Countdown system** with visual and audio sync (3-2-1-GO!)
 - **Retro/campy aesthetic** with pixel fonts, neon colors, game show vibe
 - **No build step, no framework** - pure HTML/CSS/JS + Python WebSocket server
 
@@ -146,4 +148,4 @@ https://anticapitalist.software/
 
 ## Credits
 
-Built for a speculative fiction writers' convention. Inspired by Pop Idol and game show aesthetics.
+Built for [TriCon Halifax](https://tricon-halifax.com/) (The Trident Conference for Speculative Fiction), Atlantic Canada's literary conference for writers of speculative fiction. Inspired by Pop Idol and game show aesthetics.
