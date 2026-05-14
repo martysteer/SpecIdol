@@ -434,6 +434,12 @@ class Countdown {
     showNumber(num) {
         if (this.cancelled || !this.container) return;
 
+        if (num > 0 && typeof playCountdownBeep === 'function') {
+            playCountdownBeep();
+        } else if (num === 0 && typeof playCountdownGo === 'function') {
+            playCountdownGo();
+        }
+
         var display = document.createElement('div');
         display.className = 'countdown-number';
         display.textContent = num === 0 ? 'GO!' : num;

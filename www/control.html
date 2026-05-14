@@ -764,11 +764,9 @@
             timerEl.style.display = 'flex';
             timerEl.textContent = '0:00.0';
 
-            // Show first paragraph during countdown
+            // Clear dimmed preview and show first paragraph
             if (data.first_line) {
-                const liveText = document.getElementById('liveStoryText');
-                const placeholder = liveText.querySelector('.empty-text');
-                if (placeholder) placeholder.remove();
+                document.getElementById('liveStoryText').innerHTML = '';
                 appendStoryLine(data.first_line);
             }
 
@@ -800,7 +798,7 @@
                 if (buzzedCount >= totalJudges && totalJudges > 0) {
                     setTimeout(() => {
                         playFinalCombo(Object.values(client.judgeSounds || {}));
-                    }, 500);
+                    }, 900);
                 }
             }
         });
