@@ -134,8 +134,7 @@
 
             .outcome {
                 font-size: calc(var(--text-display) * 2);
-                width: 90vw;
-                word-break: break-word;
+                white-space: nowrap;
             }
 
             .judge-cell {
@@ -516,7 +515,7 @@
 
         // Audio overlay: initialize sounds.js AudioContext on user interaction
         function enableAudio() {
-            getAudioContext(); // From sounds.js — initializes and resumes
+            unlockAudio(); // Play silent buffer to unlock iOS audio
             document.getElementById('audioOverlay').style.display = 'none';
         }
 

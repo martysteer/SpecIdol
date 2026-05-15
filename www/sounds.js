@@ -18,6 +18,18 @@ function getAudioContext() {
     return audioContext;
 }
 
+// iOS Safari requires playing a sound during a user gesture to fully unlock audio.
+// Call this from a click/touchend handler.
+function unlockAudio() {
+    const ctx = getAudioContext();
+    if (!ctx) return;
+    const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+}
+
 function prefersReducedMotion() {
     return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
