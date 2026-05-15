@@ -515,7 +515,7 @@
 
         // Audio overlay: initialize sounds.js AudioContext on user interaction
         function enableAudio() {
-            unlockAudio(); // Play silent buffer to unlock iOS audio
+            try { unlockAudio(); } catch(e) { getAudioContext(); }
             document.getElementById('audioOverlay').style.display = 'none';
         }
 
