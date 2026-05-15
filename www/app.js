@@ -324,15 +324,15 @@ function calculateInitials(judges) {
     return result;
 }
 
-function renderJudgePanelCells(containerId, judges) {
+function renderJudgePanelCells(containerId, judges, preserveBuzzed = true) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
-    // Preserve buzzed state across re-renders
-    const buzzedIds = new Set(
+    // Preserve buzzed state across mid-round re-renders (e.g. judge join/leave)
+    const buzzedIds = preserveBuzzed ? new Set(
         [...container.querySelectorAll('.judge-cell.buzzed')]
             .map(el => parseInt(el.dataset.judge))
-    );
+    ) : new Set();
 
     const initials = calculateInitials(judges);
     container.innerHTML = judges.map(j =>

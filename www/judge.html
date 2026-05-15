@@ -264,10 +264,9 @@
             if (timer) timer.stop();
             if (countdown) countdown.cancel();
 
-            document.getElementById('storyTitle').textContent = data.story_title || '';
-
             const main = document.getElementById('main');
             main.innerHTML = `
+                <div class="story-title" id="storyTitle" aria-live="polite">${data.story_title || ''}</div>
                 <button class="buzz-button" id="buzzButton" onclick="buzz()" aria-label="Buzz out the reader" disabled>
                     BUZZ
                 </button>
@@ -275,7 +274,7 @@
                     <div class="buzz-count" id="buzzCountDisplay" aria-live="polite">0 of ${connectedJudges.length} buzzed</div>
                 </div>
             `;
-            renderJudgePanels();
+            renderJudgePanels(false);
 
             // Show header timer (reset to 0)
             const headerTimer = document.getElementById('headerTimer');
@@ -462,10 +461,9 @@
 
         function startRound(roundData) {
             buzzed = false;
-            document.getElementById('storyTitle').textContent = roundData.title || '';
-
             const main = document.getElementById('main');
             main.innerHTML = `
+                <div class="story-title" id="storyTitle" aria-live="polite">${roundData.title || ''}</div>
                 <button class="buzz-button" id="buzzButton" onclick="buzz()" aria-label="Buzz out the reader">
                     BUZZ
                 </button>
@@ -474,7 +472,7 @@
                 </div>
             `;
 
-            renderJudgePanels();
+            renderJudgePanels(false);
 
             // Show header timer
             const headerTimer = document.getElementById('headerTimer');
@@ -501,8 +499,8 @@
             client.buzz(myJudgeId);
         }
 
-        function renderJudgePanels() {
-            renderJudgePanelCells('judgePanels', connectedJudges);
+        function renderJudgePanels(preserveBuzzed = true) {
+            renderJudgePanelCells('judgePanels', connectedJudges, preserveBuzzed);
             updateBuzzCount();
         }
 
@@ -539,8 +537,7 @@
             if (timer) timer.stop();
             if (countdown) countdown.cancel();
             buzzed = false;
-            document.getElementById('storyTitle').textContent = '';
-            document.getElementById('main').innerHTML = '<div class="waiting">Waiting for round to start...</div>';
+            document.getElementById('main').innerHTML = '<div class="story-title" id="storyTitle" aria-live="polite"></div><div class="waiting">Waiting for round to start...</div>';
             document.getElementById('headerTimer').style.display = 'none';
             document.querySelectorAll('.judge-cell').forEach(cell => {
                 cell.classList.remove('buzzed');

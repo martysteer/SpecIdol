@@ -436,8 +436,8 @@
             }
         });
 
-        function renderJudgePanels() {
-            renderJudgePanelCells('judgePanels', connectedJudges);
+        function renderJudgePanels(preserveBuzzed = true) {
+            renderJudgePanelCells('judgePanels', connectedJudges, preserveBuzzed);
         }
 
         function startRound(roundData) {
