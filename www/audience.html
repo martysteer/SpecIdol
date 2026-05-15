@@ -220,6 +220,10 @@
                     overlay.classList.add('hidden');
                 }
             }
+            // Set initial timer visibility
+            if (data.timer_visible === false) {
+                document.getElementById('headerTimer').classList.add('timer-force-hidden');
+            }
             if (data.stories) {
                 document.getElementById('storyCount').textContent = data.stories.length;
             }
@@ -270,12 +274,9 @@
                 // Countdown complete — start timer (only if round_started hasn't already)
                 if (!timer || !timer.intervalId) {
                     timer = new Timer(
-                        timerDuration,
+                        Infinity,
                         (elapsed) => {
                             document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                        },
-                        () => {
-                            if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
                         }
                     );
                     timer.startTime = Date.now() / 1000;
@@ -295,6 +296,15 @@
             }
         });
 
+        client.on('toggle_timer_visibility', (data) => {
+            const timerEl = document.getElementById('headerTimer');
+            if (data.visible) {
+                timerEl.classList.remove('timer-force-hidden');
+            } else {
+                timerEl.classList.add('timer-force-hidden');
+            }
+        });
+
         client.on('round_started', (data) => {
             if (data.server_time) updateClockOffset(data.server_time);
 
@@ -311,12 +321,9 @@
 
             if (timer) timer.stop();
             timer = new Timer(
-                timerDuration,
+                Infinity,
                 (elapsed) => {
                     document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                },
-                () => {
-                    if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
                 }
             );
             timer.start(data.start_time || (Date.now() / 1000));

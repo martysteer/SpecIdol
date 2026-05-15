@@ -46,13 +46,14 @@ def create_new_session(code):
         "next_judge_id": 1,
         "judge_sounds": {},  # {judge_id: sound_index (0-4)}
         "audience_qr_visible": False,
+        "timer_visible": True,
         "buzz_history": []  # [{judge_id, judge_name, time, timestamp}, ...]
     }
 
 CONTROLLER_ONLY = {"add_story", "remove_story", "update_story", "round_start",
                     "speed_change", "pause", "resume", "reset_round", "text_advance",
                     "import_session", "eject_judges", "shutdown_audience", "delete_session",
-                    "countdown_start", "toggle_audience_qr"}
+                    "countdown_start", "toggle_audience_qr", "toggle_timer_visibility"}
 
 def get_connected_judges(session):
     """Return sorted list of {id, name} for connected judges"""
@@ -160,6 +161,7 @@ async def handle_message(websocket, message_data):
                 "connected_judges": connected_judges,
                 "judge_sounds": session["judge_sounds"],
                 "audience_qr_visible": session["audience_qr_visible"],
+                "timer_visible": session["timer_visible"],
                 "server_time": time.time()
             }
         }))
@@ -503,24 +505,6 @@ async def handle_message(websocket, message_data):
                 "data": outcome_data
             })
 
-    elif msg_type == "victory":
-        # Client detected timer reached limit
-        if session["current_round"]["status"] == "running":
-            session["current_round"]["status"] = "victory"
-            outcome_data = {
-                "outcome": "victory",
-                "buzzes": session["current_round"]["buzzes"],
-                "duration": session["config"]["timer_duration"]
-            }
-            session["history"].append({
-                "title": session["current_round"]["title"],
-                **outcome_data
-            })
-            await broadcast_to_session(session_code, {
-                "type": "round_ended",
-                "data": outcome_data
-            })
-
     elif msg_type == "set_judge_name":
         client_info = session["clients"].get(websocket, {})
         if client_info.get("role") != "judge":
@@ -609,6 +593,24 @@ async def handle_message(websocket, message_data):
         if audience_clients:
             await asyncio.gather(
                 *[ws.send(message) for ws in audience_clients],
+                return_exceptions=True
+            )
+
+    elif msg_type == "toggle_timer_visibility":
+        visible = data.get("visible", True)
+        session["timer_visible"] = visible
+        # Broadcast to audience and judge clients
+        target_clients = [
+            ws for ws, info in session["clients"].items()
+            if info.get("role") in ("audience", "judge") and ws.open
+        ]
+        message = json.dumps({
+            "type": "toggle_timer_visibility",
+            "data": {"visible": visible}
+        })
+        if target_clients:
+            await asyncio.gather(
+                *[ws.send(message) for ws in target_clients],
                 return_exceptions=True
             )
 

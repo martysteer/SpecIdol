@@ -452,34 +452,33 @@
         }
 
         .btn-pause:hover:not(:disabled),
-        .btn-reset:hover:not(:disabled),
-        .btn-qr-toggle:hover:not(:disabled) {
+        .btn-reset:hover:not(:disabled) {
             opacity: 1;
         }
 
-        /* QR toggle button */
-        .btn-qr-toggle {
-            font-size: var(--text-caption);
-            padding: 0.4rem 0.8rem;
-            background: var(--black);
-            color: var(--neon-yellow);
-            border-color: var(--neon-yellow);
-        }
-
-        .btn-qr-toggle:hover:not(:disabled) {
-            background: var(--neon-yellow);
-            color: var(--black);
-            box-shadow: 0 0 20px var(--neon-yellow);
-        }
-
-        /* Judge QR in round controls */
-        .judge-qr {
+        /* Judge/Audience config section */
+        .judge-audience-config {
             margin-top: auto;
             padding-top: 1rem;
         }
 
-        .judge-qr img {
+        .judge-audience-config img {
             display: block;
+        }
+
+        .config-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: var(--text-caption);
+            margin-bottom: 0.4rem;
+            cursor: pointer;
+        }
+
+        .config-checkbox input[type="checkbox"] {
+            accent-color: var(--neon-yellow);
+            width: 1rem;
+            height: 1rem;
         }
 
         /* Countdown on controller: smaller, less prominent */
@@ -573,11 +572,16 @@
                 <button onclick="advanceText()" id="advanceBtn" class="btn-advance" disabled>Advance Text</button>
                 <button onclick="togglePause()" id="pauseBtn" class="btn-pause" disabled>Pause</button>
                 <button onclick="closeRound()" id="closeBtn" class="btn-reset">Close Round</button>
-                <button onclick="toggleAudienceQR()" id="toggleQRBtn" class="btn-qr-toggle">Show Audience QR</button>
             </div>
             <div id="textProgress" class="text-progress" role="status" aria-live="polite"></div>
-            <details open class="judge-qr">
-                <summary style="cursor:pointer;font-size:var(--text-caption);margin-bottom:0.5rem;">Judge QR Code</summary>
+            <details open class="judge-audience-config">
+                <summary style="cursor:pointer;font-size:var(--text-caption);margin-bottom:0.5rem;">Judge/Audience Config</summary>
+                <label class="config-checkbox">
+                    <input type="checkbox" id="toggleQRCheckbox" onchange="toggleAudienceQR(this.checked)"> Display QR to audience
+                </label>
+                <label class="config-checkbox">
+                    <input type="checkbox" id="toggleTimerCheckbox" checked onchange="toggleTimerVisibility(this.checked)"> Display timer to audience/judges
+                </label>
                 <div id="judgeQRContainer"></div>
             </details>
         </div>
@@ -721,8 +725,11 @@
 
             // Set audience QR toggle state
             audienceQRVisible = data.audience_qr_visible !== false;
-            const toggleBtn = document.getElementById('toggleQRBtn');
-            toggleBtn.textContent = audienceQRVisible ? 'Hide Audience QR' : 'Show Audience QR';
+            document.getElementById('toggleQRCheckbox').checked = audienceQRVisible;
+
+            // Set timer visibility toggle state
+            const timerVisible = data.timer_visible !== false;
+            document.getElementById('toggleTimerCheckbox').checked = timerVisible;
         });
 
         client.on('judge_joined', (data) => {
@@ -843,12 +850,9 @@
             // Start header timer
             const timerEl = document.getElementById('headerTimer');
             timerEl.style.display = 'flex';
-            const duration = (sessionState && sessionState.config) ? sessionState.config.timer_duration : 120;
             if (timer) timer.stop();
-            timer = new Timer(duration, (elapsed) => {
+            timer = new Timer(Infinity, (elapsed) => {
                 timerEl.textContent = formatTime(elapsed);
-            }, () => {
-                playVictoryFanfare();
             });
             timer.start(data.start_time || (Date.now() / 1000));
 
@@ -877,7 +881,7 @@
 
         client.on('resumed', (data) => {
             updateStatus('running', currentLineProgress.position, currentLineProgress.total);
-            if (timer) timer.resume(data.start_time || (Date.now() / 1000));
+            if (timer) timer.resume(data.timestamp - data.elapsed);
             if (sessionState) {
                 sessionState.current_round.status = 'running';
                 renderMgmtQueue();
@@ -1272,11 +1276,13 @@
             }
         }
 
-        function toggleAudienceQR() {
-            audienceQRVisible = !audienceQRVisible;
+        function toggleAudienceQR(visible) {
+            audienceQRVisible = visible;
             client.send('toggle_audience_qr', { visible: audienceQRVisible });
-            document.getElementById('toggleQRBtn').textContent =
-                audienceQRVisible ? 'Hide Audience QR' : 'Show Audience QR';
+        }
+
+        function toggleTimerVisibility(visible) {
+            client.send('toggle_timer_visibility', { visible: visible });
         }
 
         function advanceText() {

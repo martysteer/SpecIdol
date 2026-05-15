@@ -199,6 +199,10 @@
             if (data.stories) {
                 document.getElementById('storyCount').textContent = data.stories.length;
             }
+            // Set initial timer visibility
+            if (data.timer_visible === false) {
+                document.getElementById('headerTimer').classList.add('timer-force-hidden');
+            }
             // Update connected judges and own name
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
@@ -245,6 +249,15 @@
             }
         });
 
+        client.on('toggle_timer_visibility', (data) => {
+            const timerEl = document.getElementById('headerTimer');
+            if (data.visible) {
+                timerEl.classList.remove('timer-force-hidden');
+            } else {
+                timerEl.classList.add('timer-force-hidden');
+            }
+        });
+
         client.on('countdown_start', (data) => {
             // Reset judge state fully
             buzzed = false;
@@ -278,12 +291,9 @@
 
                 if (!timer || !timer.intervalId) {
                     timer = new Timer(
-                        timerDuration,
+                        Infinity,
                         (elapsed) => {
                             document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                        },
-                        () => {
-                            if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
                         }
                     );
                     timer.startTime = Date.now() / 1000;
@@ -472,13 +482,9 @@
 
             if (timer) timer.stop();
             timer = new Timer(
-                timerDuration,
+                Infinity,
                 (elapsed) => {
                     document.getElementById('headerTimer').textContent = formatTime(elapsed);
-                },
-                () => {
-                    // Timer complete (victory)
-                    if (typeof playVictoryFanfare === 'function') playVictoryFanfare();
                 }
             );
             timer.start(roundData.start_time);

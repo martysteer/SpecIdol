@@ -151,10 +151,6 @@ class SpecIdolClient {
         this.send('buzz', { judge_id: judgeId });
     }
 
-    victory() {
-        this.send('victory');
-    }
-
     resetRound() {
         this.send('reset_round');
     }
@@ -170,10 +166,9 @@ class SpecIdolClient {
 
 // Timer utilities
 class Timer {
-    constructor(duration, onTick, onComplete) {
-        this.duration = duration; // seconds
+    constructor(duration, onTick) {
+        this.duration = duration; // seconds (Infinity = count up forever)
         this.onTick = onTick;
-        this.onComplete = onComplete;
         this.startTime = null;
         this.pausedAt = null;
         this.elapsedAtPause = 0;
@@ -223,12 +218,6 @@ class Timer {
         const elapsed = this.getElapsed();
         if (this.onTick) {
             this.onTick(elapsed);
-        }
-        if (elapsed >= this.duration) {
-            this.stop();
-            if (this.onComplete) {
-                this.onComplete();
-            }
         }
     }
 }

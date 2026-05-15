@@ -278,6 +278,10 @@ input:focus, textarea:focus, select:focus {
     white-space: nowrap;
 }
 
+.header-timer.timer-force-hidden {
+    display: none !important;
+}
+
 /* QR code overlay */
 .qr-overlay {
     position: fixed;
