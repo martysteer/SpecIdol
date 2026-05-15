@@ -418,12 +418,7 @@
         }
 
         /* Story edit panel */
-        #storyEditPanel {
-            border-left: 2px solid var(--neon-yellow);
-            padding-left: 1rem;
-        }
-
-        #storyEditPanel > *:not(summary) {
+        .story-edit-details > *:not(summary) {
             margin-top: 0.5rem;
         }
 
@@ -494,14 +489,15 @@
         }
 
         .btn-add-story {
-            background: var(--neon-yellow);
-            color: var(--black);
+            background: var(--black);
+            color: var(--neon-yellow);
             border-color: var(--neon-yellow);
+            align-self: flex-start;
         }
 
         .btn-add-story:hover:not(:disabled) {
-            background: var(--black);
-            color: var(--neon-yellow);
+            background: var(--neon-yellow);
+            color: var(--black);
             box-shadow: 0 0 20px var(--neon-yellow);
         }
 
@@ -597,15 +593,30 @@
     <div class="collapsible story-management" id="storyManagement">
         <h2 onclick="toggleSection('storyManagement')">
             <span class="arrow">▼</span>
-            Story Management
+            Story Queue
         </h2>
         <div class="section-content">
             <div class="management-section">
-                <h3>Story Queue</h3>
                 <ul class="story-queue" id="mgmtStoryQueue"></ul>
-                <div class="queue-actions">
-                    <button onclick="addNewStory()" class="btn-add-story">+ Add Story</button>
-                </div>
+            </div>
+
+            <div class="management-section">
+                <button onclick="addNewStory()" class="btn-add-story" style="font-size:var(--text-caption);padding:0.4rem 0.8rem;">+ Add Story</button>
+                <details class="story-edit-details" id="storyEditPanel">
+                    <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;" id="storyFormTitle">Add / Edit Story</summary>
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" id="storyTitle" placeholder="Story title">
+                    </div>
+                    <div class="form-group">
+                        <label>Text:</label>
+                        <textarea id="storyText" placeholder="Story text..."></textarea>
+                    </div>
+                    <div class="edit-actions">
+                        <button onclick="saveStory()" id="saveStoryBtn" disabled>Update</button>
+                        <button onclick="removeEditingStory()" id="removeStoryBtn" class="btn-reset">Remove</button>
+                    </div>
+                </details>
                 <details style="margin-top: 0.5rem;">
                     <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;">Import / Export</summary>
                     <div style="margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem;">
@@ -617,22 +628,6 @@
                     </div>
                 </details>
             </div>
-
-            <details class="management-section" id="storyEditPanel">
-                <summary style="cursor:pointer;font-size:var(--text-caption);opacity:0.7;" id="storyFormTitle">Add / Edit Story</summary>
-                <div class="form-group">
-                    <label>Title:</label>
-                    <input type="text" id="storyTitle" placeholder="Story title">
-                </div>
-                <div class="form-group">
-                    <label>Text:</label>
-                    <textarea id="storyText" placeholder="Story text..."></textarea>
-                </div>
-                <div class="edit-actions">
-                    <button onclick="saveStory()" id="saveStoryBtn" disabled>Update</button>
-                    <button onclick="removeEditingStory()" id="removeStoryBtn" class="btn-reset">Remove</button>
-                </div>
-            </details>
         </div>
     </div>
 
@@ -1100,7 +1095,7 @@
                 return `
                     <li class="story-item ${isCurrent ? 'current' : ''} ${editingClass} ${disabledClass}" onclick="selectStory(${i})">
                         <div class="story-info">
-                            <strong>${escapeHtml(story.title)}</strong>
+                            <strong>${i + 1}. ${escapeHtml(story.title)}</strong>
                         </div>
                         ${statusHtml}
                     </li>
@@ -1117,8 +1112,6 @@
             editingStoryIndex = index;
             formDirty = false;
 
-            const panel = document.getElementById('storyEditPanel');
-            panel.open = true;
             document.getElementById('storyFormTitle').textContent = 'Edit: ' + story.title;
             document.getElementById('saveStoryBtn').textContent = 'Update';
             document.getElementById('saveStoryBtn').disabled = true;
