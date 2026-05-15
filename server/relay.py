@@ -160,6 +160,7 @@ async def handle_message(websocket, message_data):
                 "client_info": session["clients"][websocket],
                 "connected_judges": connected_judges,
                 "judge_sounds": session["judge_sounds"],
+                "audience_count": sum(1 for c in session["clients"].values() if c.get("role") == "audience"),
                 "audience_qr_visible": session["audience_qr_visible"],
                 "timer_visible": session["timer_visible"],
                 "server_time": time.time()

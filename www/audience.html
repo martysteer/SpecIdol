@@ -230,6 +230,9 @@
             if (data.stories) {
                 document.getElementById('storyCount').textContent = data.stories.length;
             }
+            if (data.audience_count !== undefined) {
+                document.getElementById('audienceCount').textContent = data.audience_count;
+            }
             // Render judge panels based on connected judges
             if (data.connected_judges) {
                 connectedJudges = data.connected_judges;
@@ -518,8 +521,8 @@
         }
 
         // Audio overlay: initialize sounds.js AudioContext on user interaction
-        function enableAudio() {
-            try { unlockAudio(); } catch(e) { getAudioContext(); }
+        async function enableAudio() {
+            try { await unlockAudio(); } catch(e) { getAudioContext(); }
             document.getElementById('audioOverlay').style.display = 'none';
         }
 

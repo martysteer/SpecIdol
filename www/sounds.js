@@ -20,9 +20,13 @@ function getAudioContext() {
 
 // iOS Safari requires playing a sound during a user gesture to fully unlock audio.
 // Call this from a click/touchend handler.
-function unlockAudio() {
+async function unlockAudio() {
     const ctx = getAudioContext();
     if (!ctx) return;
+    // Await resume — iOS won't unlock until this resolves
+    if (ctx.state === 'suspended') {
+        await ctx.resume();
+    }
     const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
     const src = ctx.createBufferSource();
     src.buffer = buf;
